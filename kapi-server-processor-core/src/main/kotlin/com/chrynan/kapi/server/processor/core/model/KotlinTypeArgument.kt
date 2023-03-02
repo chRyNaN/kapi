@@ -21,5 +21,5 @@ import kotlinx.serialization.SerialName
 @Serializable
 data class KotlinTypeArgument(
     @SerialName(value = "variance") val variance: KotlinGenericVariance,
-    @SerialName(value = "type") val type: KotlinTypeUsage
+    @SerialName(value = "type") val type: KotlinTypeUsage? = null
 )

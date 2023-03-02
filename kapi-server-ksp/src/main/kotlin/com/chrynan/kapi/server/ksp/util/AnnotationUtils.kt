@@ -4,6 +4,7 @@ package com.chrynan.kapi.server.ksp.util
 
 import com.chrynan.kapi.server.processor.core.model.KotlinAnnotationUsage
 import com.chrynan.kapi.server.processor.core.model.KotlinName
+import com.chrynan.kapi.server.processor.core.model.KotlinTypeUsage
 import com.google.devtools.ksp.*
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.*
@@ -37,15 +38,12 @@ internal fun <A : Annotation> Resolver.getSymbolsWithAnnotation(
 /**
  * Converts this [KSAnnotation] to a [KotlinAnnotationUsage].
  */
-internal fun KSAnnotation.toKotlinAnnotation(): KotlinAnnotationUsage {
-    val type = this.annotationType.resolve()
-
-    return KotlinAnnotationUsage(
-        typeName = type.declaration.kotlinName,
+internal fun KSAnnotation.toKotlinAnnotation(): KotlinAnnotationUsage =
+    KotlinAnnotationUsage(
+        type = this.annotationType.toKotlinTypeUsage(),
         arguments = this.arguments.map { it.toKotlinAnnotationArgument() },
         defaultArguments = this.defaultArguments.map { it.toKotlinAnnotationArgument() }
     )
-}
 
 /**
  * Converts this [KSAnnotation] to an instance of the provided [annotationClass] of type [T] or throws an exception if
@@ -88,7 +86,7 @@ private fun KSValueArgument.toKotlinAnnotationArgument(): KotlinAnnotationUsage.
     return KotlinAnnotationUsage.Argument(
         name = this.name?.asString(),
         isSpread = this.isSpread,
-        typeName = typeName,
+        type = typeName?.let { KotlinTypeUsage(name = it) },
         value = annotationValue
     )
 }

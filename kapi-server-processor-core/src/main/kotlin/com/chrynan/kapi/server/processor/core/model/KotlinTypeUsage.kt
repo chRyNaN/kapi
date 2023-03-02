@@ -11,10 +11,12 @@ import kotlinx.serialization.SerialName
  * @property [name] The [KotlinName] of the type.
  * @property [typeArguments] The generic type arguments provided to this type at its use-site.
  * @property [isNullable] Whether the type is nullable, meaning there is a trailing question mark at its use-site.
+ * @property [annotations] Any annotations applied to this [KotlinTypeUsage].
  */
 @Serializable
 data class KotlinTypeUsage(
     @SerialName(value = "name") val name: KotlinName,
     @SerialName(value = "type_arguments") val typeArguments: List<KotlinTypeArgument> = emptyList(),
-    @SerialName(value = "nullable") val isNullable: Boolean = false
+    @SerialName(value = "nullable") val isNullable: Boolean = false,
+    @SerialName(value = "annotations") val annotations: List<KotlinAnnotationUsage> = emptyList()
 )
