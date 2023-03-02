@@ -3,18 +3,14 @@ package com.chrynan.kapi.server.ksp
 import com.chrynan.kapi.core.annotation.Api
 import com.chrynan.kapi.server.ksp.util.getSymbolsWithAnnotation
 import com.chrynan.kapi.server.ksp.util.toApiDefinition
+import com.chrynan.kapi.server.processor.core.ApiProcessor
 import com.chrynan.kapi.server.processor.core.model.ApiDefinition
-import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
-@OptIn(KspExperimental::class)
 class KapiSymbolProcessor(
-    private val codeGenerator: CodeGenerator,
-    private val logger: KSPLogger
+    private val apiProcessors: List<ApiProcessor>
 ) : SymbolProcessor {
 
     /**
@@ -41,19 +37,9 @@ class KapiSymbolProcessor(
 
         allApis.addAll(apiDefinitions)
 
-        val outputStream = codeGenerator.createNewFile(
-            dependencies = Dependencies(false),
-            packageName = "",
-            fileName = "Test",
-            extensionName = "json"
-        )
-
-        val writer = outputStream.bufferedWriter()
-
-        writer.write(Json.encodeToString(apiDefinitions))
-
-        writer.close()
-        outputStream.close()
+        apiProcessors.forEach { processor ->
+            processor.process(round = roundCount, currentApis = apiDefinitions, allApis = allApis)
+        }
 
         roundCount++
 

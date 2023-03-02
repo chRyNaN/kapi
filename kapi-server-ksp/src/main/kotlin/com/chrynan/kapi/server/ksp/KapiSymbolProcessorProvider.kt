@@ -8,7 +8,11 @@ class KapiSymbolProcessorProvider : SymbolProcessorProvider {
 
     override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor =
         KapiSymbolProcessor(
-            codeGenerator = environment.codeGenerator,
-            logger = environment.logger
+            apiProcessors = listOf(
+                JsonApiProcessor(
+                    logger = environment.logger,
+                    codeGenerator = environment.codeGenerator
+                )
+            )
         )
 }
