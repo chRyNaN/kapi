@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ApiFunction(
-    @SerialName(value = "name") val name: String,
+    @SerialName(value = "name") val name: KotlinName,
     @SerialName(value = "documentation") val documentation: String? = null,
     @SerialName(value = "method") val method: HttpMethod,
     @SerialName(value = "path") val path: String,

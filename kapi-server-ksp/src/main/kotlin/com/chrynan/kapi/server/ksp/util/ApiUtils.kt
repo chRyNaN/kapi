@@ -109,7 +109,7 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
     val responseBody = this.returnType?.toKotlinTypeUsage()?.let { ApiResponseBody(type = it) }
 
     return ApiFunction(
-        name = functionName,
+        name = this.kotlinName,
         documentation = this.docString,
         method = httpMethod,
         path = path,
