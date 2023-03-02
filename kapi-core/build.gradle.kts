@@ -34,10 +34,10 @@ kotlin {
         }
         val commonMain by getting {
             dependencies {
-                api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0-RC")
-                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-                api("io.ktor:ktor-http:2.2.2")
-                api("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+                api(KotlinX.serialization.json)
+                api(KotlinX.coroutines.core)
+                api("io.ktor:ktor-http:_")
+                api(KotlinX.datetime)
             }
         }
 

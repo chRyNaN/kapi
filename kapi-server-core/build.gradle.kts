@@ -22,9 +22,9 @@ kotlin {
             dependencies {
                 api(project(":kapi-core"))
 
-                implementation("io.ktor:ktor-server-core:2.2.2")
-                implementation("io.ktor:ktor-client-content-negotiation:2.2.2")
-                implementation("io.ktor:ktor-serialization-kotlinx-json:2.2.2")
+                implementation(Ktor.server.core)
+                implementation(Ktor.client.contentNegotiation)
+                implementation("io.ktor:ktor-serialization-kotlinx-json:_")
             }
         }
     }

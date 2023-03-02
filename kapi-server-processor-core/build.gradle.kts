@@ -14,8 +14,9 @@ version = LibraryConstants.versionName
 dependencies {
     api(project(":kapi-core"))
     api(project(":kapi-server-core"))
-    api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0-RC")
-    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+
+    api(KotlinX.serialization.json)
+    api(KotlinX.coroutines.core)
 }
 
 tasks.withType<Jar> { duplicatesStrategy = DuplicatesStrategy.INHERIT }

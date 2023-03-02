@@ -18,12 +18,12 @@ dependencies {
     implementation(project(":kapi-server-processor-ktor"))
     implementation(project(":kapi-server-processor-openapi"))
 
-    implementation("io.ktor:ktor-server-core:2.2.2")
+    implementation(Ktor.server.core)
 
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0-RC")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+    implementation(KotlinX.serialization.json)
+    implementation(KotlinX.coroutines.core)
 
-    implementation("com.google.devtools.ksp:symbol-processing-api:1.8.0-1.0.8")
+    implementation("com.google.devtools.ksp:symbol-processing-api:_")
 }
 
 tasks.withType<Jar> { duplicatesStrategy = DuplicatesStrategy.INHERIT }

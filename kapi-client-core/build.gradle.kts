@@ -36,7 +36,7 @@ kotlin {
             dependencies {
                 api(project(":kapi-core"))
 
-                implementation("io.ktor:ktor-client-core:2.2.2")
+                implementation(Ktor.client.core)
             }
         }
 
