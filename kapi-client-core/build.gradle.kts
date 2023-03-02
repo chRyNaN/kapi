@@ -1,4 +1,5 @@
 import com.chrynan.kapi.buildSrc.LibraryConstants
+import com.chrynan.kapi.buildSrc.isBuildingOnOSX
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -15,8 +16,12 @@ version = LibraryConstants.versionName
 kotlin {
     jvm()
     android()
-    ios()
-    iosSimulatorArm64()
+
+    if (isBuildingOnOSX()) {
+        ios()
+        iosSimulatorArm64()
+    }
+
     js(IR) {
         browser {
         }
@@ -34,9 +39,12 @@ kotlin {
                 implementation("io.ktor:ktor-client-core:2.2.2")
             }
         }
-        val iosMain by sourceSets.getting
-        val iosSimulatorArm64Main by sourceSets.getting
-        iosSimulatorArm64Main.dependsOn(iosMain)
+
+        if (isBuildingOnOSX()) {
+            val iosMain by sourceSets.getting
+            val iosSimulatorArm64Main by sourceSets.getting
+            iosSimulatorArm64Main.dependsOn(iosMain)
+        }
     }
 }
 
