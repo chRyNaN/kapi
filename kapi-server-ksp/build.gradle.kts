@@ -14,9 +14,6 @@ version = LibraryConstants.versionName
 dependencies {
     implementation(project(":kapi-server-core"))
     implementation(project(":kapi-server-processor-core"))
-    implementation(project(":kapi-server-processor-json"))
-    implementation(project(":kapi-server-processor-ktor"))
-    implementation(project(":kapi-server-processor-openapi"))
 
     implementation(Ktor.server.core)
 
@@ -24,6 +21,8 @@ dependencies {
     implementation(KotlinX.coroutines.core)
 
     implementation("com.google.devtools.ksp:symbol-processing-api:_")
+
+    implementation(Square.kotlinPoet)
 }
 
 tasks.withType<Jar> { duplicatesStrategy = DuplicatesStrategy.INHERIT }

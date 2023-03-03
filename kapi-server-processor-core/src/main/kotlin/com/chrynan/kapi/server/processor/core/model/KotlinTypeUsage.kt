@@ -2,6 +2,7 @@
 
 package com.chrynan.kapi.server.processor.core.model
 
+import io.ktor.http.content.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
@@ -90,6 +91,30 @@ val KotlinTypeUsage.isNothing: Boolean
     get() = name.full == "kotlin.Nothing"
 
 /**
+ * Determines if this type is a Kotlin Array.
+ */
+val KotlinTypeUsage.isArray: Boolean
+    get() = name.full == "kotlin.Array"
+
+/**
+ * Determines if this type is a Kotlin ByteArray.
+ */
+val KotlinTypeUsage.isByteArray: Boolean
+    get() = name.full == "kotlin.ByteArray"
+
+/**
+ * Determines if this type is a Kotlin List.
+ */
+val KotlinTypeUsage.isList: Boolean
+    get() = name.full == "kotlin.collections.List"
+
+/**
+ * Determines if this type is a Kotlin Collection.
+ */
+val KotlinTypeUsage.isCollection: Boolean
+    get() = name.full == "kotlin.collections.Collection"
+
+/**
  * Determines if this type is a Kapi Response.
  */
 val KotlinTypeUsage.isResponse: Boolean
@@ -100,3 +125,58 @@ val KotlinTypeUsage.isResponse: Boolean
  */
 val KotlinTypeUsage.isHttpResponse: Boolean
     get() = name.full == "io.ktor.client.statement.HttpResponse"
+
+/**
+ * Determines if this type is a Ktor ApplicationCall.
+ */
+val KotlinTypeUsage.isApplicationCall: Boolean
+    get() = name.full == "io.ktor.server.application.ApplicationCall"
+
+/**
+ * Determines if this type is a Ktor PartData.
+ */
+val KotlinTypeUsage.isPartData: Boolean
+    get() = name.full.startsWith("io.ktor.http.content.PartData")
+
+/**
+ * Determines if this type is a Ktor Input.
+ */
+val KotlinTypeUsage.isInput: Boolean
+    get() = name.full == "io.ktor.utils.io.core.Input"
+
+/**
+ * Determines if this type is a Ktor MultiPartData.
+ */
+val KotlinTypeUsage.isMultiPartData: Boolean
+    get() = name.full == "io.ktor.http.content.MultiPartData"
+
+/**
+ * Determines if this type is a Ktor Route.
+ */
+val KotlinTypeUsage.isRoute: Boolean
+    get() = name.full == "io.ktor.server.routing.Route"
+
+/**
+ * Determines if this type is a Ktor ByteReadChannel.
+ */
+val KotlinTypeUsage.isByteReadChannel: Boolean
+    get() = name.full == "io.ktor.utils.io.ByteReadChannel"
+
+/**
+ * Determines if this type is a Ktor Parameters.
+ */
+val KotlinTypeUsage.isParameters: Boolean
+    get() = name.full == "io.ktor.http.Parameters"
+
+/**
+ * Determines if this type is a java.io.InputStream.
+ */
+val KotlinTypeUsage.isInputStream: Boolean
+    get() = name.full == "java.io.InputStream"
+
+/**
+ * Determines if this type can be converted from path and query parameters of an HTTP request using the Ktor
+ * io.ktor.util.converters.DefaultConversionService.
+ */
+val KotlinTypeUsage.isConvertibleByDefaultConversionService: Boolean
+    get() = this.isBoolean || this.isShort || this.isInt || this.isLong || this.isFloat || this.isDouble || this.isChar || this.isString

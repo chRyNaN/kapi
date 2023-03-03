@@ -171,7 +171,7 @@ internal fun KSValueParameter.toApiParameter(functionName: String): ApiParameter
 
         body != null -> BodyParameter(declaration = this.toKotlinParameterDeclaration())
 
-        this.hasDefault -> DefaultParameter(declaration = this.toKotlinParameterDeclaration())
+        this.hasDefault -> DefaultValueParameter(declaration = this.toKotlinParameterDeclaration())
 
         else -> error("Unsupported API function parameter type.")
     }

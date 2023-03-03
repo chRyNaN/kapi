@@ -131,7 +131,7 @@ data class BodyParameter(
  */
 @Serializable
 @SerialName(value = "default")
-data class DefaultParameter(
+data class DefaultValueParameter(
     @SerialName(value = "declaration") override val declaration: KotlinParameterDeclaration,
 ) : ApiParameter() {
 
@@ -141,14 +141,14 @@ data class DefaultParameter(
 
 /**
  * Represents a function parameter that is not annotated with one of the supported annotations, but is a type that is
- * supported and can be provided processor (ex: The ApplicationCall Ktor type).
+ * supported and can be provided by the processor (ex: The ApplicationCall Ktor type).
  *
  * @property [declaration] The [KotlinParameterDeclaration] representing the Kotlin type, name, modifiers, whether
  * there is a default value for the parameter, etc.
  */
 @Serializable
 @SerialName(value = "supported")
-data class SupportedParameter(
+data class SupportedTypeParameter(
     @SerialName(value = "declaration") override val declaration: KotlinParameterDeclaration,
 ) : ApiParameter() {
 

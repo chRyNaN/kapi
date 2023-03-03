@@ -24,7 +24,7 @@ class JsonApiProcessor(
                     writer.write(Json.encodeToString(allApis))
                 }
             } catch (e: FileAlreadyExistsException) {
-                logger.warn(message = "Json File already exists. Cannot create a new one.")
+                logger.warn(message = "apis.json File already exists; cannot create a new one.")
             }
         }
     }
