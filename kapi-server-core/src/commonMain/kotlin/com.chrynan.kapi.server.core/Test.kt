@@ -8,7 +8,7 @@ import io.ktor.server.util.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 
-fun Route.test(c: ByteReadChannel) {
+fun Route.test(c: ByteReadChannel, list: List<String>) {
     get("") {
         this.call.parameters.get("")
         val name: String = this.call.request.queryParameters.getOrNull("user_name")
@@ -22,6 +22,8 @@ fun Route.test(c: ByteReadChannel) {
         val header: String? = this.call.request.headers.getOrNull(name = "header")
 
         val multiPartDataMap = this.call.receiveMultipart().readAllParts().associateBy { it.name }
+
+        (multiPartDataMap[""] as PartData.FormItem).value
 
         val partData = multiPartDataMap.get("")
 

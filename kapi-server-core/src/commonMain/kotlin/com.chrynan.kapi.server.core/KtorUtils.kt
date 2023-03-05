@@ -1,10 +1,14 @@
 package com.chrynan.kapi.server.core
 
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.plugins.*
 import io.ktor.server.util.*
+import io.ktor.util.*
 import io.ktor.util.converters.*
 import io.ktor.util.reflect.*
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.jvm.javaio.*
 
 /**
  * Retrieves the parameters value associated with this [name] converting to type [R] using [DefaultConversionService]
@@ -48,4 +52,17 @@ inline fun <reified R : Any> Headers.getOrNull(name: String): R? =
         getOrFail(name = name)
     } catch (_: Exception) {
         null
+    }
+
+/**
+ * Converts this [PartData] into a [ByteArray] if possible. If this is a [PartData.FormItem] instance, then an
+ * exception will be thrown as that cannot be converted into an [ByteArray].
+ */
+@Suppress("unused")
+suspend fun PartData.asByteArray(): ByteArray =
+    when (this) {
+        is PartData.FormItem -> error("A PartData.FormItem does not have streaming content and cannot be converted to an Input.")
+        is PartData.FileItem -> this.provider.invoke().readBytes()
+        is PartData.BinaryItem -> this.provider.invoke().readBytes()
+        is PartData.BinaryChannelItem -> this.provider.invoke().toByteArray()
     }

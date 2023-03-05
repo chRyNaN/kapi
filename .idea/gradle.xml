@@ -16,9 +16,6 @@
             <option value="$PROJECT_DIR$/kapi-server-example" />
             <option value="$PROJECT_DIR$/kapi-server-ksp" />
             <option value="$PROJECT_DIR$/kapi-server-processor-core" />
-            <option value="$PROJECT_DIR$/kapi-server-processor-json" />
-            <option value="$PROJECT_DIR$/kapi-server-processor-ktor" />
-            <option value="$PROJECT_DIR$/kapi-server-processor-openapi" />
           </set>
         </option>
       </GradleProjectSettings>

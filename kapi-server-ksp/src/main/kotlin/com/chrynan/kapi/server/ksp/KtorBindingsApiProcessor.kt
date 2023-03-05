@@ -47,13 +47,6 @@ class KtorBindingsApiProcessor(
                 (parameter is BodyParameter && parameter.declaration.type.isParameters) || (parameter is FieldParameter) -> {
                     declareParameters = true
                 }
-
-                parameter is BodyParameter && !parameter.declaration.type.isAnySupportedParameterType -> {
-                    logger.throwError(
-                        message = "Unsupported parameter type ${parameter.declaration.type} for API function ${this.name.full}. The only supported types are " +
-                                anySupportedParameterTypeNames.joinToString(separator = ", ") + "."
-                    )
-                }
             }
         }
 
@@ -61,13 +54,6 @@ class KtorBindingsApiProcessor(
             .filter { it !is DefaultValueParameter && it !is SupportedTypeParameter && it !is PartParameter && it !is BodyParameter }
             .map { parameter ->
                 val type = parameter.declaration.type
-
-                if (!type.isBasicSupportedParameterType) {
-                    logger.throwError(
-                        message = "Unsupported path, query, field, or header parameter type $type for API function ${this.name.full}. The only supported types are " +
-                                basicParameterTypeNames.joinToString(separator = ", ") + "."
-                    )
-                }
 
                 val propertyDeclaration = if (type.isNullable) {
                     "val ${parameter.declaration.name}: ${type.name.full}?"
@@ -78,7 +64,7 @@ class KtorBindingsApiProcessor(
                 val parametersFetcherObject = when (parameter) {
                     is PathParameter -> "this.call.parameters"
                     is QueryParameter -> "this.call.request.queryParameters"
-                    is FieldParameter -> "parameters"
+                    is FieldParameter -> propertyNameParameters
                     is HeaderParameter -> "this.call.request.headers"
                     else -> logger.throwError(message = "Unexpected parameter type ${type.name} for API function ${this.name.full}.")
                 }
@@ -88,8 +74,8 @@ class KtorBindingsApiProcessor(
                 val parametersFetcherFunction =
                     when {
                         type.isList -> "getAll(name = $parameterName)"
-                        type.isCollection -> "getAll(name = $parameterName).toList()"
-                        type.isArray -> "getAll(name = $parameterName).toList()"
+                        type.isCollection -> "getAll(name = $parameterName)"
+                        type.isArray -> "getAll(name = $parameterName).toTypedArray()"
                         else -> "getOrNull(name = $parameterName)"
                     }
 
@@ -104,22 +90,47 @@ class KtorBindingsApiProcessor(
 
         val partDataProperties = this.partParameters.map { parameter ->
             val type = parameter.declaration.type
+            val partDataGetter = "$propertyNameMultipartDataMap[\"${parameter.declaration.name}\"]"
+            val formItemGetter =
+                "$partDataGetter as io.ktor.http.content.PartData.FormItem)"
 
-            if (!type.isPartParameterSupportedType) {
-                logger.throwError(
-                    message = "Unsupported part data parameter type $type for API function ${this.name.full}. The only supported types are " +
-                            partParameterTypeNames.joinToString(separator = ", ") + "."
-                )
+            val propertyDeclaration = if (type.isNullable) {
+                "val ${parameter.declaration.name}: ${type.name.full}?"
+            } else {
+                "val ${parameter.declaration.name}: ${type.name.full}"
             }
+
+            val propertyAssignment = when {
+                type.isBoolean -> "$formItemGetter.value.toBoolean()"
+                type.isByte -> "$formItemGetter.value.toByte()"
+                type.isShort -> "$formItemGetter.value.toShort()"
+                type.isInt -> "$formItemGetter.value.toInt()"
+                type.isLong -> "$formItemGetter.value.toLong()"
+                type.isUByte -> "$formItemGetter.value.toUByte()"
+                type.isUShort -> "$formItemGetter.value.toUShort()"
+                type.isUInt -> "$formItemGetter.value.toUInt()"
+                type.isULong -> "$formItemGetter.value.toULong()"
+                type.isFloat -> "$formItemGetter.value.toFloat()"
+                type.isDouble -> "$formItemGetter.value.toDouble()"
+                type.isChar -> "$formItemGetter.value.toCharArray()[0]"
+                type.isString -> "$formItemGetter.value"
+                type.isPartData && type.name.full.endsWith("FormItem") -> formItemGetter
+                type.isPartData && type.name.full.endsWith("FileItem") -> "($partDataGetter as io.ktor.http.content.PartData.FileItem)"
+                type.isPartData && type.name.full.endsWith("BinaryItem") -> "($partDataGetter as io.ktor.http.content.PartData.BinaryItem)"
+                type.isPartData && type.name.full.endsWith("BinaryChannelItem") -> "($partDataGetter as io.ktor.http.content.PartData.BinaryChannelItem)"
+                type.isPartData -> partDataGetter
+                type.isMultiPartData -> propertyNameMultipartData
+                type.isInputStream -> "$partDataGetter.asInputStream()"
+                type.isInput -> "$partDataGetter.asInput()"
+                type.isByteReadChannel -> "$partDataGetter.asByteReadChannel()"
+                type.isByteArray -> "$partDataGetter.asByteArray()"
+                else -> logger.throwError(message = "Unexpected Part parameter type ${type.name.full} for API function ${this.name.full}.")
+            }
+
+            "$propertyDeclaration = $propertyAssignment"
         }
 
-        val allBodyParameters = this.parameters.filterIsInstance<BodyParameter>()
-
-        if (allBodyParameters.size > 1) {
-            logger.throwError(message = "Only one body parameter is supported for an API function. API function ${this.name.full} contained ${allBodyParameters.size} body parameters.")
-        }
-
-        val bodyProperty = allBodyParameters.firstOrNull()?.let { parameter ->
+        val bodyProperty = this.parameters.filterIsInstance<BodyParameter>().firstOrNull()?.let { parameter ->
             val type = parameter.declaration.type
 
             val bodyDeclaration = "val ${parameter.declaration.name}: ${type.name.full} "
@@ -128,8 +139,8 @@ class KtorBindingsApiProcessor(
                 type.isString -> "this.call.receiveText()"
                 type.isByteReadChannel -> "this.call.receiveChannel()"
                 type.isInputStream -> "this.call.receiveStream()"
-                type.isMultiPartData -> "multipartData"
-                type.isParameters -> "parameters"
+                type.isMultiPartData -> propertyNameMultipartData
+                type.isParameters -> propertyNameParameters
                 type.isNullable -> "this.call.receiveNullable()"
                 else -> "this.call.receive()"
             }
@@ -138,59 +149,16 @@ class KtorBindingsApiProcessor(
         }
 
         extensionReceiver?.let { receiver ->
-            if (!receiver.isSupportedExtensionReceiverType) {
-                logger.throwError(
-                    message = "Unsupported extension receiver type ${receiver.name} for API function ${this.name.full}. The only supported types are " +
-                            extensionReceiverTypeNames.joinToString(separator = ", ") + "."
-                )
-            }
+
         }
 
         return builder.build()
     }
 
-    private val KotlinTypeUsage.isAnySupportedParameterType: Boolean
-        get() = isBasicSupportedParameterType || this.isPartParameterSupportedType || this.isSupportedTypeParameterType
+    companion object {
 
-    private val KotlinTypeUsage.isBasicSupportedParameterType: Boolean
-        get() = this.isConvertibleByDefaultConversionService ||
-                this.isByte ||
-                ((this.isList || this.isCollection || this.isArray) && (this.typeArguments.first().type?.isString
-                    ?: false))
-
-    private val KotlinTypeUsage.isSupportedTypeParameterType: Boolean
-        get() = this.isUnit || this.isApplicationCall || this.isRoute
-
-    private val KotlinTypeUsage.isPartParameterSupportedType: Boolean
-        get() = isBasicSupportedParameterType || this.isPartData || this.isMultiPartData || this.isInput || this.isInputStream || this.isByteReadChannel || this.isByteArray
-
-    private val KotlinTypeUsage.isSupportedExtensionReceiverType: Boolean
-        get() = this.isApplicationCall || this.isRoute
-
-    private val supportedTypeParameterTypeNames: List<String>
-        get() = listOf("kotlin.Unit", "io.ktor.server.application.ApplicationCall", "io.ktor.server.routing.Route")
-
-    private val basicParameterTypeNames: List<String>
-        get() = listOf(
-            "Kotlin primitives",
-            "kotlin.collections.List<String>",
-            "kotlin.collections.Collection<String>",
-            "kotlin.Array<String>"
-        )
-
-    private val partParameterTypeNames: List<String>
-        get() = listOf(
-            "io.ktor.http.content.PartData",
-            "io.ktor.http.content.MultiPartData",
-            "io.ktor.utils.io.core.Input",
-            "java.io.InputStream",
-            "io.ktor.utils.io.ByteReadChannel",
-            "kotlin.ByteArray"
-        )
-
-    private val anySupportedParameterTypeNames: List<String>
-        get() = supportedTypeParameterTypeNames + basicParameterTypeNames + partParameterTypeNames
-
-    private val extensionReceiverTypeNames: List<String>
-        get() = listOf("io.ktor.server.application.ApplicationCall", "io.ktor.server.routing.Route")
+        private const val propertyNameMultipartData = "multipartData"
+        private const val propertyNameMultipartDataMap = "multipartDataMap"
+        private const val propertyNameParameters = "parameters"
+    }
 }

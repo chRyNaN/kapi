@@ -55,6 +55,30 @@ val KotlinTypeUsage.isLong: Boolean
     get() = name.full == "kotlin.Long"
 
 /**
+ * Determines if this type is a Kotlin UByte.
+ */
+val KotlinTypeUsage.isUByte: Boolean
+    get() = name.full == "kotlin.UByte"
+
+/**
+ * Determines if this type is a Kotlin UShort.
+ */
+val KotlinTypeUsage.isUShort: Boolean
+    get() = name.full == "kotlin.UShort"
+
+/**
+ * Determines if this type is a Kotlin UInt.
+ */
+val KotlinTypeUsage.isUInt: Boolean
+    get() = name.full == "kotlin.UInt"
+
+/**
+ * Determines if this type is a Kotlin ULong.
+ */
+val KotlinTypeUsage.isULong: Boolean
+    get() = name.full == "kotlin.ULong"
+
+/**
  * Determines if this type is a Kotlin Float.
  */
 val KotlinTypeUsage.isFloat: Boolean
