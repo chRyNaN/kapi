@@ -1,5 +1,6 @@
 package com.chrynan.kapi.server.core
 
+import com.chrynan.kapi.core.Error
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -7,15 +8,20 @@ import io.ktor.server.routing.*
 import io.ktor.server.util.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import kotlinx.datetime.Instant
 
-fun Route.test(c: ByteReadChannel, list: List<String>) {
+fun Route.test(test: Test) {
+    this@test.get {  }
     get("") {
+        this@test.get {  }
         this.call.parameters.get("")
         val name: String = this.call.request.queryParameters.getOrNull("user_name")
             ?: error("user_name parameter value must be present.")
         val other: Int? = this.call.request.queryParameters.getOrNull(name = "other")
         this.call.parameters.getAll(name = "")
-        this.call.getUser(name = name)
+        test.run {
+            this@test.getUser(name = name)
+        }
 
         this.call.receiveParameters()
         this.call.receiveMultipart()
@@ -27,14 +33,38 @@ fun Route.test(c: ByteReadChannel, list: List<String>) {
 
         val partData = multiPartDataMap.get("")
 
-        when (partData){
-            is PartData.FormItem -> { partData.value }
-            is PartData.FileItem -> { partData.streamProvider }
-            is PartData.BinaryItem -> { partData.provider().asStream() }
+        when (partData) {
+            is PartData.FormItem -> {
+                partData.value
+            }
+
+            is PartData.FileItem -> {
+                partData.streamProvider
+            }
+
+            is PartData.BinaryItem -> {
+                partData.provider().asStream()
+            }
+
             is PartData.BinaryChannelItem -> {}
             null -> {}
         }
+
+        this.call.respondError(
+            error = com.chrynan.kapi.core.Error(
+                type = "",
+                title = "",
+                details = "",
+                status = 0,
+                instance = "",
+                timestamp = kotlinx.datetime.Clock.System.now(),
+                help = "",
+                signature = null
+            )
+        )
     }
 }
 
-fun ApplicationCall.getUser(name: String, other: Int = 0): String = name
+interface Test {
+    fun Route.getUser(name: String, other: Int = 0): String = name
+}

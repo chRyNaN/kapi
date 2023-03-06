@@ -30,6 +30,22 @@ data class KotlinName(
      */
     val isSimple: Boolean
         get() = full == short
+
+    /**
+     * Attempts to retrieve the package name from this [KotlinName] instance. The package name is considered the
+     * [qualifier] value until the first uppercase letter is reached. For instance, consider the [KotlinName] for the
+     * [KotlinName.full] value of `com.example.test.OuterType.InnerType`, then the [KotlinName.qualifier] value would
+     * be `com.example.test.OuterType`, and the [KotlinName.packageName] would be `com.example.test`.
+     *
+     * Note that if [KotlinName.isSimple] returns `true`, then this will result in a `null` value.
+     *
+     * Note that this may not return a correct result in all instances. Use with caution.
+     */
+    val packageName: String?
+        get() = qualifier?.takeWhile { !it.isUpperCase() }
+            ?.removeSuffix(".")
+            ?.trim()
+            ?.takeIf { it.isNotBlank() }
 }
 
 /**

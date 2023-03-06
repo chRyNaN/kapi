@@ -1,8 +1,13 @@
+@file:Suppress("unused")
+
 package com.chrynan.kapi.server.core
 
+import com.chrynan.kapi.core.Error
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.server.application.*
 import io.ktor.server.plugins.*
+import io.ktor.server.response.*
 import io.ktor.server.util.*
 import io.ktor.util.*
 import io.ktor.util.converters.*
@@ -66,3 +71,12 @@ suspend fun PartData.asByteArray(): ByteArray =
         is PartData.BinaryItem -> this.provider.invoke().readBytes()
         is PartData.BinaryChannelItem -> this.provider.invoke().toByteArray()
     }
+
+/**
+ * Responds with the provided [error] applying the [Error.status] code if it is not `null`.
+ */
+suspend fun ApplicationCall.respondError(error: Error) {
+    error.status?.let { statusCode ->
+        this.respond(status = HttpStatusCode.fromValue(statusCode), message = error)
+    } ?: this.respond(message = error)
+}
