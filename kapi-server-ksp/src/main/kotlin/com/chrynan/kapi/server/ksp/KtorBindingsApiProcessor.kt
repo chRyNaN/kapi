@@ -1,12 +1,15 @@
 package com.chrynan.kapi.server.ksp
 
 import com.chrynan.kapi.core.HttpMethod
+import com.chrynan.kapi.server.ksp.util.addPropertyDeclaration
 import com.chrynan.kapi.server.ksp.util.throwError
+import com.chrynan.kapi.server.ksp.util.typeName
 import com.chrynan.kapi.server.processor.core.ApiProcessor
 import com.chrynan.kapi.server.processor.core.model.*
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
+import com.squareup.kotlinpoet.*
 
 class KtorBindingsApiProcessor(
     private val codeGenerator: CodeGenerator,
@@ -42,6 +45,7 @@ class KtorBindingsApiProcessor(
     |package $packageName
     |
     |import com.chrynan.kapi.server.core.*
+    |import io.ktor.server.routing.*
     |
     |${this.toClassString(className = bindingClassName)}
     """.trimMargin()
@@ -54,10 +58,21 @@ class KtorBindingsApiProcessor(
     """.trimMargin()
 
     private fun ApiFunction.toFunString(): String {
+        val function = this
+        val builder = FunSpec.builder(this.name.short)
+
         var declareMultipartData = false
         var declareMultipartDataMap = false
         var declareParameters = false
         val surroundInTryCatch = this.errors.isNotEmpty()
+
+        function.create {
+            catchAnyErrors(function) {
+                httpMethod(function) {
+
+                }
+            }
+        }
 
         this.parameters.forEach { parameter ->
             when {
@@ -76,16 +91,6 @@ class KtorBindingsApiProcessor(
             }
         }
 
-        val httpFunction = when (this.method) {
-            HttpMethod.GET -> "get(path = ${this.path})"
-            HttpMethod.POST -> "post(path = ${this.path})"
-            HttpMethod.PUT -> "put(path = ${this.path})"
-            HttpMethod.PATCH -> "patch(path = ${this.path}"
-            HttpMethod.DELETE -> "delete(path = ${this.path})"
-            HttpMethod.HEAD -> "head(path = ${this.path}"
-            else -> logger.throwError(message = "Unsupported HTTP method ${this.method} for API function ${this.name.full}")
-        }
-
         val parameterProperties = this.parameters
             .filter { it !is DefaultValueParameter && it !is SupportedTypeParameter && it !is PartParameter && it !is BodyParameter }
             .map { parameter -> parameter.toAssignmentDeclaration(function = this) }
@@ -96,45 +101,20 @@ class KtorBindingsApiProcessor(
         val bodyProperty =
             this.parameters.filterIsInstance<BodyParameter>().firstOrNull()?.toAssignmentDeclaration(function = this)
 
-        val functionInvocationPrefix = extensionReceiver?.let { receiver ->
-            when {
-                receiver.isApplicationCall -> "${this.thisRoute}.call"
-                receiver.isRoute -> this.thisRoute
-                else -> logger.throwError(message = "Unexpected Part extension receiver type ${receiver.name.full} for API function ${this.name.full}.")
-            }
-        }
-
-        val parameterAssignments = this.parameters.filter { it !is DefaultValueParameter }
-            .map { parameter -> parameter.toParameterAssignment(function = this) }
-
-        val functionInvocation = if (functionInvocationPrefix != null) {
-            """
-            |${classPropertyNameApi}.apply {
-            |   $functionInvocationPrefix.${this.name.short}(
-            |       ${parameterAssignments.joinToString(",\n|")})
-            |}
-            """.trimMargin()
-        } else {
-            """
-            |${this.name.short}(
-            |       ${parameterAssignments.joinToString(",\n|")})
-            """.trimMargin()
-        }
-
         val errorCatchBlocks = this.errors.map { error -> error.toCatchAndRespondError() }
 
-        val codeBlock = """
-        |$httpFunction {
-        |    ${if (declareMultipartData) "val $propertyNameMultipartData = ${this.thisRoute}.call.receiveMultipart()" else ""}
-        |    ${if (declareMultipartDataMap) "val $propertyNameMultipartDataMap = $propertyNameMultipartData.readAllParts().associateBy { it.name }" else ""}
-        |    ${if (declareParameters) "val $propertyNameParameters = ${this.thisRoute}.call.receiveParameters()" else ""}
-        |
-        |    ${parameterProperties.joinToString(separator = "\n|")}
-        |    ${partDataProperties.joinToString(separator = "\n|")}
-        |    ${bodyProperty ?: ""}
-        |    
-        |    $functionInvocation
-        |}
+        val codeBlock =
+            """
+            |
+            |${if (declareMultipartData) "val $propertyNameMultipartData = ${this.thisRoute}.call.receiveMultipart()" else ""}
+            |${if (declareMultipartDataMap) "val $propertyNameMultipartDataMap = $propertyNameMultipartData.readAllParts().associateBy { it.name }" else ""}
+            |${if (declareParameters) "val $propertyNameParameters = ${this.thisRoute}.call.receiveParameters()" else ""}
+            |
+            |${parameterProperties.joinToString(separator = "\n|")}
+            |${partDataProperties.joinToString(separator = "\n|")}
+            |${bodyProperty ?: ""}
+            |    
+            |${this.invokeApiFunction()}
         """.trimMargin()
 
         val formattedCodeBlock = if (surroundInTryCatch) {
@@ -146,11 +126,9 @@ class KtorBindingsApiProcessor(
             codeBlock
         }
 
-        return """
-        |private fun io.ktor.server.routing.Route.${this.name.short}() {
-        |$formattedCodeBlock
-        |}
-        """.trimMargin()
+        return this.invoke {
+            formattedCodeBlock
+        }
     }
 
     private fun surroundInTryCatch(code: String, errorBlocks: List<String>): String =
@@ -160,14 +138,80 @@ class KtorBindingsApiProcessor(
         |} ${errorBlocks.joinToString(separator = " ")}
         """.trimMargin()
 
-    private fun ApiParameter.toAssignmentDeclaration(function: ApiFunction): String {
-        val type = this.declaration.type
+    private fun ApiFunction.invoke(block: () -> String): String =
+        """
+        |private fun io.ktor.server.routing.Route.${this.name.short}() {
+        |    ${block.invoke()}
+        |}
+        """.trimMargin()
 
-        val propertyDeclaration = if (type.isNullable) {
-            "val ${this.declaration.name}: ${type.name.full}?"
-        } else {
-            "val ${this.declaration.name}: ${type.name.full}"
+    private fun ApiFunction.create(block: CodeBlock.Builder.(function: ApiFunction) -> Unit): FunSpec {
+        val builder = FunSpec.builder(name = this.name.short)
+            .addModifiers(KModifier.PRIVATE)
+            .receiver(ClassName.bestGuess("io.ktor.server.routing.Route"))
+
+        val codeBlockBuilder = CodeBlock.builder()
+
+        codeBlockBuilder.block(this)
+
+        builder.addCode(codeBlockBuilder.build())
+
+        return builder.build()
+    }
+
+    private fun CodeBlock.Builder.httpMethod(
+        function: ApiFunction,
+        block: CodeBlock.Builder.() -> Unit
+    ): CodeBlock.Builder {
+        val builder = this
+
+        when (function.method) {
+            HttpMethod.GET -> builder.beginControlFlow("get(path = %S)", function.path)
+            HttpMethod.POST -> builder.beginControlFlow("post(path = %S)", function.path)
+            HttpMethod.PUT -> builder.beginControlFlow("put(path = %S)", function.path)
+            HttpMethod.PATCH -> builder.beginControlFlow("patch(path = %S)", function.path)
+            HttpMethod.DELETE -> builder.beginControlFlow("delete(path = %S)", function.path)
+            HttpMethod.HEAD -> builder.beginControlFlow("head(path = %S)", function.path)
+            else -> logger.throwError(message = "Unsupported HTTP method ${function.method} for API function ${function.name.full}")
         }
+
+        builder.block()
+
+        return builder
+    }
+
+    private fun ApiFunction.invokeApiFunction(): String {
+        val functionInvocationPrefix = extensionReceiver?.let { receiver ->
+            when {
+                receiver.isApplicationCall -> "${this.thisRoute}.call"
+                receiver.isRoute -> this.thisRoute
+                else -> logger.throwError(message = "Unexpected Part extension receiver type ${receiver.name.full} for API function ${this.name.full}.")
+            }
+        }
+
+        val parameterAssignments = this.parameters.filter { it !is DefaultValueParameter }
+            .map { parameter -> parameter.toParameterAssignment(function = this) }
+
+        return if (functionInvocationPrefix != null) {
+            """
+            |${classPropertyNameApi}.apply {
+            |   $functionInvocationPrefix.${this.name.short}(
+            |       ${parameterAssignments.joinToString(",\n|")})
+            |}
+            """.trimMargin()
+        } else {
+            """
+            |${classPropertyNameApi}.${this.name.short}(
+            |       ${parameterAssignments.joinToString(",\n|")})
+            """.trimMargin()
+        }
+    }
+
+    private fun ApiParameter.toAssignmentDeclaration(function: ApiFunction): CodeBlock {
+        val builder = CodeBlock.builder()
+
+        val type = this.declaration.type
+        val parameterName = this.value?.takeIf { it.isNotBlank() } ?: this.declaration.name
 
         val parametersFetcherObject = when (this) {
             is PathParameter -> "${function.thisRoute}.call.parameters"
@@ -177,36 +221,42 @@ class KtorBindingsApiProcessor(
             else -> logger.throwError(message = "Unexpected parameter type ${type.name} for API function ${function.name.full}.")
         }
 
-        val parameterName = this.value ?: this.declaration.name
-
         val parametersFetcherFunction =
             when {
-                type.isList -> "getAll(name = $parameterName)"
-                type.isCollection -> "getAll(name = $parameterName)"
-                type.isArray -> "getAll(name = $parameterName).toTypedArray()"
-                else -> "getOrNull(name = $parameterName)"
+                type.isList -> "getAll(name = %S)"
+                type.isCollection -> "getAll(name = %S)"
+                type.isArray -> "getAll(name = %S).toTypedArray()"
+                else -> "getOrNull(name = %S)"
             }
 
         val propertyAssignment = if (type.isNullable) {
             "$parametersFetcherObject.$parametersFetcherFunction"
         } else {
-            "$parametersFetcherObject.$parametersFetcherFunction ?: error(\"$parameterName parameter value must be present and not null.\")"
+            "$parametersFetcherObject.$parametersFetcherFunction ?: error(\"%S parameter value must be present and not null.\")"
         }
 
-        return "$propertyDeclaration = $propertyAssignment"
+        builder.addPropertyDeclaration(
+            propertyName = this.declaration.name,
+            propertyTypeName = type.typeName,
+            isNullable = type.isNullable,
+            assignment = propertyAssignment,
+            assignmentArgs = arrayOf(
+                parameterName,
+                parameterName
+            )
+        )
+
+        return builder.build()
     }
 
-    private fun PartParameter.toAssignmentDeclaration(function: ApiFunction): String {
+    private fun PartParameter.toAssignmentDeclaration(function: ApiFunction): CodeBlock {
+        val builder = CodeBlock.builder()
+
         val type = this.declaration.type
+        val parameterName = this.value.takeIf { it.isNotBlank() } ?: this.declaration.name
         val partDataGetter = "$propertyNameMultipartDataMap[\"${this.declaration.name}\"]"
         val formItemGetter =
             "$partDataGetter as io.ktor.http.content.PartData.FormItem)"
-
-        val propertyDeclaration = if (type.isNullable) {
-            "val ${this.declaration.name}: ${type.name.full}?"
-        } else {
-            "val ${this.declaration.name}: ${type.name.full}"
-        }
 
         val propertyAssignment = when {
             type.isBoolean -> "$formItemGetter.value.toBoolean()"
@@ -235,7 +285,18 @@ class KtorBindingsApiProcessor(
             else -> logger.throwError(message = "Unexpected Part parameter type ${type.name.full} for API function ${function.name.full}.")
         }
 
-        return "$propertyDeclaration = $propertyAssignment"
+        builder.addPropertyDeclaration(
+            propertyName = this.declaration.name,
+            propertyTypeName = type.typeName,
+            isNullable = type.isNullable,
+            assignment = propertyAssignment,
+            assignmentArgs = arrayOf(
+                parameterName,
+                parameterName
+            )
+        )
+
+        return builder.build()
     }
 
     private fun BodyParameter.toAssignmentDeclaration(function: ApiFunction): String {
@@ -286,6 +347,46 @@ class KtorBindingsApiProcessor(
             |            help = ${this.help}))
             |}
             """.trimMargin()
+
+    private fun CodeBlock.Builder.catchAnyErrors(
+        function: ApiFunction,
+        block: CodeBlock.Builder.() -> Unit
+    ): CodeBlock.Builder {
+        val builder = this
+
+        if (function.errors.isNotEmpty()) {
+            builder.beginControlFlow("try")
+
+            builder.block()
+
+            function.errors.forEach { error -> builder.catchError(error = error) }
+
+            builder.endControlFlow()
+        } else {
+            builder.block()
+        }
+
+        return builder
+    }
+
+    private fun CodeBlock.Builder.catchError(error: ApiError): CodeBlock.Builder =
+        this.nextControlFlow("_: %T", error.exceptionType.typeName)
+            .addStatement(
+                """
+            |this.call.respondError(
+            |    error = %T(
+            |        type = ${error.type},
+            |        title = ${error.title},
+            |        details = $error.details}.takeIf { it.isNotBlank() },
+            |        status = ${error.statusCode},
+            |        instance = ${error.instance},
+            |        timestamp = %T.now(),
+            |        help = ${error.help}))
+            """.trimMargin(),
+                ClassName.bestGuess("com.chrynan.kapi.core.Error"),
+                ClassName.bestGuess("kotlinx.datetime.Clock.System")
+            )
+            .endControlFlow()
 
     private val ApiFunction.thisRoute: String
         get() = "this@${name.short}"

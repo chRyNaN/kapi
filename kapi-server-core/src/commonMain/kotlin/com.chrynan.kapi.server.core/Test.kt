@@ -9,24 +9,22 @@ import io.ktor.server.util.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.datetime.Instant
+import io.ktor.server.application.call
 
 fun Route.test(test: Test) {
-    this@test.get {  }
     get("") {
-        this@test.get {  }
         this.call.parameters.get("")
         val name: String = this.call.request.queryParameters.getOrNull("user_name")
             ?: error("user_name parameter value must be present.")
         val other: Int? = this.call.request.queryParameters.getOrNull(name = "other")
         this.call.parameters.getAll(name = "")
-        test.run {
+        test.apply {
             this@test.getUser(name = name)
         }
 
         this.call.receiveParameters()
         this.call.receiveMultipart()
         val header: String? = this.call.request.headers.getOrNull(name = "header")
-
         val multiPartDataMap = this.call.receiveMultipart().readAllParts().associateBy { it.name }
 
         (multiPartDataMap[""] as PartData.FormItem).value
