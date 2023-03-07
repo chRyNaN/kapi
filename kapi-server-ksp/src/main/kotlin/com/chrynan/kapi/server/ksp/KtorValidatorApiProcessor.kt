@@ -125,7 +125,7 @@ class KtorValidatorApiProcessor(
                     ?: false))
 
     private val KotlinTypeUsage.isSupportedTypeParameterType: Boolean
-        get() = this.isUnit || this.isApplicationCall || this.isRoute
+        get() = this.isUnit || this.isApplicationCall || this.isRoute || this.isParameters || this.isMultiPartData
 
     private val KotlinTypeUsage.isPartParameterSupportedType: Boolean
         get() = isBasicSupportedParameterType || this.isPartData || this.isMultiPartData || this.isInput || this.isInputStream || this.isByteReadChannel || this.isByteArray
@@ -134,7 +134,13 @@ class KtorValidatorApiProcessor(
         get() = this.isApplicationCall || this.isRoute
 
     private val supportedTypeParameterTypeNames: List<String>
-        get() = listOf("kotlin.Unit", "io.ktor.server.application.ApplicationCall", "io.ktor.server.routing.Route")
+        get() = listOf(
+            "kotlin.Unit",
+            "io.ktor.server.application.ApplicationCall",
+            "io.ktor.server.routing.Route",
+            "io.ktor.http.content.PartData",
+            "io.ktor.http.content.MultiPartData"
+        )
 
     private val basicParameterTypeNames: List<String>
         get() = listOf(

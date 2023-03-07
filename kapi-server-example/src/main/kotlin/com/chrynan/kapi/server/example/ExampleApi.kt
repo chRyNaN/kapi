@@ -1,12 +1,37 @@
 package com.chrynan.kapi.server.example
 
-import com.chrynan.kapi.core.annotation.Api
-import com.chrynan.kapi.core.annotation.GET
-import com.chrynan.kapi.core.annotation.Path
+import com.chrynan.kapi.core.annotation.*
+import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.server.application.*
+import io.ktor.server.plugins.*
+import io.ktor.server.routing.*
 
-@com.chrynan.kapi.core.annotation.Api
+@Api
 interface ExampleApi {
 
-    @com.chrynan.kapi.core.annotation.GET("/user/{id}")
-    suspend fun getUser(@com.chrynan.kapi.core.annotation.Path("id") id: String): String
+    @GET("/user/{id}")
+    @Errors(
+        Error(
+            statusCode = 404,
+            exception = NotFoundException::class,
+            title = ""
+        )
+    )
+    suspend fun getUser(@Path("id") id: String): String
+
+    @POST("/message")
+    suspend fun Route.postMessage(
+        @Body message: String,
+        isEncrypted: Boolean = false
+    )
+
+    @POST("/message/{id}")
+    suspend fun ApplicationCall.editMessage(
+        @Path("id") id: String,
+        @Body message: String,
+        unit: Unit,
+        parameters: Parameters,
+        multiPartData: MultiPartData
+    )
 }

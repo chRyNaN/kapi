@@ -1,6 +1,7 @@
 package com.chrynan.kapi.server.ksp.output
 
 import com.chrynan.kapi.core.HttpMethod
+import com.chrynan.kapi.server.ksp.util.addStatement
 import com.chrynan.kapi.server.ksp.util.controlFlow
 import com.chrynan.kapi.server.ksp.util.throwError
 import com.chrynan.kapi.server.ksp.util.typeName
@@ -35,6 +36,14 @@ class KtorBindingApiFunctionConverter(
                 (parameter is BodyParameter && parameter.declaration.type.isParameters) || (parameter is FieldParameter) -> {
                     declareParameters = true
                 }
+
+                (parameter is SupportedTypeParameter && parameter.declaration.type.isParameters) -> {
+                    declareParameters = true
+                }
+
+                (parameter is SupportedTypeParameter && parameter.declaration.type.isMultiPartData) -> {
+                    declareMultipartData = true
+                }
             }
         }
 
@@ -42,7 +51,6 @@ class KtorBindingApiFunctionConverter(
             catchAnyErrors(function) {
                 httpMethod(function) {
                     addDefaultProperties(
-                        function = function,
                         declareMultipartData = declareMultipartData,
                         declareMultipartDataMap = declareMultipartDataMap,
                         declareParameters = declareParameters
@@ -50,12 +58,14 @@ class KtorBindingApiFunctionConverter(
 
                     function.parameters
                         .filter { it !is DefaultValueParameter && it !is SupportedTypeParameter && it !is PartParameter && it !is BodyParameter }
-                        .map { parameter -> add(parameter.toAssignmentDeclaration(function = function)) }
+                        .map { parameter -> addStatement(parameter.toAssignmentDeclaration(function = function)) }
 
-                    function.partParameters.map { parameter -> add(parameter.toAssignmentDeclaration(function = function)) }
+                    function.partParameters.map { parameter -> addStatement(parameter.toAssignmentDeclaration(function = function)) }
 
                     function.parameters.filterIsInstance<BodyParameter>().firstOrNull()
-                        ?.toAssignmentDeclaration(function = function)?.let { add(it) }
+                        ?.toAssignmentDeclaration()?.let { addStatement(it) }
+
+                    add("\n")
 
                     invokeApiFunction(function = function)
                 }
@@ -69,6 +79,8 @@ class KtorBindingApiFunctionConverter(
             .receiver(ClassName.bestGuess("io.ktor.server.routing.Route"))
 
         val codeBlockBuilder = CodeBlock.builder()
+            .addStatement("val $propertyNameRoute = this")
+            .add("\n")
 
         codeBlockBuilder.block(this)
 
@@ -99,6 +111,9 @@ class KtorBindingApiFunctionConverter(
             function.path
         )
 
+        builder.addStatement("val $propertyNamePipeline = this")
+            .add("\n")
+
         builder.block()
 
         builder.endControlFlow()
@@ -107,14 +122,13 @@ class KtorBindingApiFunctionConverter(
     }
 
     private fun CodeBlock.Builder.addDefaultProperties(
-        function: ApiFunction,
         declareMultipartData: Boolean,
         declareMultipartDataMap: Boolean,
         declareParameters: Boolean
     ): CodeBlock.Builder {
         if (declareMultipartData) {
             this.addStatement(
-                "val $propertyNameMultipartData = ${function.thisRoute}.%M.%M()",
+                "val $propertyNameMultipartData = $propertyNamePipeline.%M.%M()",
                 applicationCallMemberName,
                 MemberName(packageName = "io.ktor.server.request", simpleName = "receiveMultipart", isExtension = true)
             )
@@ -130,10 +144,14 @@ class KtorBindingApiFunctionConverter(
 
         if (declareParameters) {
             this.addStatement(
-                "val $propertyNameParameters = ${function.thisRoute}.%M.%M()",
+                "val $propertyNameParameters = $propertyNamePipeline.%M.%M()",
                 applicationCallMemberName,
                 MemberName(packageName = "io.ktor.server.request", simpleName = "receiveParameters", isExtension = true)
             )
+        }
+
+        if (declareParameters || declareMultipartData || declareMultipartDataMap) {
+            this.add("\n")
         }
 
         return this
@@ -146,22 +164,22 @@ class KtorBindingApiFunctionConverter(
         val propertyName = this.declaration.name
         val parameterName = this.value?.takeIf { it.isNotBlank() } ?: this.declaration.name
 
-        builder.add("val $propertyName = ")
+        builder.add("val $propertyName: %T = ", type.typeName)
 
         when (this) {
             is PathParameter -> builder.add(
-                "${function.thisRoute}.%M.parameters.",
+                "$propertyNamePipeline.%M.parameters.",
                 applicationCallMemberName
             )
 
             is QueryParameter -> builder.add(
-                "${function.thisRoute}.%M.request.queryParameters.",
+                "$propertyNamePipeline.%M.request.queryParameters.",
                 applicationCallMemberName
             )
 
             is FieldParameter -> builder.add("${propertyNameParameters}.")
             is HeaderParameter -> builder.add(
-                "${function.thisRoute}.%M.request.headers.",
+                "$propertyNamePipeline.%M.request.headers.",
                 applicationCallMemberName
             )
 
@@ -213,7 +231,7 @@ class KtorBindingApiFunctionConverter(
 
         if (!type.isNullable) {
             builder.add(
-                " ?: %M(\"%L parameter value must be present and not null.\")",
+                " \n?: %M(\"%L parameter value must be present and not null.\")",
                 MemberName(packageName = "kotlin", simpleName = "error", isExtension = false),
                 parameterName
             )
@@ -371,7 +389,7 @@ class KtorBindingApiFunctionConverter(
         return builder.build()
     }
 
-    private fun BodyParameter.toAssignmentDeclaration(function: ApiFunction): CodeBlock {
+    private fun BodyParameter.toAssignmentDeclaration(): CodeBlock {
         val builder = CodeBlock.builder()
 
         val type = this.declaration.type
@@ -381,25 +399,25 @@ class KtorBindingApiFunctionConverter(
 
         when {
             type.isNullable -> builder.add(
-                "${function.thisRoute}.%M.%M()",
+                "$propertyNamePipeline.%M.%M()",
                 applicationCallMemberName,
                 MemberName(packageName = "io.ktor.server.request", simpleName = "receiveNullable", isExtension = true)
             )
 
             type.isString -> builder.add(
-                "${function.thisRoute}.%M.%M()",
+                "$propertyNamePipeline.%M.%M()",
                 applicationCallMemberName,
                 MemberName(packageName = "io.ktor.server.request", simpleName = "receiveText", isExtension = true)
             )
 
             type.isByteReadChannel -> builder.add(
-                "${function.thisRoute}.%M.%M()",
+                "$propertyNamePipeline.%M.%M()",
                 applicationCallMemberName,
                 MemberName(packageName = "io.ktor.server.request", simpleName = "receiveChannel", isExtension = true)
             )
 
             type.isInputStream -> builder.add(
-                "${function.thisRoute}.%M.%M()",
+                "$propertyNamePipeline.%M.%M()",
                 applicationCallMemberName,
                 MemberName(packageName = "io.ktor.server.request", simpleName = "receiveStream", isExtension = true)
             )
@@ -407,7 +425,7 @@ class KtorBindingApiFunctionConverter(
             type.isMultiPartData -> builder.add(propertyNameMultipartData)
             type.isParameters -> builder.add(propertyNameParameters)
             else -> builder.add(
-                "${function.thisRoute}.%M.%M()",
+                "$propertyNamePipeline.%M.%M()",
                 applicationCallMemberName,
                 MemberName(packageName = "io.ktor.server.request", simpleName = "receive", isExtension = true)
             )
@@ -424,17 +442,17 @@ class KtorBindingApiFunctionConverter(
 
         return builder.controlFlow(
             value = "$classPropertyNameApi.%M",
-            blockWithoutControlFlow = function.extensionReceiver != null,
+            blockWithoutControlFlow = function.extensionReceiver == null,
             args = arrayOf(MemberName(packageName = "kotlin", simpleName = "apply", isExtension = true))
         ) {
             when {
                 receiver == null -> builder.addStatement("${classPropertyNameApi}.${function.name.short}(")
                 receiver.isApplicationCall -> builder.addStatement(
-                    "${function.thisRoute}.%M.${function.name.short}(",
+                    "$propertyNamePipeline.%M.${function.name.short}(",
                     applicationCallMemberName
                 )
 
-                receiver.isRoute -> builder.addStatement("${function.thisRoute}.${function.name.short}(")
+                receiver.isRoute -> builder.addStatement("$propertyNameRoute.${function.name.short}(")
                 else -> logger.throwError(message = "Unexpected Part extension receiver type ${receiver.name.full} for API function ${function.name.full}.")
             }
             indent()
@@ -469,11 +487,13 @@ class KtorBindingApiFunctionConverter(
                 )
 
                 parameterType.isApplicationCall -> builder.addStatement(
-                    "$parameterAndPropertyName = ${function.thisRoute}.%M${if (isLast) "" else ","}",
+                    "$parameterAndPropertyName = $propertyNamePipeline.%M${if (isLast) "" else ","}",
                     applicationCallMemberName
                 )
 
-                parameterType.isRoute -> builder.addStatement("$parameterAndPropertyName = ${function.thisRoute}${if (isLast) "" else ","}")
+                parameterType.isRoute -> builder.addStatement("$parameterAndPropertyName = $propertyNameRoute${if (isLast) "" else ","}")
+                parameterType.isParameters -> builder.addStatement("$parameterAndPropertyName = $propertyNameParameters${if (isLast) "" else ","}")
+                parameterType.isMultiPartData -> builder.addStatement("$parameterAndPropertyName = $propertyNameMultipartData${if (isLast) "" else ","}")
                 else -> logger.throwError(message = "Unexpected supported parameter type ${parameterType.name.full} for API function ${function.name.full}.")
             }
 
@@ -505,14 +525,14 @@ class KtorBindingApiFunctionConverter(
     }
 
     private fun CodeBlock.Builder.catchError(error: ApiError): CodeBlock.Builder =
-        this.nextControlFlow("_: %T", error.exceptionType.typeName)
+        this.nextControlFlow("catch(_: %T)", error.exceptionType.typeName)
             .addStatement(
                 """
             |this.call.respondError(
             |    error = %T(
             |        type = ${error.type},
             |        title = ${error.title},
-            |        details = ${error.details}.%M { it.isNotBlank() },
+            |        details = ${error.details}.%M { it.%M() },
             |        status = ${error.statusCode},
             |        instance = ${error.instance},
             |        timestamp = %T.now(),
@@ -520,17 +540,17 @@ class KtorBindingApiFunctionConverter(
             """.trimMargin(),
                 ClassName.bestGuess("com.chrynan.kapi.core.Error"),
                 MemberName(packageName = "kotlin", simpleName = "takeIf", isExtension = true),
+                MemberName(packageName = "kotlin.text", simpleName = "isNotBlank", isExtension = true),
                 ClassName.bestGuess("kotlinx.datetime.Clock.System")
             )
             .endControlFlow()
-
-    private val ApiFunction.thisRoute: String
-        get() = "this@${name.short}"
 
     companion object {
 
         private const val propertyNameMultipartData = "multipartData"
         private const val propertyNameMultipartDataMap = "multipartDataMap"
         private const val propertyNameParameters = "parameters"
+        private const val propertyNameRoute = "route"
+        private const val propertyNamePipeline = "pipeline"
     }
 }

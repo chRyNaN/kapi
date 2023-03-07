@@ -10,6 +10,7 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.datetime.Instant
 import io.ktor.server.application.call
+import kotlin.apply
 
 fun Route.test(test: Test) {
     get("") {
@@ -30,6 +31,8 @@ fun Route.test(test: Test) {
         (multiPartDataMap[""] as PartData.FormItem).value
 
         val partData = multiPartDataMap.get("")
+
+        "".isNotBlank()
 
         when (partData) {
             is PartData.FormItem -> {

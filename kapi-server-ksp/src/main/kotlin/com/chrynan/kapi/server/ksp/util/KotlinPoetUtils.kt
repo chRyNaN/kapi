@@ -32,20 +32,8 @@ internal fun CodeBlock.Builder.controlFlow(
     return builder
 }
 
-internal fun CodeBlock.Builder.addPropertyDeclaration(
-    propertyName: String,
-    propertyTypeName: TypeName,
-    assignment: String? = null,
-    isNullable: Boolean = false,
-    isVar: Boolean = false,
-    vararg assignmentArgs: Any?
-): CodeBlock.Builder {
-    val propertyModifier = if (isVar) "var" else "val"
-    val declaration = if (assignment == null) {
-        "$propertyModifier %S: %T?"
-    } else {
-        "$propertyModifier %S: %T? = $assignment"
-    }
-
-    return this.addStatement(declaration, propertyName, propertyTypeName.copy(nullable = isNullable), assignmentArgs)
+internal fun CodeBlock.Builder.addStatement(codeBlock: CodeBlock): CodeBlock.Builder = apply {
+    add("«")
+    add(codeBlock)
+    add("\n»")
 }
