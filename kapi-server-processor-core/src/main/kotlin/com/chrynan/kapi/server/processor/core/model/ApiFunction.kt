@@ -15,7 +15,7 @@ data class ApiFunction(
     @SerialName(value = "request_body_type") val requestBodyType: ApiRequestBodyType = ApiRequestBodyType.NONE,
     @SerialName(value = "response_body") val responseBody: ApiResponseBody? = null,
     @SerialName(value = "parameters") val parameters: List<ApiParameter> = emptyList(),
-    @SerialName(value = "response_headers") val responseHeaders: List<String> = emptyList(),
+    @SerialName(value = "response_headers") val responseHeaders: List<ApiResponseHeader> = emptyList(),
     @SerialName(value = "extension_receiver") val extensionReceiver: KotlinTypeUsage? = null,
     @SerialName(value = "is_suspending") val isSuspending: Boolean = false,
     @SerialName(value = "annotations") val annotations: List<KotlinAnnotationUsage> = emptyList(),

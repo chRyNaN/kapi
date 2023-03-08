@@ -4,6 +4,7 @@ import com.chrynan.kapi.core.ApiError
 import com.chrynan.kapi.core.HttpMethod
 import com.chrynan.kapi.core.annotation.Api
 import com.chrynan.kapi.core.annotation.Errors
+import com.chrynan.kapi.core.annotation.Header
 import com.chrynan.kapi.server.processor.core.model.*
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
@@ -177,12 +178,23 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
         responseBody = responseBody,
         extensionReceiver = this.extensionReceiver?.toKotlinTypeUsage(),
         parameters = parameters,
-        responseHeaders = responseHeaders?.values?.toList() ?: emptyList(),
+        responseHeaders = responseHeaders?.values?.map { it.toResponseHeader() } ?: emptyList(),
         isSuspending = isSuspending,
         annotations = annotations,
         errors = errors ?: emptyList()
     )
 }
+
+/**
+ * Converts this [Header] annotation into a [ApiResponseHeader] model.
+ */
+internal fun Header.toResponseHeader(): ApiResponseHeader =
+    ApiResponseHeader(
+        name = this.name,
+        value = this.value,
+        safeOnly = this.safeOnly,
+        onlyIfAbsent = this.onlyIfAbsent
+    )
 
 /**
  * Converts this [Errors] annotation to a [List] of [ErrorAnnotation] models.
@@ -249,7 +261,7 @@ internal fun KSValueParameter.toApiParameter(functionName: String): ApiParameter
 
         header != null -> HeaderParameter(
             declaration = this.toKotlinParameterDeclaration(),
-            value = header.value
+            value = header.value.takeIf { it.isNotBlank() } ?: header.name
         )
 
         body != null -> BodyParameter(declaration = this.toKotlinParameterDeclaration())

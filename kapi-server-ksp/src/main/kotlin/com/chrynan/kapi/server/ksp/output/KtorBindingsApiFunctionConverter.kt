@@ -445,6 +445,31 @@ class KtorBindingApiFunctionConverter(
             blockWithoutControlFlow = function.extensionReceiver == null,
             args = arrayOf(MemberName(packageName = "kotlin", simpleName = "apply", isExtension = true))
         ) {
+            function.responseHeaders.forEach { header ->
+                if (header.onlyIfAbsent) {
+                    addStatement(
+                        "$propertyNamePipeline.%M.response.headers.%M(name = %S, value = %S, safeOnly = %L)",
+                        applicationCallMemberName,
+                        MemberName(
+                            packageName = "io.ktor.server.response",
+                            simpleName = "appendIfAbsent",
+                            isExtension = true
+                        ),
+                        header.name,
+                        header.value,
+                        header.safeOnly
+                    )
+                } else {
+                    addStatement(
+                        "$propertyNamePipeline.%M.response.headers.append(name = %S, value = %S, safeOnly = %L)",
+                        applicationCallMemberName,
+                        header.name,
+                        header.value,
+                        header.safeOnly
+                    )
+                }
+            }
+
             when {
                 receiver == null -> builder.addStatement("${classPropertyNameApi}.${function.name.short}(")
                 receiver.isApplicationCall -> builder.addStatement(

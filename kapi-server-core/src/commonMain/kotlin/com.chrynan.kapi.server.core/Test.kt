@@ -6,6 +6,7 @@ import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.server.application.call
+import io.ktor.server.response.*
 import kotlinx.datetime.Clock
 import kotlin.apply
 
@@ -25,7 +26,7 @@ fun Route.test(test: Test) {
         this.call.receiveMultipart()
         val header: String? = this.call.request.headers.getOrNull(name = "header")
         val multiPartDataMap = this.call.receiveMultipart().readAllParts().associateBy { it.name }
-
+        this.call.response.headers.appendIfAbsent(name = "", value = "", safeOnly = false)
         (multiPartDataMap[""] as PartData.FormItem).value
 
         val partData = multiPartDataMap.get("")

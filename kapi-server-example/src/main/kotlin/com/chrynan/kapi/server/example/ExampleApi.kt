@@ -18,7 +18,10 @@ interface ExampleApi {
             title = ""
         )
     )
-    suspend fun getUser(@Path("id") id: String): String
+    @ResponseHeaders(
+        Header(name = "test", value = "", onlyIfAbsent = true)
+    )
+    suspend fun getUser(@Path("id") id: String, @Query("query") query: String, @Header("header") header: String): String
 
     @POST("/message")
     suspend fun Route.postMessage(
