@@ -1,5 +1,6 @@
 package com.chrynan.kapi.server.example
 
+import com.chrynan.kapi.core.Response
 import com.chrynan.kapi.core.annotation.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -21,7 +22,11 @@ interface ExampleApi {
     @ResponseHeaders(
         Header(name = "test", value = "", onlyIfAbsent = true)
     )
-    suspend fun getUser(@Path("id") id: String, @Query("query") query: String, @Header("header") header: String): String
+    suspend fun getUser(
+        @Path("id") id: String,
+        @Query("query") query: String,
+        @Header("header") header: String
+    ): Response<String>
 
     @POST("/message")
     suspend fun Route.postMessage(

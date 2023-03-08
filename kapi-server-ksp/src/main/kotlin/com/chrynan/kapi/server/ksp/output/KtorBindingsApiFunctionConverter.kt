@@ -56,6 +56,7 @@ class KtorBindingApiFunctionConverter(
                         declareParameters = declareParameters
                     )
 
+                    // TODO: Inline properties to their parameter assignments to avoid name collisions with the expected properties within this class.
                     function.parameters
                         .filter { it !is DefaultValueParameter && it !is SupportedTypeParameter && it !is PartParameter && it !is BodyParameter }
                         .map { parameter -> addStatement(parameter.toAssignmentDeclaration(function = function)) }
@@ -470,14 +471,20 @@ class KtorBindingApiFunctionConverter(
                 }
             }
 
+            function.responseBody?.let { response ->
+                if (!response.type.isUnit && !response.type.isNothing) {
+                    add("val $propertyNameResponseBody: %T = ", response.type.typeName)
+                }
+            }
+
             when {
-                receiver == null -> builder.addStatement("${classPropertyNameApi}.${function.name.short}(")
-                receiver.isApplicationCall -> builder.addStatement(
-                    "$propertyNamePipeline.%M.${function.name.short}(",
+                receiver == null -> builder.add("${classPropertyNameApi}.${function.name.short}(\n")
+                receiver.isApplicationCall -> builder.add(
+                    "$propertyNamePipeline.%M.${function.name.short}(\n",
                     applicationCallMemberName
                 )
 
-                receiver.isRoute -> builder.addStatement("$propertyNameRoute.${function.name.short}(")
+                receiver.isRoute -> builder.add("$propertyNameRoute.${function.name.short}(\n")
                 else -> logger.throwError(message = "Unexpected Part extension receiver type ${receiver.name.full} for API function ${function.name.full}.")
             }
             indent()
@@ -491,6 +498,49 @@ class KtorBindingApiFunctionConverter(
                 }
             unindent()
             addStatement(")")
+
+            function.responseBody?.let { response ->
+                if (!response.type.isUnit && !response.type.isNothing) {
+                    if (response.type.isResponse) {
+                        addStatement(
+                            "$propertyNamePipeline.%M.%M(\nstatus = %T.fromValue(value = $propertyNameResponseBody.code()), \nmessage = $propertyNameResponseBody.body())",
+                            applicationCallMemberName,
+                            if (response.type.isNullable) {
+                                MemberName(
+                                    packageName = "io.ktor.server.response",
+                                    simpleName = "respondNullable",
+                                    isExtension = true
+                                )
+                            } else {
+                                MemberName(
+                                    packageName = "io.ktor.server.response",
+                                    simpleName = "respond",
+                                    isExtension = true
+                                )
+                            },
+                            ClassName.bestGuess("io.ktor.http.HttpStatusCode")
+                        )
+                    } else {
+                        addStatement(
+                            "$propertyNamePipeline.%M.%M(message = $propertyNameResponseBody)",
+                            applicationCallMemberName,
+                            if (response.type.isNullable) {
+                                MemberName(
+                                    packageName = "io.ktor.server.response",
+                                    simpleName = "respondNullable",
+                                    isExtension = true
+                                )
+                            } else {
+                                MemberName(
+                                    packageName = "io.ktor.server.response",
+                                    simpleName = "respond",
+                                    isExtension = true
+                                )
+                            }
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -580,5 +630,6 @@ class KtorBindingApiFunctionConverter(
         private const val propertyNameParameters = "parameters"
         private const val propertyNameRoute = "route"
         private const val propertyNamePipeline = "pipeline"
+        private const val propertyNameResponseBody = "responseBody"
     }
 }

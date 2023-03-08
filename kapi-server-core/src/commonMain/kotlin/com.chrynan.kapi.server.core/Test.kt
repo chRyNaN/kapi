@@ -1,6 +1,7 @@
 package com.chrynan.kapi.server.core
 
 import com.chrynan.kapi.core.ApiError
+import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
