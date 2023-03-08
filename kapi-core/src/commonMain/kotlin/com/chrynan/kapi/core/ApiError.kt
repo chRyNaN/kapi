@@ -31,7 +31,7 @@ import kotlinx.serialization.SerialName
  * been tampered with.
  */
 @Serializable
-data class Error(
+data class ApiError(
     @SerialName(value = "type") val type: String = "about:blank",
     @SerialName(value = "title") val title: String,
     @SerialName(value = "details") val details: String? = null,

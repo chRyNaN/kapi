@@ -16,7 +16,7 @@ annotation class Error<T : Throwable>(
     val statusCode: Int,
     val exception: KClass<T>,
     val type: String = "about:blank",
-    val title: String,
+    val title: String = "",
     val details: String = "",
     val instance: String = "",
     val help: String = ""

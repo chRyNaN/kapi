@@ -1,7 +1,9 @@
 package com.chrynan.kapi.server.ksp.util
 
+import com.chrynan.kapi.core.ApiError
 import com.chrynan.kapi.core.HttpMethod
 import com.chrynan.kapi.core.annotation.Api
+import com.chrynan.kapi.core.annotation.Errors
 import com.chrynan.kapi.server.processor.core.model.*
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
@@ -77,6 +79,10 @@ internal fun KSClassDeclaration.toApiDefinition(): ApiDefinition {
 internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
     val functionName = this.kotlinName.full
 
+    if (this.typeParameters.isNotEmpty()) {
+        error("API function $functionName cannot have generic type parameters as the API processor has no way of knowing which value to use when calling the function.")
+    }
+
     var delete: com.chrynan.kapi.core.annotation.DELETE? = null
     var get: com.chrynan.kapi.core.annotation.GET? = null
     var head: com.chrynan.kapi.core.annotation.HEAD? = null
@@ -88,7 +94,7 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
     var formUrlEncoded: com.chrynan.kapi.core.annotation.FormUrlEncoded? = null
     var multipart: com.chrynan.kapi.core.annotation.Multipart? = null
 
-    var headers: com.chrynan.kapi.core.annotation.Headers? = null
+    var responseHeaders: com.chrynan.kapi.core.annotation.ResponseHeaders? = null
 
     this.annotations.forEach { annotation ->
         when {
@@ -122,9 +128,10 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
                     com.chrynan.kapi.core.annotation.Multipart::class
                 )
 
-            annotation.isOfType(com.chrynan.kapi.core.annotation.Headers::class) -> headers = annotation.toAnnotation(
-                com.chrynan.kapi.core.annotation.Headers::class
-            )
+            annotation.isOfType(com.chrynan.kapi.core.annotation.ResponseHeaders::class) -> responseHeaders =
+                annotation.toAnnotation(
+                    com.chrynan.kapi.core.annotation.ResponseHeaders::class
+                )
         }
     }
 
@@ -155,6 +162,11 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
         else -> ApiRequestBodyType.NONE
     }
     val responseBody = this.returnType?.toKotlinTypeUsage()?.let { ApiResponseBody(type = it) }
+    val errors = this.annotations
+        .filter { it.shortName.asString() == "Errors" }
+        .map { it.toAnnotation(Errors::class) }
+        .firstOrNull()
+        ?.toErrorAnnotations()
 
     return ApiFunction(
         name = this.kotlinName,
@@ -165,11 +177,34 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
         responseBody = responseBody,
         extensionReceiver = this.extensionReceiver?.toKotlinTypeUsage(),
         parameters = parameters,
-        headers = headers?.values?.toList() ?: emptyList(),
+        responseHeaders = responseHeaders?.values?.toList() ?: emptyList(),
         isSuspending = isSuspending,
-        annotations = annotations
+        annotations = annotations,
+        errors = errors ?: emptyList()
     )
 }
+
+/**
+ * Converts this [Errors] annotation to a [List] of [ErrorAnnotation] models.
+ */
+internal fun Errors.toErrorAnnotations(): List<ErrorAnnotation> =
+    this.errors.map { error ->
+        ErrorAnnotation(
+            exceptionType = KotlinTypeUsage(
+                name = KotlinName(full = error.exception.qualifiedName ?: error.exception.simpleName!!)
+            ),
+            error = ApiError(
+                type = error.type,
+                title = error.title,
+                details = error.details.takeIf { it.isNotBlank() },
+                status = error.statusCode,
+                instance = error.instance.takeIf { it.isNotBlank() },
+                timestamp = null,
+                help = error.help.takeIf { it.isNotBlank() },
+                signature = null
+            )
+        )
+    }
 
 /**
  * Converts this [KSValueParameter] to an [ApiParameter] model.

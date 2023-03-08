@@ -48,8 +48,8 @@ class KtorBindingApiFunctionConverter(
         }
 
         return function.create {
-            catchAnyErrors(function) {
-                httpMethod(function) {
+            httpMethod(function) {
+                catchAnyErrors(function) {
                     addDefaultProperties(
                         declareMultipartData = declareMultipartData,
                         declareMultipartDataMap = declareMultipartDataMap,
@@ -524,26 +524,29 @@ class KtorBindingApiFunctionConverter(
         return builder
     }
 
-    private fun CodeBlock.Builder.catchError(error: ApiError): CodeBlock.Builder =
-        this.nextControlFlow("catch(_: %T)", error.exceptionType.typeName)
+    private fun CodeBlock.Builder.catchError(error: ErrorAnnotation): CodeBlock.Builder =
+        this.nextControlFlow("catch(e: %T)", error.exceptionType.typeName)
             .addStatement(
                 """
-            |this.call.respondError(
+            |$propertyNamePipeline.%M.%M(
             |    error = %T(
-            |        type = ${error.type},
-            |        title = ${error.title},
-            |        details = ${error.details}.%M { it.%M() },
-            |        status = ${error.statusCode},
-            |        instance = ${error.instance},
+            |        type = "${error.error.type}",
+            |        title = ${error.error.title.takeIf { it.isNotBlank() }?.let { "\"$it\"" } ?: "e.message ?: \"\""},
+            |        details = ${error.error.details?.let { "\"$it\"" }},
+            |        status = ${error.error.status},
+            |        instance = ${error.error.instance?.let { "\"$it\"" }},
             |        timestamp = %T.now(),
-            |        help = ${error.help}))
+            |        help = ${error.error.help?.let { "\"$it\"" }}))
             """.trimMargin(),
-                ClassName.bestGuess("com.chrynan.kapi.core.Error"),
-                MemberName(packageName = "kotlin", simpleName = "takeIf", isExtension = true),
-                MemberName(packageName = "kotlin.text", simpleName = "isNotBlank", isExtension = true),
+                applicationCallMemberName,
+                MemberName(
+                    packageName = "com.chrynan.kapi.server.core",
+                    simpleName = "respondError",
+                    isExtension = true
+                ),
+                ClassName.bestGuess("com.chrynan.kapi.core.ApiError"),
                 ClassName.bestGuess("kotlinx.datetime.Clock.System")
             )
-            .endControlFlow()
 
     companion object {
 

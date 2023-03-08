@@ -2,7 +2,7 @@
 
 package com.chrynan.kapi.server.core
 
-import com.chrynan.kapi.core.Error
+import com.chrynan.kapi.core.ApiError
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -73,9 +73,9 @@ suspend fun PartData.asByteArray(): ByteArray =
     }
 
 /**
- * Responds with the provided [error] applying the [Error.status] code if it is not `null`.
+ * Responds with the provided [error] applying the [ApiError.status] code if it is not `null`.
  */
-suspend fun ApplicationCall.respondError(error: Error) {
+suspend fun ApplicationCall.respondError(error: ApiError) {
     error.status?.let { statusCode ->
         this.respond(status = HttpStatusCode.fromValue(statusCode), message = error)
     } ?: this.respond(message = error)

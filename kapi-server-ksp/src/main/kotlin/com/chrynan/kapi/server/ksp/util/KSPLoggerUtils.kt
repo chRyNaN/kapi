@@ -7,7 +7,8 @@ import com.google.devtools.ksp.symbol.KSNode
  * Logs an error using the [KSPLogger.error] function with the provided parameters, and then throws an exception using
  * the [kotlin.error] function with the provided [message].
  */
-internal fun KSPLogger.throwError(message: String, symbol: KSNode? = null): Nothing {
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun KSPLogger.throwError(message: String, symbol: KSNode? = null): Nothing {
     this.error(message = message, symbol = symbol)
 
     kotlin.error(message)

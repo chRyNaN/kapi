@@ -1,19 +1,17 @@
 package com.chrynan.kapi.server.core
 
-import com.chrynan.kapi.core.Error
+import com.chrynan.kapi.core.ApiError
 import io.ktor.http.content.*
-import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
-import io.ktor.server.util.*
 import io.ktor.util.*
-import io.ktor.utils.io.*
-import kotlinx.datetime.Instant
 import io.ktor.server.application.call
+import kotlinx.datetime.Clock
 import kotlin.apply
 
 fun Route.test(test: Test) {
     get("") {
+        this.call.request.headers
         this.call.parameters.get("")
         val name: String = this.call.request.queryParameters.getOrNull("user_name")
             ?: error("user_name parameter value must be present.")
@@ -52,13 +50,13 @@ fun Route.test(test: Test) {
         }
 
         this.call.respondError(
-            error = com.chrynan.kapi.core.Error(
+            error = ApiError(
                 type = "",
                 title = "",
                 details = "",
                 status = 0,
                 instance = "",
-                timestamp = kotlinx.datetime.Clock.System.now(),
+                timestamp = Clock.System.now(),
                 help = "",
                 signature = null
             )
