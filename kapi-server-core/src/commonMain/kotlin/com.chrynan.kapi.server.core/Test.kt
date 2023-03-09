@@ -12,6 +12,11 @@ import kotlinx.datetime.Clock
 import kotlin.apply
 
 fun Route.test(test: Test) {
+    route("") {
+        get("") {
+
+        }
+    }
     get("") {
         this.call.request.headers
         this.call.parameters.get("")

@@ -35,7 +35,7 @@ class KtorBindingsApiDefinitionConverter(
     }
 
     private fun ApiDefinition.toBindingClass(apiTypeName: ClassName, bindingClassName: String): TypeSpec {
-        val bindingFunctions = this.functions.map { functionConverter.invoke(it) }
+        val bindingFunctions = this.functions.map { functionConverter.invoke(function = it, basePath = this.basePath) }
 
         val registerAllFunctionBuilder = FunSpec.builder(name = functionNameRegisterAllEndpointsForApi)
             .addModifiers(KModifier.INTERNAL)

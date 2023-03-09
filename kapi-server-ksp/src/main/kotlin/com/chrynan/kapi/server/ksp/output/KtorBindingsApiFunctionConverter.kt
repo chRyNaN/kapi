@@ -17,7 +17,7 @@ class KtorBindingApiFunctionConverter(
     private val applicationCallMemberName =
         MemberName(packageName = "io.ktor.server.application", simpleName = "call", isExtension = true)
 
-    operator fun invoke(function: ApiFunction): FunSpec {
+    operator fun invoke(function: ApiFunction, basePath: String? = null): FunSpec {
         var declareMultipartData = false
         var declareMultipartDataMap = false
         var declareParameters = false
@@ -48,7 +48,7 @@ class KtorBindingApiFunctionConverter(
         }
 
         return function.create {
-            httpMethod(function) {
+            httpMethod(function = function, basePath = basePath) {
                 catchAnyErrors(function) {
                     addDefaultProperties(
                         declareMultipartData = declareMultipartData,
@@ -92,9 +92,18 @@ class KtorBindingApiFunctionConverter(
 
     private fun CodeBlock.Builder.httpMethod(
         function: ApiFunction,
+        basePath: String? = null,
         block: CodeBlock.Builder.() -> Unit
     ): CodeBlock.Builder {
         val builder = this
+
+        if (!basePath.isNullOrBlank()) {
+            builder.beginControlFlow(
+                "$propertyNameRoute.%M(%S)",
+                MemberName(packageName = "io.ktor.server.routing", simpleName = "route", isExtension = true),
+                basePath
+            )
+        }
 
         val httpFunctionName = when (function.method) {
             HttpMethod.GET -> "get"
@@ -118,6 +127,10 @@ class KtorBindingApiFunctionConverter(
         builder.block()
 
         builder.endControlFlow()
+
+        if (!basePath.isNullOrBlank()) {
+            builder.endControlFlow()
+        }
 
         return builder
     }

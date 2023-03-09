@@ -8,7 +8,7 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.routing.*
 
-@Api
+@Api(basePath = "base")
 interface ExampleApi {
 
     @GET("/user/{id}")
@@ -22,6 +22,7 @@ interface ExampleApi {
     @ResponseHeaders(
         Header(name = "test", value = "", onlyIfAbsent = true)
     )
+    @FormUrlEncoded
     suspend fun getUser(
         @Path("id") id: String,
         @Query("query") query: String,
