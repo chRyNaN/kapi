@@ -56,18 +56,6 @@ class KtorBindingApiFunctionConverter(
                         declareParameters = declareParameters
                     )
 
-                    // TODO: Inline properties to their parameter assignments to avoid name collisions with the expected properties within this class.
-                    function.parameters
-                        .filter { it !is DefaultValueParameter && it !is SupportedTypeParameter && it !is PartParameter && it !is BodyParameter }
-                        .map { parameter -> addStatement(parameter.toAssignmentDeclaration(function = function)) }
-
-                    function.partParameters.map { parameter -> addStatement(parameter.toAssignmentDeclaration(function = function)) }
-
-                    function.parameters.filterIsInstance<BodyParameter>().firstOrNull()
-                        ?.toAssignmentDeclaration()?.let { addStatement(it) }
-
-                    add("\n")
-
                     invokeApiFunction(function = function)
                 }
             }
@@ -171,14 +159,14 @@ class KtorBindingApiFunctionConverter(
         return this
     }
 
-    private fun ApiParameter.toAssignmentDeclaration(function: ApiFunction): CodeBlock {
+    private fun ApiParameter.toAssignmentDeclaration(function: ApiFunction): CodeBlock.Builder {
         val builder = CodeBlock.builder()
 
         val type = this.declaration.type
         val propertyName = this.declaration.name
         val parameterName = this.value?.takeIf { it.isNotBlank() } ?: this.declaration.name
 
-        builder.add("val $propertyName: %T = ", type.typeName)
+        builder.add("$propertyName = ")
 
         when (this) {
             is PathParameter -> builder.add(
@@ -233,12 +221,13 @@ class KtorBindingApiFunctionConverter(
             )
 
             else -> builder.add(
-                "%M(name = %S)",
+                "%M<%T>(name = %S)",
                 MemberName(
                     packageName = "com.chrynan.kapi.server.core",
                     simpleName = "getOrNull",
                     isExtension = true
                 ),
+                type.typeName,
                 parameterName
             )
         }
@@ -251,10 +240,10 @@ class KtorBindingApiFunctionConverter(
             )
         }
 
-        return builder.build()
+        return builder
     }
 
-    private fun PartParameter.toAssignmentDeclaration(function: ApiFunction): CodeBlock {
+    private fun PartParameter.toAssignmentDeclaration(function: ApiFunction): CodeBlock.Builder {
         val builder = CodeBlock.builder()
 
         val type = this.declaration.type
@@ -263,7 +252,7 @@ class KtorBindingApiFunctionConverter(
         val partDataGetter = "$propertyNameMultipartDataMap[\"$parameterName\"]"
         val formItemClassName = ClassName.bestGuess("io.ktor.http.content.PartData.FormItem")
 
-        builder.add("val $propertyName = ")
+        builder.add("$propertyName = ")
 
         when {
             type.isBoolean -> builder.add(
@@ -400,22 +389,23 @@ class KtorBindingApiFunctionConverter(
             else -> logger.throwError(message = "Unexpected Part parameter type ${type.name.full} for API function ${function.name.full}.")
         }
 
-        return builder.build()
+        return builder
     }
 
-    private fun BodyParameter.toAssignmentDeclaration(): CodeBlock {
+    private fun BodyParameter.toAssignmentDeclaration(): CodeBlock.Builder {
         val builder = CodeBlock.builder()
 
         val type = this.declaration.type
         val propertyName = this.declaration.name
 
-        builder.add("val $propertyName: %T = ", type.typeName)
+        builder.add("$propertyName = ")
 
         when {
             type.isNullable -> builder.add(
-                "$propertyNamePipeline.%M.%M()",
+                "$propertyNamePipeline.%M.%M<%T>()",
                 applicationCallMemberName,
-                MemberName(packageName = "io.ktor.server.request", simpleName = "receiveNullable", isExtension = true)
+                MemberName(packageName = "io.ktor.server.request", simpleName = "receiveNullable", isExtension = true),
+                type.typeName
             )
 
             type.isString -> builder.add(
@@ -439,13 +429,14 @@ class KtorBindingApiFunctionConverter(
             type.isMultiPartData -> builder.add(propertyNameMultipartData)
             type.isParameters -> builder.add(propertyNameParameters)
             else -> builder.add(
-                "$propertyNamePipeline.%M.%M()",
+                "$propertyNamePipeline.%M.%M<%T>()",
                 applicationCallMemberName,
-                MemberName(packageName = "io.ktor.server.request", simpleName = "receive", isExtension = true)
+                MemberName(packageName = "io.ktor.server.request", simpleName = "receive", isExtension = true),
+                type.typeName
             )
         }
 
-        return builder.build()
+        return builder
     }
 
     private fun CodeBlock.Builder.invokeApiFunction(function: ApiFunction): CodeBlock.Builder {
@@ -484,6 +475,10 @@ class KtorBindingApiFunctionConverter(
                 }
             }
 
+            if (function.responseHeaders.isNotEmpty()) {
+                add("\n")
+            }
+
             function.responseBody?.let { response ->
                 if (!response.type.isUnit && !response.type.isNothing) {
                     add("val $propertyNameResponseBody: %T = ", response.type.typeName)
@@ -514,6 +509,8 @@ class KtorBindingApiFunctionConverter(
 
             function.responseBody?.let { response ->
                 if (!response.type.isUnit && !response.type.isNothing) {
+                    add("\n")
+
                     if (response.type.isResponse) {
                         addStatement(
                             "$propertyNamePipeline.%M.%M(\nstatus = %T.fromValue(value = $propertyNameResponseBody.code()), \nmessage = $propertyNameResponseBody.body())",
@@ -585,7 +582,17 @@ class KtorBindingApiFunctionConverter(
                 else -> logger.throwError(message = "Unexpected supported parameter type ${parameterType.name.full} for API function ${function.name.full}.")
             }
 
-            else -> builder.addStatement("$parameterAndPropertyName = $parameterAndPropertyName${if (isLast) "" else ","}")
+            is PartParameter -> builder.addStatement(
+                parameter.toAssignmentDeclaration(function = function).add(if (isLast) "" else ",").build()
+            )
+
+            is BodyParameter -> builder.addStatement(
+                parameter.toAssignmentDeclaration().add(if (isLast) "" else ",").build()
+            )
+
+            else -> builder.addStatement(
+                parameter.toAssignmentDeclaration(function = function).add(if (isLast) "" else ",").build()
+            )
         }
 
         return builder.build()
