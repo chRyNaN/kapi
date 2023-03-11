@@ -19,6 +19,7 @@ rootProject.name = "kapi"
 include(":kapi-core")
 include(":kapi-client-core")
 include(":kapi-server-core")
+include(":kapi-openapi")
 include(":kapi-server-ksp")
 include(":kapi-server-processor-core")
 include(":kapi-server-example")

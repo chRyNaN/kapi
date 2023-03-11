@@ -12,6 +12,7 @@
             <option value="$PROJECT_DIR$/buildSrc" />
             <option value="$PROJECT_DIR$/kapi-client-core" />
             <option value="$PROJECT_DIR$/kapi-core" />
+            <option value="$PROJECT_DIR$/kapi-openapi" />
             <option value="$PROJECT_DIR$/kapi-server-core" />
             <option value="$PROJECT_DIR$/kapi-server-example" />
             <option value="$PROJECT_DIR$/kapi-server-ksp" />
