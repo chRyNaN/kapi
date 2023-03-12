@@ -47,9 +47,9 @@ import kotlinx.serialization.SerialName
  * @property [reference] **REQUIRED**. The reference identifier. This MUST be in the form of a URI.
  * @property [summary] A short summary which by default SHOULD override that of the referenced component. If the
  * referenced object-type does not allow a summary field, then this field has no effect.
- * @property [description] A description which by default SHOULD override that of the referenced component. CommonMark
- * syntax MAY be used for rich text representation. If the referenced object-type does not allow a description field,
- * then this field has no effect.
+ * @property [description] A description which by default SHOULD override that of the referenced component.
+ * [CommonMark syntax](https://spec.commonmark.org/) MAY be used for rich text representation. If the referenced
+ * object-type does not allow a description field, then this field has no effect.
  *
  * @see [OpenApi Specification](https://spec.openapis.org/oas/v3.1.0#reference-object)
  */
