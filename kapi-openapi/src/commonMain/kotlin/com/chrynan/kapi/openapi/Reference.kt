@@ -55,7 +55,13 @@ import kotlinx.serialization.SerialName
  */
 @Serializable
 data class Reference(
-    @SerialName(value = "\$ref") val reference: String,
+    @SerialName(value = PROPERTY_NAME_REF) val reference: String,
     @SerialName(value = "summary") val summary: String? = null,
     @SerialName(value = "description") val description: String? = null
-)
+) {
+
+    companion object {
+
+        internal const val PROPERTY_NAME_REF = "\$ref"
+    }
+}
