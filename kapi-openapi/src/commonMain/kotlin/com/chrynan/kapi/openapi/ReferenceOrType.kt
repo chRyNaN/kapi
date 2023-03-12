@@ -13,6 +13,11 @@ import kotlinx.serialization.json.JsonObject
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
+/**
+ * A wrapper class around either a [Reference] or a generic type of [T]. Often in the Open API Specification, a
+ * property type can either be a [Reference] object or some other object. This class provides a simple way to serialize
+ * and deserialize those types and represent those union types within Kotlin code.
+ */
 @Serializable(with = ReferenceOrTypeSerializer::class)
 sealed class ReferenceOrType<T> private constructor() {
 
@@ -103,6 +108,9 @@ fun <T> ReferenceOrType<T>.isType(): Boolean {
     return this is ReferenceOrType.TypeInstance<T>
 }
 
+/**
+ * A [KSerializer] implementation for the [ReferenceOrType] class.
+ */
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
 internal class ReferenceOrTypeSerializer<T>(
     private val serializer: KSerializer<T>
