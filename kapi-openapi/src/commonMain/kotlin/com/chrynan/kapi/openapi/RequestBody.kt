@@ -1,6 +1,7 @@
 package com.chrynan.kapi.openapi
 
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * Describes a single request body.
@@ -17,6 +18,7 @@ import kotlinx.serialization.SerialName
  *
  * @see [OpenApi Specification](https://spec.openapis.org/oas/v3.1.0#request-body-object)
  */
+@Serializable
 data class RequestBody(
     @SerialName(value = "description") val description: String? = null,
     @SerialName(value = "content") val content: Map<String, MediaType>,
