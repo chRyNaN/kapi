@@ -87,7 +87,7 @@ internal object ResponsesSerializer : KSerializer<Responses> {
     }
 
     override fun serialize(encoder: Encoder, value: Responses) {
-        val jsonEncoder = (encoder as JsonEncoder) ?: error("Responses object can be serialized only by JSON.")
+        val jsonEncoder = (encoder as? JsonEncoder) ?: error("Responses object can be serialized only by JSON.")
 
         val jsonObject = buildJsonObject {
             value.default?.let { default ->
