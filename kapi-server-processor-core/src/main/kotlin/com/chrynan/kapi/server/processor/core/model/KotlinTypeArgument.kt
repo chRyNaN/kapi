@@ -17,6 +17,8 @@ import kotlinx.serialization.SerialName
  *
  * @property [variance] The [KotlinGenericVariance] of this type argument.
  * @property [type] The [KotlinTypeUsage] representing the Kotlin type provided as this argument.
+ *
+ * @see [KotlinTypeParameter] for a type parameter instead of a type argument.
  */
 @Serializable
 data class KotlinTypeArgument(

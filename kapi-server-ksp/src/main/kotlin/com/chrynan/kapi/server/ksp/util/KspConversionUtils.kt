@@ -23,6 +23,47 @@ internal fun KSName.toKotlinName(): KotlinName =
         qualifier = this.getQualifier()
     )
 
+internal fun Modifier.toKotlinTypeModifier(): KotlinTypeModifier? =
+    when (this) {
+        Modifier.PUBLIC -> KotlinTypeModifier.PUBLIC
+        Modifier.PRIVATE -> KotlinTypeModifier.PRIVATE
+        Modifier.PROTECTED -> KotlinTypeModifier.PROTECTED
+        Modifier.INTERNAL -> KotlinTypeModifier.INTERNAL
+        Modifier.EXPECT -> KotlinTypeModifier.EXPECT
+        Modifier.ACTUAL -> KotlinTypeModifier.ACTUAL
+        Modifier.ENUM -> KotlinTypeModifier.ENUM
+        Modifier.SEALED -> KotlinTypeModifier.SEALED
+        Modifier.ANNOTATION -> KotlinTypeModifier.ANNOTATION
+        Modifier.DATA -> KotlinTypeModifier.DATA
+        Modifier.INNER -> KotlinTypeModifier.INNER
+        Modifier.FUN -> KotlinTypeModifier.FUN
+        Modifier.VALUE -> KotlinTypeModifier.VALUE
+        Modifier.ABSTRACT -> KotlinTypeModifier.ABSTRACT
+        Modifier.FINAL -> KotlinTypeModifier.FINAL
+        Modifier.OPEN -> KotlinTypeModifier.OPEN
+        else -> null
+    }
+
+internal fun KSClassDeclaration.toKotlinTypeDefinition(): KotlinTypeDefinition =
+    KotlinTypeDefinition(
+        name = this.kotlinName,
+        annotations = this.annotations.map { it.toKotlinAnnotation() }.toList(),
+        type = this.classKind.toType(),
+        documentation = this.docString,
+        typeParameters = this.typeParameters.map { it.toKotlinTypeParameter() },
+        modifiers = this.modifiers.mapNotNull { it.toKotlinTypeModifier() }
+    )
+
+internal fun ClassKind.toType(): KotlinTypeDefinition.Type =
+    when (this) {
+        ClassKind.INTERFACE -> KotlinTypeDefinition.Type.INTERFACE
+        ClassKind.CLASS -> KotlinTypeDefinition.Type.CLASS
+        ClassKind.ENUM_CLASS -> KotlinTypeDefinition.Type.ENUM_CLASS
+        ClassKind.ENUM_ENTRY -> KotlinTypeDefinition.Type.ENUM_ENTRY
+        ClassKind.OBJECT -> KotlinTypeDefinition.Type.OBJECT
+        ClassKind.ANNOTATION_CLASS -> KotlinTypeDefinition.Type.ANNOTATION_CLASS
+    }
+
 internal fun Variance.toKotlinGenericVariance(): KotlinGenericVariance =
     when (this) {
         Variance.STAR -> KotlinGenericVariance.STAR
@@ -35,6 +76,14 @@ internal fun KSTypeArgument.toKotlinTypeArgument(): KotlinTypeArgument =
     KotlinTypeArgument(
         variance = this.variance.toKotlinGenericVariance(),
         type = this.type?.toKotlinTypeUsage()
+    )
+
+internal fun KSTypeParameter.toKotlinTypeParameter(): KotlinTypeParameter =
+    KotlinTypeParameter(
+        name = this.name.asString(),
+        variance = this.variance.toKotlinGenericVariance(),
+        isReified = this.isReified,
+        bounds = this.bounds.map { it.toKotlinTypeUsage() }.toList()
     )
 
 internal fun KSTypeReference.toKotlinTypeUsage(): KotlinTypeUsage {
@@ -110,7 +159,7 @@ internal fun KSClassDeclaration.toApiDefinition(): ApiDefinition {
         info = appInfo,
         servers = servers,
         tags = tags,
-        typeName = this.kotlinName,
+        type = this.toKotlinTypeDefinition(),
         documentation = this.docString,
         functions = this.getAllFunctions().map { it.toApiFunction() }.filterNotNull().toList(),
         annotations = this.annotations.map { it.toKotlinAnnotation() }.toList()

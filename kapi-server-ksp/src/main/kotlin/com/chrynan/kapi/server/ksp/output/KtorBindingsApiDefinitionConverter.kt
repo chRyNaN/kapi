@@ -10,7 +10,7 @@ class KtorBindingsApiDefinitionConverter(
 ) {
 
     operator fun invoke(definition: ApiDefinition): FileSpec {
-        val apiTypeName = ClassName.bestGuess(definition.typeName.full)
+        val apiTypeName = ClassName.bestGuess(definition.type.name.full)
 
         val bindingClassName = "${definition.apiName}$suffixKtorBindingClass"
 
@@ -28,7 +28,7 @@ class KtorBindingsApiDefinitionConverter(
             )
             .build()
 
-        return FileSpec.builder(packageName = definition.typeName.packageName!!, fileName = definition.apiName)
+        return FileSpec.builder(packageName = definition.type.name.packageName!!, fileName = definition.apiName)
             .addType(bindingClass)
             .addFunction(registerApiFunction)
             .build()

@@ -30,7 +30,7 @@ class KtorBindingsApiProcessor(
 
                     codeGenerator.createNewFile(
                         dependencies = Dependencies(aggregating = false),
-                        packageName = api.typeName.packageName!!,
+                        packageName = api.type.name.packageName!!,
                         fileName = "${api.apiName}Routing",
                         extensionName = "kt"
                     ).bufferedWriter()

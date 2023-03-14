@@ -6,7 +6,7 @@ import com.chrynan.kapi.core.annotation.License
 import com.chrynan.kapi.server.processor.core.model.*
 
 internal val ApiDefinition.apiName: String
-    get() = this.name.takeIf { it.isNotBlank() } ?: this.typeName.short
+    get() = this.name.takeIf { it.isNotBlank() } ?: this.type.name.short
 
 internal val Info.isEmpty: Boolean
     get() = this.title.isBlank() && this.summary.isBlank() && this.version.isBlank() && this.termsOfService.isBlank() && this.contact.isEmpty && this.license.isEmpty
