@@ -66,10 +66,50 @@ internal fun KSClassDeclaration.toApiDefinition(): ApiDefinition {
     val api = this.getAnnotationsByType(Api::class).firstOrNull()
         ?: error("API definition must be annotated with the Api annotation.")
 
+    val appInfo = api.info.takeIf { !it.isEmpty }?.let { info ->
+        ApiInfo(
+            title = info.title,
+            summary = info.summary.takeIf { it.isNotBlank() },
+            termsOfService = info.termsOfService.takeIf { it.isNotBlank() },
+            contact = ApiInfo.Contact(
+                name = info.contact.name.takeIf { it.isNotBlank() },
+                url = info.contact.url.takeIf { it.isNotBlank() },
+                email = info.contact.email.takeIf { it.isNotBlank() }
+            ).takeIf { !info.contact.isEmpty },
+            license = ApiInfo.License(
+                name = info.license.name,
+                identifier = info.license.identifier.takeIf { it.isNotBlank() },
+                url = info.license.url.takeIf { it.isNotBlank() }
+            ).takeIf { !info.license.isEmpty }
+        )
+    }
+    val servers = api.servers.map { server ->
+        ApiServer(
+            url = server.url,
+            description = server.description.takeIf { it.isNotBlank() },
+            variables = server.variables.map { variable ->
+                ApiServer.Variable(
+                    name = variable.name,
+                    defaultValue = variable.defaultValue,
+                    description = variable.description.takeIf { it.isNotBlank() },
+                    allowableValues = variable.allowableValues.toList()
+                )
+            }
+        )
+    }
+    val tags = api.tags.map { tag ->
+        ApiTag(
+            name = tag.name,
+            description = tag.description.takeIf { it.isNotBlank() }
+        )
+    }
+
     return ApiDefinition(
         name = api.name,
         basePath = api.basePath.takeIf { it.isNotBlank() },
-        version = api.version.takeIf { it.isNotBlank() },
+        info = appInfo,
+        servers = servers,
+        tags = tags,
         typeName = this.kotlinName,
         documentation = this.docString,
         functions = this.getAllFunctions().map { it.toApiFunction() }.filterNotNull().toList(),

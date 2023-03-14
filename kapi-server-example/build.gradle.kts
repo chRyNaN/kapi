@@ -4,7 +4,11 @@ plugins {
 }
 
 dependencies {
-
     implementation(project(":kapi-server-core"))
+    implementation(project(":kapi-client-core"))
+    implementation(project(":kapi-openapi"))
+
+    implementation(Ktor.client.okHttp)
+
     "ksp"(project(":kapi-server-ksp"))
 }
