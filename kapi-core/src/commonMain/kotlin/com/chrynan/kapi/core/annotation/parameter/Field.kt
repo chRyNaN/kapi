@@ -1,4 +1,4 @@
-package com.chrynan.kapi.core.annotation
+package com.chrynan.kapi.core.annotation.parameter
 
 @MustBeDocumented
 @Target(AnnotationTarget.VALUE_PARAMETER)

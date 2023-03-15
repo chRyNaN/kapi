@@ -1,9 +1,9 @@
-package com.chrynan.kapi.core.annotation
+package com.chrynan.kapi.core.annotation.parameter
 
 @MustBeDocumented
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.VALUE_PARAMETER)
-annotation class Query(
+annotation class Path(
     val value: String,
     val encoded: Boolean = false
 )

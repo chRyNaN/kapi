@@ -1,6 +1,6 @@
 package com.chrynan.kapi.server.processor.core.model
 
-import com.chrynan.kapi.core.annotation.Header
+import com.chrynan.kapi.core.annotation.parameter.Header
 import com.chrynan.kapi.core.annotation.ResponseHeaders
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName

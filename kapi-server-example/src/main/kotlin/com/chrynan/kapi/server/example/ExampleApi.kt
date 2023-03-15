@@ -2,6 +2,12 @@ package com.chrynan.kapi.server.example
 
 import com.chrynan.kapi.core.Response
 import com.chrynan.kapi.core.annotation.*
+import com.chrynan.kapi.core.annotation.method.GET
+import com.chrynan.kapi.core.annotation.method.POST
+import com.chrynan.kapi.core.annotation.parameter.Body
+import com.chrynan.kapi.core.annotation.parameter.Header
+import com.chrynan.kapi.core.annotation.parameter.Path
+import com.chrynan.kapi.core.annotation.parameter.Query
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -11,7 +17,7 @@ import io.ktor.server.routing.*
 @Api(basePath = "base")
 interface ExampleApi {
 
-    @GET("/user/{id}")
+    @GET(path = "/user/{id}")
     @Errors(
         Error(
             statusCode = 404,
@@ -29,13 +35,13 @@ interface ExampleApi {
         @Header("header") header: String
     ): Response<String>
 
-    @POST("/message")
+    @POST(path = "/message")
     suspend fun Route.postMessage(
         @Body message: String,
         isEncrypted: Boolean = false
     )
 
-    @POST("/message/{id}")
+    @POST(path = "/message/{id}")
     suspend fun ApplicationCall.editMessage(
         @Path("id") id: String,
         @Body message: String,

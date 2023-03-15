@@ -4,7 +4,8 @@ import com.chrynan.kapi.core.ApiError
 import com.chrynan.kapi.core.HttpMethod
 import com.chrynan.kapi.core.annotation.Api
 import com.chrynan.kapi.core.annotation.Errors
-import com.chrynan.kapi.core.annotation.Header
+import com.chrynan.kapi.core.annotation.method.*
+import com.chrynan.kapi.core.annotation.parameter.*
 import com.chrynan.kapi.server.processor.core.model.*
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
@@ -173,13 +174,13 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
         error("API function $functionName cannot have generic type parameters as the API processor has no way of knowing which value to use when calling the function.")
     }
 
-    var delete: com.chrynan.kapi.core.annotation.DELETE? = null
-    var get: com.chrynan.kapi.core.annotation.GET? = null
-    var head: com.chrynan.kapi.core.annotation.HEAD? = null
-    var options: com.chrynan.kapi.core.annotation.OPTIONS? = null
-    var patch: com.chrynan.kapi.core.annotation.PATCH? = null
-    var post: com.chrynan.kapi.core.annotation.POST? = null
-    var put: com.chrynan.kapi.core.annotation.PUT? = null
+    var delete: DELETE? = null
+    var get: GET? = null
+    var head: HEAD? = null
+    var options: OPTIONS? = null
+    var patch: PATCH? = null
+    var post: POST? = null
+    var put: PUT? = null
 
     var formUrlEncoded: com.chrynan.kapi.core.annotation.FormUrlEncoded? = null
     var multipart: com.chrynan.kapi.core.annotation.Multipart? = null
@@ -188,27 +189,27 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
 
     this.annotations.forEach { annotation ->
         when {
-            annotation.isOfType(com.chrynan.kapi.core.annotation.DELETE::class) -> delete =
-                annotation.toAnnotation(com.chrynan.kapi.core.annotation.DELETE::class)
+            annotation.isOfType(DELETE::class) -> delete =
+                annotation.toAnnotation(DELETE::class)
 
-            annotation.isOfType(com.chrynan.kapi.core.annotation.GET::class) -> get =
-                annotation.toAnnotation(com.chrynan.kapi.core.annotation.GET::class)
+            annotation.isOfType(GET::class) -> get =
+                annotation.toAnnotation(GET::class)
 
-            annotation.isOfType(com.chrynan.kapi.core.annotation.HEAD::class) -> head =
-                annotation.toAnnotation(com.chrynan.kapi.core.annotation.HEAD::class)
+            annotation.isOfType(HEAD::class) -> head =
+                annotation.toAnnotation(HEAD::class)
 
-            annotation.isOfType(com.chrynan.kapi.core.annotation.OPTIONS::class) -> options = annotation.toAnnotation(
-                com.chrynan.kapi.core.annotation.OPTIONS::class
+            annotation.isOfType(OPTIONS::class) -> options = annotation.toAnnotation(
+                OPTIONS::class
             )
 
-            annotation.isOfType(com.chrynan.kapi.core.annotation.PATCH::class) -> patch =
-                annotation.toAnnotation(com.chrynan.kapi.core.annotation.PATCH::class)
+            annotation.isOfType(PATCH::class) -> patch =
+                annotation.toAnnotation(PATCH::class)
 
-            annotation.isOfType(com.chrynan.kapi.core.annotation.POST::class) -> post =
-                annotation.toAnnotation(com.chrynan.kapi.core.annotation.POST::class)
+            annotation.isOfType(POST::class) -> post =
+                annotation.toAnnotation(POST::class)
 
-            annotation.isOfType(com.chrynan.kapi.core.annotation.PUT::class) -> put =
-                annotation.toAnnotation(com.chrynan.kapi.core.annotation.PUT::class)
+            annotation.isOfType(PUT::class) -> put =
+                annotation.toAnnotation(PUT::class)
 
             annotation.isOfType(com.chrynan.kapi.core.annotation.FormUrlEncoded::class) -> formUrlEncoded =
                 annotation.toAnnotation(com.chrynan.kapi.core.annotation.FormUrlEncoded::class)
@@ -240,7 +241,7 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
         else -> null
     } ?: return null
     val path =
-        (delete?.value ?: get?.value ?: head?.value ?: options?.value ?: patch?.value ?: post?.value ?: put?.value)
+        (delete?.path ?: get?.path ?: head?.path ?: options?.path ?: patch?.path ?: post?.path ?: put?.path)
             ?: return null
     val parameters = this.parameters.map { it.toApiParameter(functionName = functionName) }
     val annotations = this.annotations.map { it.toKotlinAnnotation() }.toList()
@@ -312,12 +313,12 @@ internal fun Errors.toErrorAnnotations(): List<ErrorAnnotation> =
  */
 @OptIn(KspExperimental::class)
 internal fun KSValueParameter.toApiParameter(functionName: String): ApiParameter {
-    val path = this.getAnnotationsByType(com.chrynan.kapi.core.annotation.Path::class).firstOrNull()
-    val query = this.getAnnotationsByType(com.chrynan.kapi.core.annotation.Query::class).firstOrNull()
-    val field = this.getAnnotationsByType(com.chrynan.kapi.core.annotation.Field::class).firstOrNull()
-    val part = this.getAnnotationsByType(com.chrynan.kapi.core.annotation.Part::class).firstOrNull()
-    val header = this.getAnnotationsByType(com.chrynan.kapi.core.annotation.Header::class).firstOrNull()
-    val body = this.getAnnotationsByType(com.chrynan.kapi.core.annotation.Body::class).firstOrNull()
+    val path = this.getAnnotationsByType(Path::class).firstOrNull()
+    val query = this.getAnnotationsByType(Query::class).firstOrNull()
+    val field = this.getAnnotationsByType(Field::class).firstOrNull()
+    val part = this.getAnnotationsByType(Part::class).firstOrNull()
+    val header = this.getAnnotationsByType(Header::class).firstOrNull()
+    val body = this.getAnnotationsByType(Body::class).firstOrNull()
 
     check(listOfNotNull(path, query, field, part, header, body).size <= 1) {
         "Only one of the following annotations is allowed for each API function parameter: 'Path', 'Query', 'Field', 'Part', 'Header', and 'Body'. Function: $functionName; Parameter: ${this.name?.asString()}"

@@ -2,6 +2,7 @@
 
 package com.chrynan.kapi.core
 
+import com.chrynan.kapi.core.annotation.method.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 import kotlin.reflect.KClass
@@ -47,13 +48,13 @@ enum class HttpMethod(
 
 val HttpMethod.annotationClass: KClass<*>?
     get() = when (this) {
-        HttpMethod.GET -> com.chrynan.kapi.core.annotation.GET::class
-        HttpMethod.HEAD -> com.chrynan.kapi.core.annotation.HEAD::class
-        HttpMethod.POST -> com.chrynan.kapi.core.annotation.POST::class
-        HttpMethod.PUT -> com.chrynan.kapi.core.annotation.PUT::class
-        HttpMethod.DELETE -> com.chrynan.kapi.core.annotation.DELETE::class
-        HttpMethod.OPTIONS -> com.chrynan.kapi.core.annotation.OPTIONS::class
-        HttpMethod.PATCH -> com.chrynan.kapi.core.annotation.PATCH::class
+        HttpMethod.GET -> GET::class
+        HttpMethod.HEAD -> HEAD::class
+        HttpMethod.POST -> POST::class
+        HttpMethod.PUT -> PUT::class
+        HttpMethod.DELETE -> DELETE::class
+        HttpMethod.OPTIONS -> OPTIONS::class
+        HttpMethod.PATCH -> PATCH::class
         else -> null
     }
 
