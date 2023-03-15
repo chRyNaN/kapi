@@ -10,7 +10,7 @@ data class ApiDefinition(
     @SerialName(value = "info") val info: ApiInfo? = null,
     @SerialName(value = "servers") val servers: List<ApiServer> = emptyList(),
     @SerialName(value = "tags") val tags: List<ApiTag> = emptyList(),
-    @SerialName(value = "type") val type: KotlinTypeDefinition,
+    @SerialName(value = "type") val type: KotlinTypeDeclaration,
     @SerialName(value = "documentation") val documentation: String? = null,
     @SerialName(value = "functions") val functions: List<ApiFunction> = emptyList(),
     @SerialName(value = "annotations") val annotations: List<KotlinAnnotationUsage> = emptyList()

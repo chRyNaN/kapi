@@ -16,7 +16,7 @@ import kotlinx.serialization.SerialName
  * @property [isNullable] Whether the type is nullable, meaning there is a trailing question mark at its use-site.
  * @property [annotations] Any annotations applied to this [KotlinTypeUsage].
  *
- * @see [KotlinTypeDefinition] for a declaration of a Kotlin type.
+ * @see [KotlinTypeDeclaration] for a declaration of a Kotlin type.
  */
 @Serializable
 data class KotlinTypeUsage(

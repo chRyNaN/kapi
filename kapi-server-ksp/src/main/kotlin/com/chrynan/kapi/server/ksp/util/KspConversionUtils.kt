@@ -45,24 +45,60 @@ internal fun Modifier.toKotlinTypeModifier(): KotlinTypeModifier? =
         else -> null
     }
 
-internal fun KSClassDeclaration.toKotlinTypeDefinition(): KotlinTypeDefinition =
-    KotlinTypeDefinition(
+internal fun Modifier.toKotlinPropertyModifier(): KotlinPropertyModifier? =
+    when (this) {
+        Modifier.PUBLIC -> KotlinPropertyModifier.PUBLIC
+        Modifier.PRIVATE -> KotlinPropertyModifier.PRIVATE
+        Modifier.PROTECTED -> KotlinPropertyModifier.PROTECTED
+        Modifier.INTERNAL -> KotlinPropertyModifier.INTERNAL
+        Modifier.OVERRIDE -> KotlinPropertyModifier.OVERRIDE
+        Modifier.LATEINIT -> KotlinPropertyModifier.LATEINIT
+        Modifier.INLINE -> KotlinPropertyModifier.INLINE
+        Modifier.EXTERNAL -> KotlinPropertyModifier.EXTERNAL
+        Modifier.ABSTRACT -> KotlinPropertyModifier.ABSTRACT
+        Modifier.FINAL -> KotlinPropertyModifier.FINAL
+        Modifier.OPEN -> KotlinPropertyModifier.OPEN
+        Modifier.CONST -> KotlinPropertyModifier.CONST
+        Modifier.EXPECT -> KotlinPropertyModifier.EXPECT
+        Modifier.ACTUAL -> KotlinPropertyModifier.ACTUAL
+        else -> null
+    }
+
+internal fun KSPropertyDeclaration.toKotlinPropertyDeclaration(): KotlinPropertyDeclaration =
+    KotlinPropertyDeclaration(
         name = this.kotlinName,
+        type = this.type.toKotlinTypeUsage(),
         annotations = this.annotations.map { it.toKotlinAnnotation() }.toList(),
-        type = this.classKind.toType(),
+        modifiers = this.modifiers.mapNotNull { it.toKotlinPropertyModifier() },
         documentation = this.docString,
-        typeParameters = this.typeParameters.map { it.toKotlinTypeParameter() },
-        modifiers = this.modifiers.mapNotNull { it.toKotlinTypeModifier() }
+        extensionReceiver = this.extensionReceiver?.toKotlinTypeUsage(),
+        hasGetter = this.getter != null,
+        hasSetter = this.setter != null,
+        isMutable = this.isMutable,
+        hasBackingField = this.hasBackingField,
+        isDelegated = this.isDelegated()
     )
 
-internal fun ClassKind.toType(): KotlinTypeDefinition.Type =
+internal fun KSClassDeclaration.toKotlinTypeDefinition(): KotlinTypeDeclaration =
+    KotlinTypeDeclaration(
+        name = this.kotlinName,
+        annotations = this.annotations.map { it.toKotlinAnnotation() }.toList(),
+        kind = this.classKind.toType(),
+        documentation = this.docString,
+        typeParameters = this.typeParameters.map { it.toKotlinTypeParameter() },
+        modifiers = this.modifiers.mapNotNull { it.toKotlinTypeModifier() },
+        superTypes = this.superTypes.map { it.toKotlinTypeUsage() }.toList(),
+        properties = this.getAllProperties().map { it.toKotlinPropertyDeclaration() }.toList()
+    )
+
+internal fun ClassKind.toType(): KotlinTypeDeclaration.Kind =
     when (this) {
-        ClassKind.INTERFACE -> KotlinTypeDefinition.Type.INTERFACE
-        ClassKind.CLASS -> KotlinTypeDefinition.Type.CLASS
-        ClassKind.ENUM_CLASS -> KotlinTypeDefinition.Type.ENUM_CLASS
-        ClassKind.ENUM_ENTRY -> KotlinTypeDefinition.Type.ENUM_ENTRY
-        ClassKind.OBJECT -> KotlinTypeDefinition.Type.OBJECT
-        ClassKind.ANNOTATION_CLASS -> KotlinTypeDefinition.Type.ANNOTATION_CLASS
+        ClassKind.INTERFACE -> KotlinTypeDeclaration.Kind.INTERFACE
+        ClassKind.CLASS -> KotlinTypeDeclaration.Kind.CLASS
+        ClassKind.ENUM_CLASS -> KotlinTypeDeclaration.Kind.ENUM_CLASS
+        ClassKind.ENUM_ENTRY -> KotlinTypeDeclaration.Kind.ENUM_ENTRY
+        ClassKind.OBJECT -> KotlinTypeDeclaration.Kind.OBJECT
+        ClassKind.ANNOTATION_CLASS -> KotlinTypeDeclaration.Kind.ANNOTATION_CLASS
     }
 
 internal fun Variance.toKotlinGenericVariance(): KotlinGenericVariance =

@@ -4,7 +4,7 @@ package com.chrynan.kapi.server.processor.core.model
  * Represents a Kotlin type (usage or definition).
  *
  * @see [KotlinTypeUsage] for usage of a Kotlin type.
- * @see [KotlinTypeDefinition] for a declaration of a Kotlin type.
+ * @see [KotlinTypeDeclaration] for a declaration of a Kotlin type.
  */
 interface KotlinTyped {
 
