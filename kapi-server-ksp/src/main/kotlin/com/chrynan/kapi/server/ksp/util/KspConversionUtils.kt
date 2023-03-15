@@ -324,47 +324,49 @@ internal fun KSValueParameter.toApiParameter(functionName: String): ApiParameter
         "Only one of the following annotations is allowed for each API function parameter: 'Path', 'Query', 'Field', 'Part', 'Header', and 'Body'. Function: $functionName; Parameter: ${this.name?.asString()}"
     }
 
+    val parameterDeclaration = this.toKotlinParameterDeclaration()
+
     return when {
         path != null -> PathParameter(
-            declaration = this.toKotlinParameterDeclaration(),
-            value = path.value,
+            declaration = parameterDeclaration,
+            value = path.value.takeIf { it.isNotBlank() } ?: parameterDeclaration.name,
             encoded = path.encoded
         )
 
         query != null -> QueryParameter(
-            declaration = this.toKotlinParameterDeclaration(),
-            value = query.value,
+            declaration = parameterDeclaration,
+            value = query.value.takeIf { it.isNotBlank() } ?: parameterDeclaration.name,
             encoded = query.encoded
         )
 
         field != null -> FieldParameter(
-            declaration = this.toKotlinParameterDeclaration(),
-            value = field.value,
+            declaration = parameterDeclaration,
+            value = field.value.takeIf { it.isNotBlank() } ?: parameterDeclaration.name,
             encoded = field.encoded
         )
 
         part != null -> PartParameter(
-            declaration = this.toKotlinParameterDeclaration(),
-            value = part.value,
+            declaration = parameterDeclaration,
+            value = part.value.takeIf { it.isNotBlank() } ?: parameterDeclaration.name,
             encoding = part.encoding
         )
 
         header != null -> HeaderParameter(
-            declaration = this.toKotlinParameterDeclaration(),
-            value = header.value.takeIf { it.isNotBlank() } ?: header.name
+            declaration = parameterDeclaration,
+            value = header.value.takeIf { it.isNotBlank() } ?: header.name.takeIf { it.isNotBlank() }
+            ?: parameterDeclaration.name
         )
 
-        body != null -> BodyParameter(declaration = this.toKotlinParameterDeclaration())
+        body != null -> BodyParameter(declaration = parameterDeclaration)
 
-        this.hasDefault -> DefaultValueParameter(declaration = this.toKotlinParameterDeclaration())
+        this.hasDefault -> DefaultValueParameter(declaration = parameterDeclaration)
 
         else -> {
-            val type = this.type.toKotlinTypeUsage()
+            val type = parameterDeclaration.type
 
             when {
-                type.isRoute || type.isApplicationCall || type.isUnit || type.isParameters || type.isMultiPartData -> SupportedTypeParameter(
-                    declaration = this.toKotlinParameterDeclaration()
-                )
+                type.isRoute || type.isApplicationCall || type.isUnit || type.isParameters || type.isMultiPartData ->
+                    SupportedTypeParameter(declaration = parameterDeclaration)
 
                 else -> error("Unsupported API function parameter type.")
             }
