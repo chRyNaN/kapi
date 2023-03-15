@@ -109,13 +109,12 @@ data class HeaderParameter(
  *
  * @property [declaration] The [KotlinParameterDeclaration] representing the Kotlin type, name, modifiers, whether
  * there is a default value for the parameter, etc.
- * @property [documentation] Documentation that was obtained by the Kotlin type of the body parameter.
  */
 @Serializable
 @SerialName(value = "body")
 data class BodyParameter(
     @SerialName(value = "declaration") override val declaration: KotlinParameterDeclaration,
-    @SerialName(value = "documentation") val documentation: String? = null
+    @SerialName(value = "kotlin_type") val kotlinType: KotlinTypeUsageWithDeclaration
 ) : ApiParameter() {
 
     @Transient

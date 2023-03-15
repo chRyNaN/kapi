@@ -14,7 +14,9 @@ data class KotlinFunctionDeclaration(
     @SerialName(value = "extension_receiver") val extensionReceiver: KotlinTypeUsage? = null,
     @SerialName(value = "return_type") val returnType: KotlinTypeUsage? = null,
     @SerialName(value = "parameters") val parameters: List<KotlinParameterDeclaration> = emptyList(),
-    @SerialName(value = "constructor") val isConstructor: Boolean = false
+    @SerialName(value = "constructor") val isConstructor: Boolean = false,
+    @SerialName(value = "documentation") val documentation: String? = null,
+    @SerialName(value = "suspending") val isSuspending: Boolean = false
 ) {
 
     @Serializable

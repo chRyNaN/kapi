@@ -68,6 +68,7 @@ internal fun Modifier.toKotlinFunctionModifier(): KotlinFunctionModifier? =
         else -> null
     }
 
+@Suppress("unused")
 internal fun Modifier.toKotlinParameterModifier(): KotlinParameterModifier? =
     when (this) {
         Modifier.VARARG -> KotlinParameterModifier.VARARG
@@ -112,14 +113,16 @@ internal fun KSPropertyDeclaration.toKotlinPropertyDeclaration(): KotlinProperty
 
 internal fun KSFunctionDeclaration.toKotlinFunctionDeclaration(): KotlinFunctionDeclaration =
     KotlinFunctionDeclaration(
-        name = this.qualifiedName?.toKotlinName() ?: this.simpleName.toKotlinName(),
+        name = this.kotlinName,
         annotations = this.annotations.map { it.toKotlinAnnotation() }.toList(),
         modifiers = this.modifiers.mapNotNull { it.toKotlinFunctionModifier() },
         kind = this.functionKind.toKind(),
         extensionReceiver = this.extensionReceiver?.toKotlinTypeUsage(),
         returnType = this.returnType?.toKotlinTypeUsage(),
         parameters = this.parameters.map { it.toKotlinParameterDeclaration() },
-        isConstructor = this.isConstructor()
+        isConstructor = this.isConstructor(),
+        documentation = this.docString,
+        isSuspending = this.modifiers.contains(Modifier.SUSPEND)
     )
 
 internal fun KSClassDeclaration.toKotlinTypeDefinition(): KotlinTypeDeclaration =
@@ -184,6 +187,26 @@ internal fun KSTypeReference.toKotlinTypeUsage(): KotlinTypeUsage {
         typeArguments = this.element?.typeArguments?.map { it.toKotlinTypeArgument() }?.toList() ?: emptyList(),
         isNullable = type.isMarkedNullable,
         annotations = type.annotations.map { it.toKotlinAnnotation() }.toList()
+    )
+}
+
+internal fun KSTypeReference.toKotlinResolvedTypeUsage(): KotlinTypeUsageWithDeclaration {
+    val type = this.resolve()
+    val usage = KotlinTypeUsage(
+        name = type.kotlinName,
+        typeArguments = this.element?.typeArguments?.map { it.toKotlinTypeArgument() }?.toList() ?: emptyList(),
+        isNullable = type.isMarkedNullable,
+        annotations = type.annotations.map { it.toKotlinAnnotation() }.toList()
+    )
+    val definition = (type.declaration as KSClassDeclaration).toKotlinTypeDefinition()
+    val declaredGenericTypes =
+        this.element?.typeArguments?.mapNotNull { (it.type?.resolve() as? KSClassDeclaration)?.toKotlinTypeDefinition() }
+            ?: emptyList()
+
+    return KotlinTypeUsageWithDeclaration(
+        usage = usage,
+        declaration = definition,
+        declaredGenericTypes = declaredGenericTypes
     )
 }
 
@@ -338,15 +361,13 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
         (delete?.path ?: get?.path ?: head?.path ?: options?.path ?: patch?.path ?: post?.path ?: put?.path)
             ?: return null
     val parameters = this.parameters.map { it.toApiParameter(functionName = functionName) }
-    val annotations = this.annotations.map { it.toKotlinAnnotation() }.toList()
-    val isSuspending = this.modifiers.contains(Modifier.SUSPEND)
     val requestBodyType = when {
         formUrlEncoded != null -> ApiRequestBodyType.FORM_URL_ENCODED
         multipart != null -> ApiRequestBodyType.MULTIPART
         parameters.any { it is BodyParameter } -> ApiRequestBodyType.CONTENT_NEGOTIATION
         else -> ApiRequestBodyType.NONE
     }
-    val responseBody = this.returnType?.toKotlinTypeUsage()?.let { ApiResponseBody(type = it) }
+    val responseBody = this.returnType?.toKotlinResolvedTypeUsage()
     val errors = this.annotations
         .filter { it.shortName.asString() == "Errors" }
         .map { it.toAnnotation(Errors::class) }
@@ -354,8 +375,7 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
         ?.toErrorAnnotations()
 
     return ApiFunction(
-        name = this.kotlinName,
-        documentation = this.docString,
+        kotlinFunction = this.toKotlinFunctionDeclaration(),
         method = httpMethod,
         path = path,
         requestBodyType = requestBodyType,
@@ -363,8 +383,6 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
         extensionReceiver = this.extensionReceiver?.toKotlinTypeUsage(),
         parameters = parameters,
         responseHeaders = responseHeaders?.values?.map { it.toResponseHeader() } ?: emptyList(),
-        isSuspending = isSuspending,
-        annotations = annotations,
         errors = errors ?: emptyList()
     )
 }
@@ -451,7 +469,10 @@ internal fun KSValueParameter.toApiParameter(functionName: String): ApiParameter
             ?: parameterDeclaration.name
         )
 
-        body != null -> BodyParameter(declaration = parameterDeclaration)
+        body != null -> BodyParameter(
+            declaration = parameterDeclaration,
+            kotlinType = this.type.toKotlinResolvedTypeUsage()
+        )
 
         this.hasDefault -> DefaultValueParameter(declaration = parameterDeclaration)
 

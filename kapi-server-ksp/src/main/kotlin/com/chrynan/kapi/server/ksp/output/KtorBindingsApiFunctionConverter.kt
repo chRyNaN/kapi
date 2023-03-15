@@ -63,7 +63,7 @@ class KtorBindingApiFunctionConverter(
     }
 
     private fun ApiFunction.create(block: CodeBlock.Builder.(function: ApiFunction) -> Unit): FunSpec {
-        val builder = FunSpec.builder(name = this.name.short)
+        val builder = FunSpec.builder(name = this.kotlinFunction.name.short)
             .addModifiers(KModifier.PRIVATE)
             .receiver(ClassName.bestGuess("io.ktor.server.routing.Route"))
 
@@ -100,7 +100,7 @@ class KtorBindingApiFunctionConverter(
             HttpMethod.PATCH -> "patch"
             HttpMethod.DELETE -> "delete"
             HttpMethod.HEAD -> "head"
-            else -> logger.throwError(message = "Unsupported HTTP method ${function.method} for API function ${function.name.full}")
+            else -> logger.throwError(message = "Unsupported HTTP method ${function.method} for API function ${function.kotlinFunction.name.full}")
         }
 
         builder.beginControlFlow(
@@ -185,7 +185,7 @@ class KtorBindingApiFunctionConverter(
                 applicationCallMemberName
             )
 
-            else -> logger.throwError(message = "Unexpected parameter type ${type.name} for API function ${function.name.full}.")
+            else -> logger.throwError(message = "Unexpected parameter type ${type.name} for API function ${function.kotlinFunction.name.full}.")
         }
 
         when {
@@ -386,7 +386,7 @@ class KtorBindingApiFunctionConverter(
                 )
             )
 
-            else -> logger.throwError(message = "Unexpected Part parameter type ${type.name.full} for API function ${function.name.full}.")
+            else -> logger.throwError(message = "Unexpected Part parameter type ${type.name.full} for API function ${function.kotlinFunction.name.full}.")
         }
 
         return builder
@@ -480,20 +480,20 @@ class KtorBindingApiFunctionConverter(
             }
 
             function.responseBody?.let { response ->
-                if (!response.type.isUnit && !response.type.isNothing) {
-                    add("val $propertyNameResponseBody: %T = ", response.type.typeName)
+                if (!response.usage.isUnit && !response.usage.isNothing) {
+                    add("val $propertyNameResponseBody: %T = ", response.usage.typeName)
                 }
             }
 
             when {
-                receiver == null -> builder.add("${classPropertyNameApi}.${function.name.short}(\n")
+                receiver == null -> builder.add("${classPropertyNameApi}.${function.kotlinFunction.name.short}(\n")
                 receiver.isApplicationCall -> builder.add(
-                    "$propertyNamePipeline.%M.${function.name.short}(\n",
+                    "$propertyNamePipeline.%M.${function.kotlinFunction.name.short}(\n",
                     applicationCallMemberName
                 )
 
-                receiver.isRoute -> builder.add("$propertyNameRoute.${function.name.short}(\n")
-                else -> logger.throwError(message = "Unexpected Part extension receiver type ${receiver.name.full} for API function ${function.name.full}.")
+                receiver.isRoute -> builder.add("$propertyNameRoute.${function.kotlinFunction.name.short}(\n")
+                else -> logger.throwError(message = "Unexpected Part extension receiver type ${receiver.name.full} for API function ${function.kotlinFunction.name.full}.")
             }
             indent()
             assignableParameters
@@ -508,14 +508,14 @@ class KtorBindingApiFunctionConverter(
             addStatement(")")
 
             function.responseBody?.let { response ->
-                if (!response.type.isUnit && !response.type.isNothing) {
+                if (!response.usage.isUnit && !response.usage.isNothing) {
                     add("\n")
 
-                    if (response.type.isResponse) {
+                    if (response.usage.isResponse) {
                         addStatement(
                             "$propertyNamePipeline.%M.%M(\nstatus = %T.fromValue(value = $propertyNameResponseBody.code()), \nmessage = $propertyNameResponseBody.body())",
                             applicationCallMemberName,
-                            if (response.type.isNullable) {
+                            if (response.usage.isNullable) {
                                 MemberName(
                                     packageName = "io.ktor.server.response",
                                     simpleName = "respondNullable",
@@ -534,7 +534,7 @@ class KtorBindingApiFunctionConverter(
                         addStatement(
                             "$propertyNamePipeline.%M.%M(message = $propertyNameResponseBody)",
                             applicationCallMemberName,
-                            if (response.type.isNullable) {
+                            if (response.usage.isNullable) {
                                 MemberName(
                                     packageName = "io.ktor.server.response",
                                     simpleName = "respondNullable",
@@ -579,7 +579,7 @@ class KtorBindingApiFunctionConverter(
                 parameterType.isRoute -> builder.addStatement("$parameterAndPropertyName = $propertyNameRoute${if (isLast) "" else ","}")
                 parameterType.isParameters -> builder.addStatement("$parameterAndPropertyName = $propertyNameParameters${if (isLast) "" else ","}")
                 parameterType.isMultiPartData -> builder.addStatement("$parameterAndPropertyName = $propertyNameMultipartData${if (isLast) "" else ","}")
-                else -> logger.throwError(message = "Unexpected supported parameter type ${parameterType.name.full} for API function ${function.name.full}.")
+                else -> logger.throwError(message = "Unexpected supported parameter type ${parameterType.name.full} for API function ${function.kotlinFunction.name.full}.")
             }
 
             is PartParameter -> builder.addStatement(

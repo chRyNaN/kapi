@@ -90,11 +90,11 @@ class KtorValidatorApiProcessor(
         }
 
         if (bodyParameterCount > 1) {
-            logger.throwError(message = "Cannot have more than one Body parameter for API function ${this.name.full}.")
+            logger.throwError(message = "Cannot have more than one Body parameter for API function ${this.kotlinFunction.name.full}.")
         }
 
         if (hasPartParameter && hasFieldParameter) {
-            logger.throwError(message = "Cannot have both Part and Field parameters for API function ${this.name.full}.")
+            logger.throwError(message = "Cannot have both Part and Field parameters for API function ${this.kotlinFunction.name.full}.")
         }
     }
 
@@ -104,7 +104,7 @@ class KtorValidatorApiProcessor(
         supportedTypes: List<String>
     ): Nothing =
         this.throwError(
-            message = "Unsupported extension receiver type $extensionReceiver for API function ${function.name.full}. The only supported types are " +
+            message = "Unsupported extension receiver type $extensionReceiver for API function ${function.kotlinFunction.name.full}. The only supported types are " +
                     supportedTypes.joinToString(separator = ", ", postfix = ".")
         )
 
@@ -114,7 +114,7 @@ class KtorValidatorApiProcessor(
         supportedTypes: List<String>
     ): Nothing =
         this.throwError(
-            message = "Unsupported parameter type ${parameter.declaration.type} for API function ${function.name.full}. The only supported types are " +
+            message = "Unsupported parameter type ${parameter.declaration.type} for API function ${function.kotlinFunction.name.full}. The only supported types are " +
                     supportedTypes.joinToString(separator = ", ", postfix = ".")
         )
 
