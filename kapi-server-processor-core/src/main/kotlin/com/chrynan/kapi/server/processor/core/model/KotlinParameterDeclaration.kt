@@ -28,5 +28,6 @@ data class KotlinParameterDeclaration(
     @SerialName(value = "val") val isVal: Boolean = false,
     @SerialName(value = "var") val isVar: Boolean = false,
     @SerialName(value = "has_default_value") val hasDefaultValue: Boolean = false,
-    @SerialName(value = "annotations") val annotations: List<KotlinAnnotationUsage> = emptyList()
+    @SerialName(value = "annotations") val annotations: List<KotlinAnnotationUsage> = emptyList(),
+    @SerialName(value = "modifiers") val modifiers: List<KotlinParameterModifier> = emptyList()
 )

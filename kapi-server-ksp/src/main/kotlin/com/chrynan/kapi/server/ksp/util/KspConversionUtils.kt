@@ -9,6 +9,8 @@ import com.chrynan.kapi.core.annotation.parameter.*
 import com.chrynan.kapi.server.processor.core.model.*
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
+import com.google.devtools.ksp.getDeclaredFunctions
+import com.google.devtools.ksp.isConstructor
 import com.google.devtools.ksp.symbol.*
 
 internal val KSDeclaration.kotlinName: KotlinName
@@ -45,6 +47,35 @@ internal fun Modifier.toKotlinTypeModifier(): KotlinTypeModifier? =
         else -> null
     }
 
+internal fun Modifier.toKotlinFunctionModifier(): KotlinFunctionModifier? =
+    when (this) {
+        Modifier.PUBLIC -> KotlinFunctionModifier.PUBLIC
+        Modifier.PRIVATE -> KotlinFunctionModifier.PRIVATE
+        Modifier.PROTECTED -> KotlinFunctionModifier.PROTECTED
+        Modifier.INTERNAL -> KotlinFunctionModifier.INTERNAL
+        Modifier.EXPECT -> KotlinFunctionModifier.EXPECT
+        Modifier.ACTUAL -> KotlinFunctionModifier.ACTUAL
+        Modifier.ABSTRACT -> KotlinFunctionModifier.ABSTRACT
+        Modifier.FINAL -> KotlinFunctionModifier.FINAL
+        Modifier.OPEN -> KotlinFunctionModifier.OPEN
+        Modifier.OPERATOR -> KotlinFunctionModifier.OPERATOR
+        Modifier.OVERRIDE -> KotlinFunctionModifier.OVERRIDE
+        Modifier.INLINE -> KotlinFunctionModifier.INLINE
+        Modifier.EXTERNAL -> KotlinFunctionModifier.EXTERNAL
+        Modifier.SUSPEND -> KotlinFunctionModifier.SUSPEND
+        Modifier.TAILREC -> KotlinFunctionModifier.TAILREC
+        Modifier.INFIX -> KotlinFunctionModifier.INFIX
+        else -> null
+    }
+
+internal fun Modifier.toKotlinParameterModifier(): KotlinParameterModifier? =
+    when (this) {
+        Modifier.VARARG -> KotlinParameterModifier.VARARG
+        Modifier.NOINLINE -> KotlinParameterModifier.NOINLINE
+        Modifier.CROSSINLINE -> KotlinParameterModifier.CROSSINLINE
+        else -> null
+    }
+
 internal fun Modifier.toKotlinPropertyModifier(): KotlinPropertyModifier? =
     when (this) {
         Modifier.PUBLIC -> KotlinPropertyModifier.PUBLIC
@@ -66,7 +97,7 @@ internal fun Modifier.toKotlinPropertyModifier(): KotlinPropertyModifier? =
 
 internal fun KSPropertyDeclaration.toKotlinPropertyDeclaration(): KotlinPropertyDeclaration =
     KotlinPropertyDeclaration(
-        name = this.kotlinName,
+        name = this.qualifiedName?.toKotlinName() ?: this.simpleName.toKotlinName(),
         type = this.type.toKotlinTypeUsage(),
         annotations = this.annotations.map { it.toKotlinAnnotation() }.toList(),
         modifiers = this.modifiers.mapNotNull { it.toKotlinPropertyModifier() },
@@ -79,19 +110,32 @@ internal fun KSPropertyDeclaration.toKotlinPropertyDeclaration(): KotlinProperty
         isDelegated = this.isDelegated()
     )
 
+internal fun KSFunctionDeclaration.toKotlinFunctionDeclaration(): KotlinFunctionDeclaration =
+    KotlinFunctionDeclaration(
+        name = this.qualifiedName?.toKotlinName() ?: this.simpleName.toKotlinName(),
+        annotations = this.annotations.map { it.toKotlinAnnotation() }.toList(),
+        modifiers = this.modifiers.mapNotNull { it.toKotlinFunctionModifier() },
+        kind = this.functionKind.toKind(),
+        extensionReceiver = this.extensionReceiver?.toKotlinTypeUsage(),
+        returnType = this.returnType?.toKotlinTypeUsage(),
+        parameters = this.parameters.map { it.toKotlinParameterDeclaration() },
+        isConstructor = this.isConstructor()
+    )
+
 internal fun KSClassDeclaration.toKotlinTypeDefinition(): KotlinTypeDeclaration =
     KotlinTypeDeclaration(
         name = this.kotlinName,
         annotations = this.annotations.map { it.toKotlinAnnotation() }.toList(),
-        kind = this.classKind.toType(),
+        kind = this.classKind.toKind(),
         documentation = this.docString,
         typeParameters = this.typeParameters.map { it.toKotlinTypeParameter() },
         modifiers = this.modifiers.mapNotNull { it.toKotlinTypeModifier() },
         superTypes = this.superTypes.map { it.toKotlinTypeUsage() }.toList(),
-        properties = this.getAllProperties().map { it.toKotlinPropertyDeclaration() }.toList()
+        properties = this.getAllProperties().map { it.toKotlinPropertyDeclaration() }.toList(),
+        functions = this.getDeclaredFunctions().map { it.toKotlinFunctionDeclaration() }.toList()
     )
 
-internal fun ClassKind.toType(): KotlinTypeDeclaration.Kind =
+internal fun ClassKind.toKind(): KotlinTypeDeclaration.Kind =
     when (this) {
         ClassKind.INTERFACE -> KotlinTypeDeclaration.Kind.INTERFACE
         ClassKind.CLASS -> KotlinTypeDeclaration.Kind.CLASS
@@ -99,6 +143,15 @@ internal fun ClassKind.toType(): KotlinTypeDeclaration.Kind =
         ClassKind.ENUM_ENTRY -> KotlinTypeDeclaration.Kind.ENUM_ENTRY
         ClassKind.OBJECT -> KotlinTypeDeclaration.Kind.OBJECT
         ClassKind.ANNOTATION_CLASS -> KotlinTypeDeclaration.Kind.ANNOTATION_CLASS
+    }
+
+internal fun FunctionKind.toKind(): KotlinFunctionDeclaration.Kind =
+    when (this) {
+        FunctionKind.MEMBER -> KotlinFunctionDeclaration.Kind.MEMBER
+        FunctionKind.ANONYMOUS -> KotlinFunctionDeclaration.Kind.ANONYMOUS
+        FunctionKind.LAMBDA -> KotlinFunctionDeclaration.Kind.LAMBDA
+        FunctionKind.STATIC -> KotlinFunctionDeclaration.Kind.STATIC
+        FunctionKind.TOP_LEVEL -> KotlinFunctionDeclaration.Kind.TOP_LEVEL
     }
 
 internal fun Variance.toKotlinGenericVariance(): KotlinGenericVariance =
@@ -144,7 +197,12 @@ internal fun KSValueParameter.toKotlinParameterDeclaration(): KotlinParameterDec
         isVal = this.isVal,
         isVar = this.isVar,
         hasDefaultValue = this.hasDefault,
-        annotations = this.annotations.map { it.toKotlinAnnotation() }.toList()
+        annotations = this.annotations.map { it.toKotlinAnnotation() }.toList(),
+        modifiers = listOfNotNull(
+            if (this.isVararg) KotlinParameterModifier.VARARG else null,
+            if (this.isNoInline) KotlinParameterModifier.NOINLINE else null,
+            if (this.isCrossInline) KotlinParameterModifier.CROSSINLINE else null
+        )
     )
 
 @OptIn(KspExperimental::class)

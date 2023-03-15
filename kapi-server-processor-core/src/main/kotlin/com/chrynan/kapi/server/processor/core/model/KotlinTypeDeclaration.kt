@@ -20,7 +20,7 @@ import kotlinx.serialization.Serializable
  * ```
  *
  * Note that this component may not be exhaustive, meaning it won't contain all definition information. For instance,
- * all declarations, such as functions and internal types, are not currently specified.
+ * all declarations, such as internal types, are not currently specified.
  *
  * @property [name] The [KotlinName] of the type.
  * @property [annotations] Any annotations applied to this [KotlinTypeDeclaration].
@@ -39,19 +39,32 @@ data class KotlinTypeDeclaration(
     @SerialName(value = "type_parameters") val typeParameters: List<KotlinTypeParameter> = emptyList(),
     @SerialName(value = "modifiers") val modifiers: List<KotlinTypeModifier> = emptyList(),
     @SerialName(value = "super_types") val superTypes: List<KotlinTypeUsage> = emptyList(),
-    @SerialName(value = "properties") val properties: List<KotlinPropertyDeclaration> = emptyList()
+    @SerialName(value = "properties") val properties: List<KotlinPropertyDeclaration> = emptyList(),
+    @SerialName(value = "functions") val functions: List<KotlinFunctionDeclaration> = emptyList()
 ) : KotlinTyped {
 
     /**
      * The kind of component for a [KotlinTypeDeclaration].
      */
+    @Serializable
     enum class Kind(val serialName: String) {
 
+        @SerialName(value = "interface")
         INTERFACE(serialName = "interface"),
+
+        @SerialName(value = "class")
         CLASS(serialName = "class"),
+
+        @SerialName(value = "enum_class")
         ENUM_CLASS(serialName = "enum_class"),
+
+        @SerialName(value = "enum_entry")
         ENUM_ENTRY(serialName = "enum_entry"),
+
+        @SerialName(value = "object")
         OBJECT(serialName = "object"),
+
+        @SerialName(value = "annotation_class")
         ANNOTATION_CLASS(serialName = "annotation_class");
 
         companion object {

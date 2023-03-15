@@ -76,7 +76,7 @@ enum class KotlinTypeModifier(val serialName: String) : KotlinModifier {
 }
 
 @Serializable
-enum class KotlinPropertyModifier(val serialName: String) {
+enum class KotlinPropertyModifier(val serialName: String) : KotlinModifier {
 
     @SerialName(value = "public")
     PUBLIC(serialName = "public"),
@@ -123,6 +123,84 @@ enum class KotlinPropertyModifier(val serialName: String) {
     companion object {
 
         fun getBySerialName(name: String, ignoreCase: Boolean = true): KotlinPropertyModifier? =
+            values().firstOrNull { it.serialName.equals(name, ignoreCase) }
+    }
+}
+
+@Serializable
+enum class KotlinFunctionModifier(val serialName: String) : KotlinModifier {
+
+    @SerialName(value = "public")
+    PUBLIC(serialName = "public"),
+
+    @SerialName(value = "private")
+    PRIVATE(serialName = "private"),
+
+    @SerialName(value = "internal")
+    INTERNAL(serialName = "internal"),
+
+    @SerialName(value = "protected")
+    PROTECTED(serialName = "protected"),
+
+    @SerialName(value = "override")
+    OVERRIDE(serialName = "override"),
+
+    @SerialName(value = "inline")
+    INLINE(serialName = "inline"),
+
+    @SerialName(value = "external")
+    EXTERNAL(serialName = "external"),
+
+    @SerialName(value = "abstract")
+    ABSTRACT(serialName = "abstract"),
+
+    @SerialName(value = "final")
+    FINAL(serialName = "final"),
+
+    @SerialName(value = "open")
+    OPEN(serialName = "open"),
+
+    @SerialName(value = "expect")
+    EXPECT(serialName = "expect"),
+
+    @SerialName(value = "actual")
+    ACTUAL(serialName = "actual"),
+
+    @SerialName(value = "suspend")
+    SUSPEND(serialName = "suspend"),
+
+    @SerialName(value = "tailrec")
+    TAILREC(serialName = "tailrec"),
+
+    @SerialName(value = "operator")
+    OPERATOR(serialName = "operator"),
+
+    @SerialName(value = "infix")
+    INFIX(serialName = "infix");
+
+
+    companion object {
+
+        fun getBySerialName(name: String, ignoreCase: Boolean = true): KotlinFunctionModifier? =
+            values().firstOrNull { it.serialName.equals(name, ignoreCase) }
+    }
+}
+
+@Serializable
+enum class KotlinParameterModifier(val serialName: String) : KotlinModifier {
+
+    @SerialName(value = "vararg")
+    VARARG(serialName = "vararg"),
+
+    @SerialName(value = "noinline")
+    NOINLINE(serialName = "noinline"),
+
+    @SerialName(value = "crossinline")
+    CROSSINLINE(serialName = "crossinline");
+
+    companion object {
+
+        fun getBySerialName(name: String, ignoreCase: Boolean = true): KotlinParameterModifier? =
             values().firstOrNull { it.serialName.equals(name, ignoreCase) }
     }
 }
