@@ -1,7 +1,6 @@
 package com.chrynan.kapi.server.example
 
 import com.chrynan.kapi.core.Response
-import com.chrynan.kapi.core.annotation.*
 import com.chrynan.kapi.server.core.annotation.*
 import com.chrynan.kapi.server.core.annotation.method.GET
 import com.chrynan.kapi.server.core.annotation.method.POST

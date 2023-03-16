@@ -1,10 +1,18 @@
 # kapi
 
-Kotlin multi-platform API utilities. Write your API in Kotlin and generate everything you need.
+Kotlin multi-platform API utilities. Write APIs in Kotlin; generate Ktor bindings and Open API Specs.
 
 ## Status
 
-**WIP**
+This project is in an early stage and under active development. Breaking changes may occur between released versions.
+
+## Getting Started
+
+TBD
+
+## Defining an API
+
+
 
 ## Inspiration
 
