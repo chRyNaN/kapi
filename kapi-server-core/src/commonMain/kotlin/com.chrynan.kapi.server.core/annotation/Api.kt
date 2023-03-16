@@ -1,4 +1,4 @@
-package com.chrynan.kapi.core.annotation
+package com.chrynan.kapi.server.core.annotation
 
 /**
  * Represents an API component. A component annotated with [Api] can have code auto-generated depending on the

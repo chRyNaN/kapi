@@ -1,16 +1,16 @@
-package com.chrynan.kapi.core.annotation.method
+package com.chrynan.kapi.server.core.annotation.method
 
-import com.chrynan.kapi.core.annotation.Api
-import com.chrynan.kapi.core.annotation.parameter.Path
+import com.chrynan.kapi.server.core.annotation.Api
+import com.chrynan.kapi.server.core.annotation.parameter.Path
 
 /**
- * This annotation is provided on a function that represents an API function that responds to HTTP POST requests. An
+ * This annotation is provided on a function that represents an API function that responds to HTTP PUT requests. An
  * API function can only be annotated with one HTTP method annotation.
  *
  * ## Example
  *
  * ```kotlin
- * @POST("/user")
+ * @PUT("/user")
  * suspend fun updateUser(@Body user: User)
  * ```
  *
@@ -28,4 +28,4 @@ import com.chrynan.kapi.core.annotation.parameter.Path
 @MustBeDocumented
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class POST(val path: String)
+annotation class PUT(val path: String)

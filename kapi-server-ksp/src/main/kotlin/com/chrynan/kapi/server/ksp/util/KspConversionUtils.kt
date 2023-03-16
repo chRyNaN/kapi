@@ -2,10 +2,11 @@ package com.chrynan.kapi.server.ksp.util
 
 import com.chrynan.kapi.core.ApiError
 import com.chrynan.kapi.core.HttpMethod
-import com.chrynan.kapi.core.annotation.Api
-import com.chrynan.kapi.core.annotation.Errors
 import com.chrynan.kapi.core.annotation.method.*
 import com.chrynan.kapi.core.annotation.parameter.*
+import com.chrynan.kapi.server.core.annotation.*
+import com.chrynan.kapi.server.core.annotation.method.*
+import com.chrynan.kapi.server.core.annotation.parameter.*
 import com.chrynan.kapi.server.processor.core.model.*
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
@@ -299,10 +300,11 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
     var post: POST? = null
     var put: PUT? = null
 
-    var formUrlEncoded: com.chrynan.kapi.core.annotation.FormUrlEncoded? = null
-    var multipart: com.chrynan.kapi.core.annotation.Multipart? = null
+    var formUrlEncoded: FormUrlEncoded? = null
+    var multipart: Multipart? = null
+    var contentNegotiation: ContentNegotiation? = null
 
-    var responseHeaders: com.chrynan.kapi.core.annotation.ResponseHeaders? = null
+    var responseHeaders: ResponseHeaders? = null
 
     this.annotations.forEach { annotation ->
         when {
@@ -315,9 +317,8 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
             annotation.isOfType(HEAD::class) -> head =
                 annotation.toAnnotation(HEAD::class)
 
-            annotation.isOfType(OPTIONS::class) -> options = annotation.toAnnotation(
-                OPTIONS::class
-            )
+            annotation.isOfType(OPTIONS::class) -> options =
+                annotation.toAnnotation(OPTIONS::class)
 
             annotation.isOfType(PATCH::class) -> patch =
                 annotation.toAnnotation(PATCH::class)
@@ -328,23 +329,28 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
             annotation.isOfType(PUT::class) -> put =
                 annotation.toAnnotation(PUT::class)
 
-            annotation.isOfType(com.chrynan.kapi.core.annotation.FormUrlEncoded::class) -> formUrlEncoded =
-                annotation.toAnnotation(com.chrynan.kapi.core.annotation.FormUrlEncoded::class)
+            annotation.isOfType(FormUrlEncoded::class) -> formUrlEncoded =
+                annotation.toAnnotation(FormUrlEncoded::class)
 
-            annotation.isOfType(com.chrynan.kapi.core.annotation.Multipart::class) -> multipart =
-                annotation.toAnnotation(
-                    com.chrynan.kapi.core.annotation.Multipart::class
-                )
+            annotation.isOfType(Multipart::class) -> multipart =
+                annotation.toAnnotation(Multipart::class)
 
-            annotation.isOfType(com.chrynan.kapi.core.annotation.ResponseHeaders::class) -> responseHeaders =
+            annotation.isOfType(ContentNegotiation::class) -> contentNegotiation =
+                annotation.toAnnotation(ContentNegotiation::class)
+
+            annotation.isOfType(ResponseHeaders::class) -> responseHeaders =
                 annotation.toAnnotation(
-                    com.chrynan.kapi.core.annotation.ResponseHeaders::class
+                    ResponseHeaders::class
                 )
         }
     }
 
     check(listOfNotNull(delete, get, head, options, patch, post, put).size <= 1) {
         "Only one of the following annotations is allowed for each API function: DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT. Function: $functionName"
+    }
+
+    check(listOfNotNull(formUrlEncoded, multipart, contentNegotiation).size <= 1) {
+        "Only one of the following annotations is allowed for each API function: FormUrlEncoded, Multipart, ContentNegotiation. Function: $functionName"
     }
 
     val httpMethod = when {
@@ -362,10 +368,11 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
             ?: return null
     val parameters = this.parameters.map { it.toApiParameter(functionName = functionName) }
     val requestBodyType = when {
-        formUrlEncoded != null -> ApiRequestBodyType.FORM_URL_ENCODED
-        multipart != null -> ApiRequestBodyType.MULTIPART
-        parameters.any { it is BodyParameter } -> ApiRequestBodyType.CONTENT_NEGOTIATION
-        else -> ApiRequestBodyType.NONE
+        formUrlEncoded != null -> ApiRequestBodyType.FormUrlEncoded
+        multipart != null -> ApiRequestBodyType.Multipart
+        contentNegotiation != null -> ApiRequestBodyType.ContentNegotiation(value = contentNegotiation?.value?.takeIf { it.isNotBlank() })
+        parameters.any { it is BodyParameter } -> ApiRequestBodyType.ContentNegotiation()
+        else -> ApiRequestBodyType.None
     }
     val responseBody = this.returnType?.toKotlinResolvedTypeUsage()
     val errors = this.annotations
@@ -374,7 +381,7 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
         .firstOrNull()
         ?.toErrorAnnotations()
 
-    return ApiFunction(
+    val apiFunction = ApiFunction(
         kotlinFunction = this.toKotlinFunctionDeclaration(),
         method = httpMethod,
         path = path,
@@ -385,12 +392,22 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
         responseHeaders = responseHeaders?.values?.map { it.toResponseHeader() } ?: emptyList(),
         errors = errors ?: emptyList()
     )
+
+    if (apiFunction.bodyParameterOrNull() != null && (formUrlEncoded != null || multipart != null)) {
+        error("API function containing a Body parameter cannot be annotated with the FormUrlEncoded or Multipart annotations. Function: $functionName")
+    } else if (formUrlEncoded == null && apiFunction.fieldParameters.isNotEmpty()) {
+        error("API function containing a Field parameter must be annotated with the FormUrlEncoded annotation. Function: $functionName")
+    } else if (multipart == null && apiFunction.partParameters.isNotEmpty()) {
+        error("API function containing a Part parameter must be annotated with the Multipart annotation. Function: $functionName")
+    }
+
+    return apiFunction
 }
 
 /**
  * Converts this [Header] annotation into a [ApiResponseHeader] model.
  */
-internal fun Header.toResponseHeader(): ApiResponseHeader =
+internal fun ResponseHeader.toResponseHeader(): ApiResponseHeader =
     ApiResponseHeader(
         name = this.name,
         value = this.value,
@@ -441,20 +458,17 @@ internal fun KSValueParameter.toApiParameter(functionName: String): ApiParameter
     return when {
         path != null -> PathParameter(
             declaration = parameterDeclaration,
-            value = path.value.takeIf { it.isNotBlank() } ?: parameterDeclaration.name,
-            encoded = path.encoded
+            value = path.value.takeIf { it.isNotBlank() } ?: parameterDeclaration.name
         )
 
         query != null -> QueryParameter(
             declaration = parameterDeclaration,
-            value = query.value.takeIf { it.isNotBlank() } ?: parameterDeclaration.name,
-            encoded = query.encoded
+            value = query.value.takeIf { it.isNotBlank() } ?: parameterDeclaration.name
         )
 
         field != null -> FieldParameter(
             declaration = parameterDeclaration,
-            value = field.value.takeIf { it.isNotBlank() } ?: parameterDeclaration.name,
-            encoded = field.encoded
+            value = field.value.takeIf { it.isNotBlank() } ?: parameterDeclaration.name
         )
 
         part != null -> PartParameter(
@@ -465,8 +479,7 @@ internal fun KSValueParameter.toApiParameter(functionName: String): ApiParameter
 
         header != null -> HeaderParameter(
             declaration = parameterDeclaration,
-            value = header.value.takeIf { it.isNotBlank() } ?: header.name.takeIf { it.isNotBlank() }
-            ?: parameterDeclaration.name
+            value = header.value.takeIf { it.isNotBlank() } ?: parameterDeclaration.name
         )
 
         body != null -> BodyParameter(

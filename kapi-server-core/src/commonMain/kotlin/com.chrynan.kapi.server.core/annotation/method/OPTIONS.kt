@@ -1,17 +1,17 @@
-package com.chrynan.kapi.core.annotation.method
+package com.chrynan.kapi.server.core.annotation.method
 
-import com.chrynan.kapi.core.annotation.Api
-import com.chrynan.kapi.core.annotation.parameter.Path
+import com.chrynan.kapi.server.core.annotation.Api
+import com.chrynan.kapi.server.core.annotation.parameter.Path
 
 /**
- * This annotation is provided on a function that represents an API function that responds to HTTP GET requests. An
+ * This annotation is provided on a function that represents an API function that responds to HTTP OPTIONS requests. An
  * API function can only be annotated with one HTTP method annotation.
  *
  * ## Example
  *
  * ```kotlin
- * @GET("/user/{id}")
- * suspend fun getUser(@Path("id") id: String)
+ * @OPTIONS("/")
+ * suspend fun getServerOptions()
  * ```
  *
  * @property [path] The relative or absolute URL path of the API endpoint that the annotated function responds to. The
@@ -28,4 +28,4 @@ import com.chrynan.kapi.core.annotation.parameter.Path
 @MustBeDocumented
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class GET(val path: String)
+annotation class OPTIONS(val path: String)

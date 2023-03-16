@@ -2,7 +2,7 @@ package com.chrynan.kapi.server.processor.core.model
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import com.chrynan.kapi.core.annotation.Error
+import com.chrynan.kapi.server.core.annotation.Error
 
 /**
  * Represents information extracted from an [Error] annotation.

@@ -1,8 +1,8 @@
 package com.chrynan.kapi.server.ksp.util
 
-import com.chrynan.kapi.core.annotation.Contact
-import com.chrynan.kapi.core.annotation.Info
-import com.chrynan.kapi.core.annotation.License
+import com.chrynan.kapi.server.core.annotation.Contact
+import com.chrynan.kapi.server.core.annotation.Info
+import com.chrynan.kapi.server.core.annotation.License
 import com.chrynan.kapi.server.processor.core.model.*
 
 internal val ApiDefinition.apiName: String

@@ -1,6 +1,6 @@
 package com.chrynan.kapi.server.ksp
 
-import com.chrynan.kapi.core.annotation.Api
+import com.chrynan.kapi.server.core.annotation.Api
 import com.chrynan.kapi.server.ksp.util.getSymbolsWithAnnotation
 import com.chrynan.kapi.server.ksp.util.toApiDefinition
 import com.chrynan.kapi.server.processor.core.ApiProcessor

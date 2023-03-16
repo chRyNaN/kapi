@@ -11,7 +11,7 @@ data class ApiFunction(
     @SerialName(value = "kotlin_function") val kotlinFunction: KotlinFunctionDeclaration,
     @SerialName(value = "method") val method: HttpMethod,
     @SerialName(value = "path") val path: String,
-    @SerialName(value = "request_body_type") val requestBodyType: ApiRequestBodyType = ApiRequestBodyType.NONE,
+    @SerialName(value = "request_body_type") val requestBodyType: ApiRequestBodyType = ApiRequestBodyType.None,
     @SerialName(value = "response_body") val responseBody: KotlinTypeUsageWithDeclaration? = null,
     @SerialName(value = "parameters") val parameters: List<ApiParameter> = emptyList(),
     @SerialName(value = "response_headers") val responseHeaders: List<ApiResponseHeader> = emptyList(),

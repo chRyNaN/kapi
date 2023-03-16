@@ -6,23 +6,21 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class ApiRequestBodyType(val serialName: String) {
+sealed class ApiRequestBodyType private constructor() {
 
+    @Serializable
     @SerialName(value = "form_url_encoded")
-    FORM_URL_ENCODED(serialName = "form_url_encoded"),
+    object FormUrlEncoded : ApiRequestBodyType()
 
+    @Serializable
     @SerialName(value = "multipart")
-    MULTIPART(serialName = "multipart"),
+    object Multipart : ApiRequestBodyType()
 
+    @Serializable
     @SerialName(value = "content_negotiation")
-    CONTENT_NEGOTIATION(serialName = "content_negotiation"),
+    data class ContentNegotiation(@SerialName(value = "value") val value: String? = null) : ApiRequestBodyType()
 
+    @Serializable
     @SerialName(value = "none")
-    NONE(serialName = "none");
-
-    companion object {
-
-        fun getByName(name: String, ignoreCase: Boolean = true): ApiRequestBodyType? =
-            values().firstOrNull { it.serialName.equals(name, ignoreCase) }
-    }
+    object None : ApiRequestBodyType()
 }
