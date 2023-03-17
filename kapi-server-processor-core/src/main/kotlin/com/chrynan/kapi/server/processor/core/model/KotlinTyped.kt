@@ -98,6 +98,12 @@ val KotlinTyped.isString: Boolean
     get() = name.full == "kotlin.String"
 
 /**
+ * Determines if this type is a Kotlin CharSequence.
+ */
+val KotlinTyped.isCharSequence: Boolean
+    get() = name.full == "kotlin.CharSequence"
+
+/**
  * Determines if this type is a Kotlin Unit.
  */
 val KotlinTyped.isUnit: Boolean
@@ -116,10 +122,52 @@ val KotlinTyped.isArray: Boolean
     get() = name.full == "kotlin.Array"
 
 /**
+ * Determines if this type is a Kotlin [BooleanArray].
+ */
+val KotlinTyped.isBooleanArray: Boolean
+    get() = name.full == "kotlin.BooleanArray"
+
+/**
  * Determines if this type is a Kotlin ByteArray.
  */
 val KotlinTyped.isByteArray: Boolean
     get() = name.full == "kotlin.ByteArray"
+
+/**
+ * Determines if this type is a Kotlin [CharArray].
+ */
+val KotlinTyped.isCharArray: Boolean
+    get() = name.full == "kotlin.CharArray"
+
+/**
+ * Determines if this type is a Kotlin [ShortArray].
+ */
+val KotlinTyped.isShortArray: Boolean
+    get() = name.full == "kotlin.ShortArray"
+
+/**
+ * Determines if this type is a Kotlin [IntArray].
+ */
+val KotlinTyped.isIntArray: Boolean
+    get() = name.full == "kotlin.IntArray"
+
+/**
+ * Determines if this type is a Kotlin [LongArray].
+ */
+val KotlinTyped.isLongArray: Boolean
+    get() = name.full == "kotlin.LongArray"
+
+/**
+ * Determines if this type is a Kotlin [FloatArray].
+ */
+val KotlinTyped.isFloatArray: Boolean
+    get() = name.full == "kotlin.FloatArray"
+
+/**
+ * Determines if this type is a Kotlin [DoubleArray].
+ */
+val KotlinTyped.isDoubleArray: Boolean
+    get() = name.full == "kotlin.DoubleArray"
 
 /**
  * Determines if this type is a Kotlin List.
@@ -128,10 +176,37 @@ val KotlinTyped.isList: Boolean
     get() = name.full == "kotlin.collections.List"
 
 /**
+ * Determines if this type is a Kotlin Set.
+ */
+val KotlinTyped.isSet: Boolean
+    get() = name.full == "kotlin.collections.Set"
+
+/**
  * Determines if this type is a Kotlin Collection.
  */
 val KotlinTyped.isCollection: Boolean
     get() = name.full == "kotlin.collections.Collection"
+
+/**
+ * Determines if this [KotlinTyped] instance is a Kotlin [Collection] type or an immediate descendant of [Collection],
+ * [List], or [Set] if that information is available.
+ */
+val KotlinTyped.isSupportedCollectionType: Boolean
+    get() = if (this is KotlinTypeDeclaration) {
+        this.isCollection || this.isList || this.isSet || this.superTypes.any { it.isSupportedCollectionType }
+    } else {
+        this.isCollection || this.isList || this.isSet
+    }
+
+/**
+ * Determines if this [KotlinTyped] instance is a Kotlin [Array] type or an immediate descendant of [Array].
+ */
+val KotlinTyped.isSupportedArrayType: Boolean
+    get() = if (this is KotlinTypeDeclaration) {
+        this.isArray || this.isBooleanArray || this.isCharArray || this.isShortArray || this.isIntArray || this.isLongArray || this.isFloatArray || this.isDoubleArray || this.superTypes.any { it.isSupportedArrayType }
+    } else {
+        this.isArray || this.isBooleanArray || this.isCharArray || this.isShortArray || this.isIntArray || this.isLongArray || this.isFloatArray || this.isDoubleArray
+    }
 
 /**
  * Determines if this type is a Kapi Response.
@@ -142,6 +217,7 @@ val KotlinTyped.isResponse: Boolean
 /**
  * Determines if this type is a Ktor HttpResponse.
  */
+@Suppress("unused")
 val KotlinTyped.isHttpResponse: Boolean
     get() = name.full == "io.ktor.client.statement.HttpResponse"
 

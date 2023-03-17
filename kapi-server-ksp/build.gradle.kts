@@ -12,6 +12,7 @@ group = LibraryConstants.group
 version = LibraryConstants.versionName
 
 dependencies {
+    implementation(project(":kapi-openapi"))
     implementation(project(":kapi-server-core"))
     implementation(project(":kapi-server-processor-core"))
 

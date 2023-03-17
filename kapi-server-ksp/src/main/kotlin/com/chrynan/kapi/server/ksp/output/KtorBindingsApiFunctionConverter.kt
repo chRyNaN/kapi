@@ -199,6 +199,17 @@ class KtorBindingApiFunctionConverter(
                 parameterName
             )
 
+            type.isSet -> builder.add(
+                "%M(name = %S).%M()",
+                MemberName(
+                    enclosingClassName = ClassName.bestGuess("io.ktor.util.StringValues"),
+                    simpleName = "getAll",
+                    isExtension = false
+                ),
+                parameterName,
+                MemberName(packageName = "kotlin.collections", simpleName = "toSet", isExtension = true)
+            )
+
             type.isCollection -> builder.add(
                 "%M(name = %S)",
                 MemberName(

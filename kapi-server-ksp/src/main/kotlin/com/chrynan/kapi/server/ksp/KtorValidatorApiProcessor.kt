@@ -121,7 +121,7 @@ class KtorValidatorApiProcessor(
     private val KotlinTypeUsage.isBasicSupportedParameterType: Boolean
         get() = this.isConvertibleByDefaultConversionService ||
                 this.isByte ||
-                ((this.isList || this.isCollection || this.isArray) && (this.typeArguments.first().type?.isString
+                ((this.isSupportedCollectionType || this.isArray) && (this.typeArguments.first().type?.isString
                     ?: false))
 
     private val KotlinTypeUsage.isSupportedTypeParameterType: Boolean
