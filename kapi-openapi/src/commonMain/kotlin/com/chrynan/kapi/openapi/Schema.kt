@@ -156,7 +156,7 @@ data class Schema(
     @SerialName(value = "examples") val examples: JsonElement? = null,
     @SerialName(value = "description") val description: String? = null,
     @SerialName(value = "format") val format: String? = null,
-    @SerialName(value = "type") val type: List<DataType>? = null, // TODO: Support single or array types
+    @SerialName(value = "type") val type: DataType? = null,
     @SerialName(value = "enum") val enum: List<JsonElement>? = null,
     @SerialName(value = "const") val const: JsonElement? = null,
     @SerialName(value = "multipleOf") val multipleOf: Long? = null,
@@ -199,5 +199,6 @@ data class Schema(
     @SerialName(value = "additionalProperties") val additionalProperties: JsonElement? = null,
     @SerialName(value = "propertyNames") val propertyNames: Schema? = null,
     @SerialName(value = "unevaluatedItems") val unevaluatedItems: Schema? = null,
-    @SerialName(value = "unevaluatedProperties") val unevaluatedProperties: Schema? = null
+    @SerialName(value = "unevaluatedProperties") val unevaluatedProperties: Schema? = null,
+    @SerialName(value = "nullable") val nullable: Boolean = false
 )

@@ -2,6 +2,15 @@
 
 Kotlin multi-platform API utilities. Write APIs in Kotlin; generate Ktor bindings and Open API Specs.
 
+```kotlin
+@Api
+interface IdentityApi {
+    
+    @GET("/user/{id}")
+    suspend fun getUser(@Path id: String): User
+}
+```
+
 ## Status
 
 This project is in an early stage and under active development. Breaking changes may occur between released versions.
