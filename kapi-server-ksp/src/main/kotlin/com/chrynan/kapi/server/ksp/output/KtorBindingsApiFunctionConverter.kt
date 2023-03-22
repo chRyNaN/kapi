@@ -234,7 +234,7 @@ class KtorBindingApiFunctionConverter(
             else -> builder.add(
                 "%M<%T>(name = %S)",
                 MemberName(
-                    packageName = "com.chrynan.kapi.server.core",
+                    packageName = "com.chrynan.kapi.server.core.util",
                     simpleName = "getOrNull",
                     isExtension = true
                 ),
@@ -364,7 +364,7 @@ class KtorBindingApiFunctionConverter(
             type.isInputStream -> builder.add(
                 "$partDataGetter.%M()",
                 MemberName(
-                    packageName = "com.chrynan.kapi.server.core",
+                    packageName = "com.chrynan.kapi.server.core.util",
                     simpleName = "asInputStream",
                     isExtension = true
                 )
@@ -373,7 +373,7 @@ class KtorBindingApiFunctionConverter(
             type.isInput -> builder.add(
                 "$partDataGetter.%M()",
                 MemberName(
-                    packageName = "com.chrynan.kapi.server.core",
+                    packageName = "com.chrynan.kapi.server.core.util",
                     simpleName = "asInput",
                     isExtension = true
                 )
@@ -382,7 +382,7 @@ class KtorBindingApiFunctionConverter(
             type.isByteReadChannel -> builder.add(
                 "$partDataGetter.%M()",
                 MemberName(
-                    packageName = "com.chrynan.kapi.server.core",
+                    packageName = "com.chrynan.kapi.server.core.util",
                     simpleName = "asByteReadChannel",
                     isExtension = true
                 )
@@ -391,7 +391,7 @@ class KtorBindingApiFunctionConverter(
             type.isByteArray -> builder.add(
                 "$partDataGetter.%M()",
                 MemberName(
-                    packageName = "com.chrynan.kapi.server.core",
+                    packageName = "com.chrynan.kapi.server.core.util",
                     simpleName = "asByteArray",
                     isExtension = true
                 )
@@ -646,7 +646,7 @@ class KtorBindingApiFunctionConverter(
             """.trimMargin(),
                 applicationCallMemberName,
                 MemberName(
-                    packageName = "com.chrynan.kapi.server.core",
+                    packageName = "com.chrynan.kapi.server.core.util",
                     simpleName = "respondError",
                     isExtension = true
                 ),

@@ -5,7 +5,7 @@ package com.chrynan.kapi.server.processor.core.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import com.chrynan.kapi.core.annotation.*
+import com.chrynan.kapi.server.core.annotation.*
 
 /**
  * Represents a parameter to an API function (a function of a type annotated with the `@Api` annotation). This model
@@ -18,12 +18,14 @@ import com.chrynan.kapi.core.annotation.*
  * there is a default value for the parameter, etc.
  * @property [value] An optional value that is provided by most, but not all, of the supported API annotations (@Path,
  * @Part, etc.) via their `value` property.
+ * @property [isDeprecated] If this parameter value has been deprecated.
  */
 @Serializable
 sealed class ApiParameter {
 
     abstract val declaration: KotlinParameterDeclaration
     abstract val value: String?
+    abstract val isDeprecated: Boolean
 }
 
 /**
@@ -39,6 +41,7 @@ sealed class ApiParameter {
 data class PathParameter(
     @SerialName(value = "declaration") override val declaration: KotlinParameterDeclaration,
     @SerialName(value = "value") override val value: String,
+    @SerialName(value = "deprecated") override val isDeprecated: Boolean = false,
     @SerialName(value = "encoded") val encoded: Boolean = false
 ) : ApiParameter()
 
@@ -55,6 +58,7 @@ data class PathParameter(
 data class QueryParameter(
     @SerialName(value = "declaration") override val declaration: KotlinParameterDeclaration,
     @SerialName(value = "value") override val value: String,
+    @SerialName(value = "deprecated") override val isDeprecated: Boolean = false,
     @SerialName(value = "encoded") val encoded: Boolean = false
 ) : ApiParameter()
 
@@ -71,6 +75,7 @@ data class QueryParameter(
 data class FieldParameter(
     @SerialName(value = "declaration") override val declaration: KotlinParameterDeclaration,
     @SerialName(value = "value") override val value: String,
+    @SerialName(value = "deprecated") override val isDeprecated: Boolean = false,
     @SerialName(value = "encoded") val encoded: Boolean = false
 ) : ApiParameter()
 
@@ -87,6 +92,7 @@ data class FieldParameter(
 data class PartParameter(
     @SerialName(value = "declaration") override val declaration: KotlinParameterDeclaration,
     @SerialName(value = "value") override val value: String,
+    @SerialName(value = "deprecated") override val isDeprecated: Boolean = false,
     @SerialName(value = "encoding") val encoding: String
 ) : ApiParameter()
 
@@ -101,7 +107,8 @@ data class PartParameter(
 @SerialName(value = "header")
 data class HeaderParameter(
     @SerialName(value = "declaration") override val declaration: KotlinParameterDeclaration,
-    @SerialName(value = "value") override val value: String
+    @SerialName(value = "value") override val value: String,
+    @SerialName(value = "deprecated") override val isDeprecated: Boolean = false,
 ) : ApiParameter()
 
 /**
@@ -114,7 +121,8 @@ data class HeaderParameter(
 @SerialName(value = "body")
 data class BodyParameter(
     @SerialName(value = "declaration") override val declaration: KotlinParameterDeclaration,
-    @SerialName(value = "kotlin_type") val kotlinType: KotlinTypeUsageWithDeclaration
+    @SerialName(value = "kotlin_type") val kotlinType: KotlinTypeUsageWithDeclaration,
+    @SerialName(value = "deprecated") override val isDeprecated: Boolean = false,
 ) : ApiParameter() {
 
     @Transient
@@ -132,6 +140,7 @@ data class BodyParameter(
 @SerialName(value = "default")
 data class DefaultValueParameter(
     @SerialName(value = "declaration") override val declaration: KotlinParameterDeclaration,
+    @SerialName(value = "deprecated") override val isDeprecated: Boolean = false
 ) : ApiParameter() {
 
     @Transient
@@ -149,6 +158,7 @@ data class DefaultValueParameter(
 @SerialName(value = "supported")
 data class SupportedTypeParameter(
     @SerialName(value = "declaration") override val declaration: KotlinParameterDeclaration,
+    @SerialName(value = "deprecated") override val isDeprecated: Boolean = false
 ) : ApiParameter() {
 
     @Transient

@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package com.chrynan.kapi.openapi
 
 import kotlinx.serialization.Serializable
@@ -66,7 +68,7 @@ import kotlinx.serialization.json.JsonElement
 @Serializable
 data class Parameter(
     @SerialName(value = "name") val name: String,
-    @SerialName(value = "in") val inValue: String,
+    @SerialName(value = "in") val inValue: InValue,
     @SerialName(value = "description") val description: String? = null,
     @SerialName(value = "required") val required: Boolean = false,
     @SerialName(value = "deprecated") val deprecated: Boolean = false,
@@ -78,4 +80,27 @@ data class Parameter(
     @SerialName(value = "example") val example: JsonElement? = null,
     @SerialName(value = "examples") val examples: Map<String, JsonElement>? = null,
     @SerialName(value = "content") val content: Map<String, MediaType>? = null
-)
+) {
+
+    @Serializable
+    enum class InValue(val serialName: String) {
+
+        @SerialName(value = "path")
+        PATH(serialName = "path"),
+
+        @SerialName(value = "query")
+        QUERY(serialName = "query"),
+
+        @SerialName(value = "header")
+        HEADER(serialName = "header"),
+
+        @SerialName(value = "cookie")
+        COOKIE(serialName = "cookie");
+
+        companion object {
+
+            fun getBySerialName(name: String, ignoreCase: Boolean = true): InValue? =
+                values().firstOrNull { it.serialName.equals(name, ignoreCase) }
+        }
+    }
+}

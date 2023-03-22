@@ -2,8 +2,6 @@ package com.chrynan.kapi.server.ksp.util
 
 import com.chrynan.kapi.core.ApiError
 import com.chrynan.kapi.core.HttpMethod
-import com.chrynan.kapi.core.annotation.method.*
-import com.chrynan.kapi.core.annotation.parameter.*
 import com.chrynan.kapi.server.core.annotation.*
 import com.chrynan.kapi.server.core.annotation.method.*
 import com.chrynan.kapi.server.core.annotation.parameter.*
@@ -306,6 +304,8 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
 
     var responseHeaders: ResponseHeaders? = null
 
+    var isDeprecated = false
+
     this.annotations.forEach { annotation ->
         when {
             annotation.isOfType(DELETE::class) -> delete =
@@ -342,6 +342,8 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
                 annotation.toAnnotation(
                     ResponseHeaders::class
                 )
+
+            annotation.isOfType(Deprecated::class) -> isDeprecated = true
         }
     }
 
@@ -390,7 +392,8 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
         extensionReceiver = this.extensionReceiver?.toKotlinTypeUsage(),
         parameters = parameters,
         responseHeaders = responseHeaders?.values?.map { it.toResponseHeader() } ?: emptyList(),
-        errors = errors ?: emptyList()
+        errors = errors ?: emptyList(),
+        isDeprecated = isDeprecated
     )
 
     if (apiFunction.bodyParameterOrNull() != null && (formUrlEncoded != null || multipart != null)) {
@@ -448,6 +451,7 @@ internal fun KSValueParameter.toApiParameter(functionName: String): ApiParameter
     val part = this.getAnnotationsByType(Part::class).firstOrNull()
     val header = this.getAnnotationsByType(Header::class).firstOrNull()
     val body = this.getAnnotationsByType(Body::class).firstOrNull()
+    val isDeprecated = this.getAnnotationsByType(Deprecated::class).firstOrNull() != null
 
     check(listOfNotNull(path, query, field, part, header, body).size <= 1) {
         "Only one of the following annotations is allowed for each API function parameter: 'Path', 'Query', 'Field', 'Part', 'Header', and 'Body'. Function: $functionName; Parameter: ${this.name?.asString()}"
@@ -458,43 +462,49 @@ internal fun KSValueParameter.toApiParameter(functionName: String): ApiParameter
     return when {
         path != null -> PathParameter(
             declaration = parameterDeclaration,
-            value = path.value.takeIf { it.isNotBlank() } ?: parameterDeclaration.name
+            value = path.value.takeIf { it.isNotBlank() } ?: parameterDeclaration.name,
+            isDeprecated = isDeprecated
         )
 
         query != null -> QueryParameter(
             declaration = parameterDeclaration,
-            value = query.value.takeIf { it.isNotBlank() } ?: parameterDeclaration.name
+            value = query.value.takeIf { it.isNotBlank() } ?: parameterDeclaration.name,
+            isDeprecated = isDeprecated
         )
 
         field != null -> FieldParameter(
             declaration = parameterDeclaration,
-            value = field.value.takeIf { it.isNotBlank() } ?: parameterDeclaration.name
+            value = field.value.takeIf { it.isNotBlank() } ?: parameterDeclaration.name,
+            isDeprecated = isDeprecated
         )
 
         part != null -> PartParameter(
             declaration = parameterDeclaration,
             value = part.value.takeIf { it.isNotBlank() } ?: parameterDeclaration.name,
-            encoding = part.encoding
+            encoding = part.encoding,
+            isDeprecated = isDeprecated
         )
 
         header != null -> HeaderParameter(
             declaration = parameterDeclaration,
-            value = header.value.takeIf { it.isNotBlank() } ?: parameterDeclaration.name
+            value = header.value.takeIf { it.isNotBlank() } ?: parameterDeclaration.name,
+            isDeprecated = isDeprecated
         )
 
         body != null -> BodyParameter(
             declaration = parameterDeclaration,
-            kotlinType = this.type.toKotlinResolvedTypeUsage()
+            kotlinType = this.type.toKotlinResolvedTypeUsage(),
+            isDeprecated = isDeprecated
         )
 
-        this.hasDefault -> DefaultValueParameter(declaration = parameterDeclaration)
+        this.hasDefault -> DefaultValueParameter(declaration = parameterDeclaration, isDeprecated = isDeprecated)
 
         else -> {
             val type = parameterDeclaration.type
 
             when {
                 type.isRoute || type.isApplicationCall || type.isUnit || type.isParameters || type.isMultiPartData ->
-                    SupportedTypeParameter(declaration = parameterDeclaration)
+                    SupportedTypeParameter(declaration = parameterDeclaration, isDeprecated = isDeprecated)
 
                 else -> error("Unsupported API function parameter type.")
             }

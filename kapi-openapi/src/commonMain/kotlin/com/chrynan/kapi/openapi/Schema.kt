@@ -41,9 +41,6 @@ import kotlinx.serialization.json.JsonElement
  * @property [enum] The value of this keyword MUST be an array. This array SHOULD have at least one element. Elements
  * in the array SHOULD be unique. An instance validates successfully against this keyword if its value is equal to one
  * of the elements in this keyword's array value. Elements in the array might be of any type, including null.
- * @property [const] The value of this keyword MAY be of any type, including null. Use of this keyword is functionally
- * equivalent to an "enum" (Section 6.1.2) with a single value. An instance validates successfully against this keyword
- * if its value is equal to the value of the keyword.
  * @property [multipleOf] The value of "multipleOf" MUST be a number, strictly greater than 0. A numeric instance is
  * valid only if division by this keyword's value results in an integer.
  * @property [maximum] The value of "maximum" MUST be a number, representing an inclusive upper limit for a numeric
@@ -142,9 +139,7 @@ import kotlinx.serialization.json.JsonElement
  */
 @Serializable
 data class Schema(
-    @SerialName(value = "\$schema") val schema: String? = null,
     @SerialName(value = "\$vocabulary") val vocabulary: JsonElement? = null,
-    @SerialName(value = "\$id") val id: String? = null,
     @SerialName(value = "\$ref") val reference: String? = null,
     @SerialName(value = "\$dynamicRef") val dynamicRef: String? = null,
     @SerialName(value = "\$defs") val defs: JsonElement? = null,
@@ -158,7 +153,6 @@ data class Schema(
     @SerialName(value = "format") val format: String? = null,
     @SerialName(value = "type") val type: DataType? = null,
     @SerialName(value = "enum") val enum: List<JsonElement>? = null,
-    @SerialName(value = "const") val const: JsonElement? = null,
     @SerialName(value = "multipleOf") val multipleOf: Long? = null,
     @SerialName(value = "maximum") val maximum: Long? = null,
     @SerialName(value = "exclusiveMaximum") val exclusiveMaximum: Long? = null,
@@ -193,11 +187,8 @@ data class Schema(
     @SerialName(value = "dependentSchemas") val dependentSchemas: Map<String, Schema>? = null,
     @SerialName(value = "prefixItems") val prefixItems: List<Schema>? = null,
     @SerialName(value = "items") val items: Schema? = null,
-    @SerialName(value = "contains") val contains: Schema? = null,
     @SerialName(value = "properties") val properties: Map<String, Schema>? = null,
-    @SerialName(value = "patternProperties") val patternProperties: Map<String, Schema>? = null,
     @SerialName(value = "additionalProperties") val additionalProperties: JsonElement? = null,
-    @SerialName(value = "propertyNames") val propertyNames: Schema? = null,
     @SerialName(value = "unevaluatedItems") val unevaluatedItems: Schema? = null,
     @SerialName(value = "unevaluatedProperties") val unevaluatedProperties: Schema? = null,
     @SerialName(value = "nullable") val nullable: Boolean = false

@@ -16,7 +16,8 @@ data class ApiFunction(
     @SerialName(value = "parameters") val parameters: List<ApiParameter> = emptyList(),
     @SerialName(value = "response_headers") val responseHeaders: List<ApiResponseHeader> = emptyList(),
     @SerialName(value = "extension_receiver") val extensionReceiver: KotlinTypeUsage? = null,
-    @SerialName(value = "errors") val errors: List<ErrorAnnotation> = emptyList()
+    @SerialName(value = "errors") val errors: List<ErrorAnnotation> = emptyList(),
+    @SerialName(value = "deprecated") val isDeprecated: Boolean = false
 )
 
 val ApiFunction.pathParameters: List<PathParameter>

@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package com.chrynan.kapi.server.core
+package com.chrynan.kapi.server.core.util
 
 import com.chrynan.kapi.core.HttpMethod
 import com.chrynan.kapi.server.core.annotation.method.*

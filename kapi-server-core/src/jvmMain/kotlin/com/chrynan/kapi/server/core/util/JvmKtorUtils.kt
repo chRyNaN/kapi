@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package com.chrynan.kapi.server.core
+package com.chrynan.kapi.server.core.util
 
 import io.ktor.http.content.*
 import io.ktor.util.*
