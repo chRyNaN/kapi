@@ -461,38 +461,17 @@ class KtorBindingApiFunctionConverter(
             blockWithoutControlFlow = function.extensionReceiver == null,
             args = arrayOf(MemberName(packageName = "kotlin", simpleName = "apply", isExtension = true))
         ) {
-            function.responseHeaders.forEach { header ->
-                if (header.onlyIfAbsent) {
-                    addStatement(
-                        "$propertyNamePipeline.%M.response.headers.%M(name = %S, value = %S, safeOnly = %L)",
-                        applicationCallMemberName,
-                        MemberName(
-                            packageName = "io.ktor.server.response",
-                            simpleName = "appendIfAbsent",
-                            isExtension = true
-                        ),
-                        header.name,
-                        header.value,
-                        header.safeOnly
-                    )
-                } else {
-                    addStatement(
-                        "$propertyNamePipeline.%M.response.headers.append(name = %S, value = %S, safeOnly = %L)",
-                        applicationCallMemberName,
-                        header.name,
-                        header.value,
-                        header.safeOnly
-                    )
+            function.successResponse?.let { success ->
+                addStatement(success.toResponseHeadersCodeBlock())
+
+                if (success.headers.isNotEmpty()) {
+                    add("\n")
                 }
             }
 
-            if (function.responseHeaders.isNotEmpty()) {
-                add("\n")
-            }
-
-            function.responseBody?.let { response ->
-                if (!response.usage.isUnit && !response.usage.isNothing) {
-                    add("val $propertyNameResponseBody: %T = ", response.usage.typeName)
+            function.kotlinFunction.returnType?.let { returnType ->
+                if (!returnType.isUnit && !returnType.isNothing) {
+                    add("val $propertyNameResponseBody: %T = ", returnType.typeName)
                 }
             }
 
@@ -518,15 +497,15 @@ class KtorBindingApiFunctionConverter(
             unindent()
             addStatement(")")
 
-            function.responseBody?.let { response ->
-                if (!response.usage.isUnit && !response.usage.isNothing) {
+            function.kotlinFunction.returnType?.let { response ->
+                if (!response.isUnit && !response.isNothing) {
                     add("\n")
 
-                    if (response.usage.isResponse) {
+                    if (response.isResponse) {
                         addStatement(
                             "$propertyNamePipeline.%M.%M(\nstatus = %T.fromValue(value = $propertyNameResponseBody.code()), \nmessage = $propertyNameResponseBody.body())",
                             applicationCallMemberName,
-                            if (response.usage.isNullable) {
+                            if (response.isNullable) {
                                 MemberName(
                                     packageName = "io.ktor.server.response",
                                     simpleName = "respondNullable",
@@ -545,7 +524,7 @@ class KtorBindingApiFunctionConverter(
                         addStatement(
                             "$propertyNamePipeline.%M.%M(message = $propertyNameResponseBody)",
                             applicationCallMemberName,
-                            if (response.usage.isNullable) {
+                            if (response.isNullable) {
                                 MemberName(
                                     packageName = "io.ktor.server.response",
                                     simpleName = "respondNullable",
@@ -563,6 +542,37 @@ class KtorBindingApiFunctionConverter(
                 }
             }
         }
+    }
+
+    private fun ApiResponse.toResponseHeadersCodeBlock(): CodeBlock {
+        val builder = CodeBlock.builder()
+
+        this.headers.forEach { header ->
+            if (header.onlyIfAbsent) {
+                builder.addStatement(
+                    "$propertyNamePipeline.%M.response.headers.%M(name = %S, value = %S, safeOnly = %L)",
+                    applicationCallMemberName,
+                    MemberName(
+                        packageName = "io.ktor.server.response",
+                        simpleName = "appendIfAbsent",
+                        isExtension = true
+                    ),
+                    header.name,
+                    header.value,
+                    header.safeOnly
+                )
+            } else {
+                builder.addStatement(
+                    "$propertyNamePipeline.%M.response.headers.append(name = %S, value = %S, safeOnly = %L)",
+                    applicationCallMemberName,
+                    header.name,
+                    header.value,
+                    header.safeOnly
+                )
+            }
+        }
+
+        return builder.build()
     }
 
     private fun CodeBlock.Builder.addParameterAssignment(
@@ -615,12 +625,12 @@ class KtorBindingApiFunctionConverter(
     ): CodeBlock.Builder {
         val builder = this
 
-        if (function.errors.isNotEmpty()) {
+        if (function.errorResponses.isNotEmpty()) {
             builder.beginControlFlow("try")
 
             builder.block()
 
-            function.errors.forEach { error -> builder.catchError(error = error) }
+            function.errorResponses.forEach { error -> builder.catchError(error = error) }
 
             builder.endControlFlow()
         } else {
@@ -630,19 +640,19 @@ class KtorBindingApiFunctionConverter(
         return builder
     }
 
-    private fun CodeBlock.Builder.catchError(error: ErrorAnnotation): CodeBlock.Builder =
-        this.nextControlFlow("catch(e: %T)", error.exceptionType.typeName)
+    private fun CodeBlock.Builder.catchError(error: ApiResponse.Error): CodeBlock.Builder =
+        this.nextControlFlow("catch(e: %T)", error.exception.typeName)
             .addStatement(
                 """
             |$propertyNamePipeline.%M.%M(
             |    error = %T(
-            |        type = "${error.error.type}",
-            |        title = ${error.error.title.takeIf { it.isNotBlank() }?.let { "\"$it\"" } ?: "e.message ?: \"\""},
-            |        details = ${error.error.details?.let { "\"$it\"" }},
-            |        status = ${error.error.status},
-            |        instance = ${error.error.instance?.let { "\"$it\"" }},
+            |        type = "${error.value.type}",
+            |        title = ${error.value.title.takeIf { it.isNotBlank() }?.let { "\"$it\"" } ?: "e.message ?: \"\""},
+            |        details = ${error.value.details?.let { "\"$it\"" }},
+            |        status = ${error.value.status},
+            |        instance = ${error.value.instance?.let { "\"$it\"" }},
             |        timestamp = %T.now(),
-            |        help = ${error.error.help?.let { "\"$it\"" }}))
+            |        help = ${error.value.help?.let { "\"$it\"" }}))
             """.trimMargin(),
                 applicationCallMemberName,
                 MemberName(

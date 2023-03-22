@@ -8,19 +8,32 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed class ApiRequestBodyType private constructor() {
 
+    abstract val contentType: String?
+
     @Serializable
     @SerialName(value = "form_url_encoded")
-    object FormUrlEncoded : ApiRequestBodyType()
+    object FormUrlEncoded : ApiRequestBodyType() {
+
+        override val contentType: String = "application/x-www-form-urlencoded"
+    }
 
     @Serializable
     @SerialName(value = "multipart")
-    object Multipart : ApiRequestBodyType()
+    object Multipart : ApiRequestBodyType() {
+
+        override val contentType: String = "multipart/form-data"
+    }
 
     @Serializable
     @SerialName(value = "content_negotiation")
-    data class ContentNegotiation(@SerialName(value = "value") val value: String? = null) : ApiRequestBodyType()
+    data class ContentNegotiation(
+        @SerialName(value = "value") override val contentType: String? = null
+    ) : ApiRequestBodyType()
 
     @Serializable
     @SerialName(value = "none")
-    object None : ApiRequestBodyType()
+    object None : ApiRequestBodyType() {
+
+        override val contentType: String? = null
+    }
 }

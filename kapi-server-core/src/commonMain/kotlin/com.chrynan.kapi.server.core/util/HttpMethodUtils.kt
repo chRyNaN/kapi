@@ -3,7 +3,7 @@
 package com.chrynan.kapi.server.core.util
 
 import com.chrynan.kapi.core.HttpMethod
-import com.chrynan.kapi.server.core.annotation.method.*
+import com.chrynan.kapi.server.core.annotation.*
 import kotlin.reflect.KClass
 
 val HttpMethod.annotationClass: KClass<*>?

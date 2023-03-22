@@ -9,15 +9,15 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ApiFunction(
     @SerialName(value = "kotlin_function") val kotlinFunction: KotlinFunctionDeclaration,
-    @SerialName(value = "method") val method: HttpMethod,
+    @SerialName(value = "http_method") val method: HttpMethod,
     @SerialName(value = "path") val path: String,
     @SerialName(value = "request_body_type") val requestBodyType: ApiRequestBodyType = ApiRequestBodyType.None,
-    @SerialName(value = "response_body") val responseBody: KotlinTypeUsageWithDeclaration? = null,
+    @SerialName(value = "success_response") val successResponse: ApiResponse.Success? = null,
+    @SerialName(value = "error_responses") val errorResponses: List<ApiResponse.Error> = emptyList(),
     @SerialName(value = "parameters") val parameters: List<ApiParameter> = emptyList(),
-    @SerialName(value = "response_headers") val responseHeaders: List<ApiResponseHeader> = emptyList(),
     @SerialName(value = "extension_receiver") val extensionReceiver: KotlinTypeUsage? = null,
-    @SerialName(value = "errors") val errors: List<ErrorAnnotation> = emptyList(),
-    @SerialName(value = "deprecated") val isDeprecated: Boolean = false
+    @SerialName(value = "deprecated") val isDeprecated: Boolean = false,
+    @SerialName(value = "tags") val tags: List<ApiTag> = emptyList()
 )
 
 val ApiFunction.pathParameters: List<PathParameter>

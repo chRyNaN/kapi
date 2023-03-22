@@ -3,8 +3,6 @@ package com.chrynan.kapi.server.ksp.util
 import com.chrynan.kapi.core.ApiError
 import com.chrynan.kapi.core.HttpMethod
 import com.chrynan.kapi.server.core.annotation.*
-import com.chrynan.kapi.server.core.annotation.method.*
-import com.chrynan.kapi.server.core.annotation.parameter.*
 import com.chrynan.kapi.server.processor.core.model.*
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
@@ -298,11 +296,11 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
     var post: POST? = null
     var put: PUT? = null
 
-    var formUrlEncoded: FormUrlEncoded? = null
-    var multipart: Multipart? = null
+    var formUrlEncoded: ApplicationFormUrlEncoded? = null
+    var multipart: MultipartFormData? = null
     var contentNegotiation: ContentNegotiation? = null
 
-    var responseHeaders: ResponseHeaders? = null
+    var produces: Produces? = null
 
     var isDeprecated = false
 
@@ -329,19 +327,16 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
             annotation.isOfType(PUT::class) -> put =
                 annotation.toAnnotation(PUT::class)
 
-            annotation.isOfType(FormUrlEncoded::class) -> formUrlEncoded =
-                annotation.toAnnotation(FormUrlEncoded::class)
+            annotation.isOfType(ApplicationFormUrlEncoded::class) -> formUrlEncoded =
+                annotation.toAnnotation(ApplicationFormUrlEncoded::class)
 
-            annotation.isOfType(Multipart::class) -> multipart =
-                annotation.toAnnotation(Multipart::class)
+            annotation.isOfType(MultipartFormData::class) -> multipart =
+                annotation.toAnnotation(MultipartFormData::class)
 
             annotation.isOfType(ContentNegotiation::class) -> contentNegotiation =
                 annotation.toAnnotation(ContentNegotiation::class)
 
-            annotation.isOfType(ResponseHeaders::class) -> responseHeaders =
-                annotation.toAnnotation(
-                    ResponseHeaders::class
-                )
+            annotation.isOfType(Produces::class) -> produces = annotation.toAnnotation(Produces::class)
 
             annotation.isOfType(Deprecated::class) -> isDeprecated = true
         }
@@ -372,27 +367,29 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
     val requestBodyType = when {
         formUrlEncoded != null -> ApiRequestBodyType.FormUrlEncoded
         multipart != null -> ApiRequestBodyType.Multipart
-        contentNegotiation != null -> ApiRequestBodyType.ContentNegotiation(value = contentNegotiation?.value?.takeIf { it.isNotBlank() })
+        contentNegotiation != null -> ApiRequestBodyType.ContentNegotiation()
         parameters.any { it is BodyParameter } -> ApiRequestBodyType.ContentNegotiation()
         else -> ApiRequestBodyType.None
     }
-    val responseBody = this.returnType?.toKotlinResolvedTypeUsage()
-    val errors = this.annotations
-        .filter { it.shortName.asString() == "Errors" }
-        .map { it.toAnnotation(Errors::class) }
-        .firstOrNull()
-        ?.toErrorAnnotations()
+    val successResponse = produces?.success?.let { success ->
+        ApiResponse.Success(
+            statusCode = success.statusCode,
+            description = success.description,
+            headers = success.headers.map { it.toResponseHeader() },
+            contentType = success.contentType
+        )
+    }
+    val errorResponses = produces?.errors?.map { error -> error.toErrorResponse() }
 
     val apiFunction = ApiFunction(
         kotlinFunction = this.toKotlinFunctionDeclaration(),
         method = httpMethod,
         path = path,
         requestBodyType = requestBodyType,
-        responseBody = responseBody,
+        successResponse = successResponse,
         extensionReceiver = this.extensionReceiver?.toKotlinTypeUsage(),
         parameters = parameters,
-        responseHeaders = responseHeaders?.values?.map { it.toResponseHeader() } ?: emptyList(),
-        errors = errors ?: emptyList(),
+        errorResponses = errorResponses ?: emptyList(),
         isDeprecated = isDeprecated
     )
 
@@ -418,27 +415,27 @@ internal fun ResponseHeader.toResponseHeader(): ApiResponseHeader =
         onlyIfAbsent = this.onlyIfAbsent
     )
 
-/**
- * Converts this [Errors] annotation to a [List] of [ErrorAnnotation] models.
- */
-internal fun Errors.toErrorAnnotations(): List<ErrorAnnotation> =
-    this.errors.map { error ->
-        ErrorAnnotation(
-            exceptionType = KotlinTypeUsage(
-                name = KotlinName(full = error.exception.qualifiedName ?: error.exception.simpleName!!)
-            ),
-            error = ApiError(
-                type = error.type,
-                title = error.title,
-                details = error.details.takeIf { it.isNotBlank() },
-                status = error.statusCode,
-                instance = error.instance.takeIf { it.isNotBlank() },
-                timestamp = null,
-                help = error.help.takeIf { it.isNotBlank() },
-                signature = null
+internal fun Error<*>.toErrorResponse(): ApiResponse.Error =
+    ApiResponse.Error(
+        statusCode = this.statusCode,
+        description = this.details.takeIf { it.isNotBlank() } ?: "${this.statusCode} ${this.title}",
+        headers = this.headers.map { it.toResponseHeader() },
+        exception = KotlinTypeUsage(
+            name = KotlinName(
+                full = this.exception.qualifiedName ?: this.exception.simpleName!!
             )
+        ),
+        value = ApiError(
+            type = this.type,
+            title = this.title,
+            details = this.details.takeIf { it.isNotBlank() },
+            status = this.statusCode,
+            instance = this.instance.takeIf { it.isNotBlank() },
+            timestamp = null,
+            help = this.help.takeIf { it.isNotBlank() },
+            signature = null
         )
-    }
+    )
 
 /**
  * Converts this [KSValueParameter] to an [ApiParameter] model.

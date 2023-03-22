@@ -7,6 +7,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.html.*
 import io.ktor.server.http.content.*
+import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.openapi.*
 import io.ktor.server.plugins.swagger.*
 import io.ktor.server.request.*
@@ -33,3 +34,9 @@ expect fun Route.registerOpenApi(
     registerOpenApiDocs: Boolean = true,
     registerSwaggerUI: Boolean = true
 )
+
+private fun Application.test(){
+    install(ContentNegotiation){
+
+    }
+}

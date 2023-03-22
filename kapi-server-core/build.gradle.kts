@@ -29,6 +29,7 @@ kotlin {
                 implementation("io.ktor:ktor-server-openapi:_")
                 implementation("io.ktor:ktor-server-swagger:_")
                 implementation("io.ktor:ktor-server-html-builder:_")
+                implementation("io.ktor:ktor-server-content-negotiation:_")
             }
         }
         val jvmMain by getting {

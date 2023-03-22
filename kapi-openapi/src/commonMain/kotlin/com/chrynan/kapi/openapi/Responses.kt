@@ -66,7 +66,7 @@ import kotlinx.serialization.json.*
  */
 @Serializable(with = ResponsesSerializer::class)
 data class Responses(
-    @SerialName(value = "default") val default: ReferenceOrType<Response>? = null,
+    @SerialName(value = PROPERTY_NAME_DEFAULT) val default: ReferenceOrType<Response>? = null,
     @SerialName(value = "responses") val responses: Map<String, ReferenceOrType<Response>>? = null
 ) {
 

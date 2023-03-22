@@ -1,12 +1,12 @@
 package com.chrynan.kapi.server.processor.core.model
 
-import com.chrynan.kapi.server.core.annotation.parameter.Header
-import com.chrynan.kapi.server.core.annotation.ResponseHeaders
+import com.chrynan.kapi.server.core.annotation.Header
+import com.chrynan.kapi.server.core.annotation.ResponseHeader
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
 /**
- * Represents a [Header] annotation value when used in the [ResponseHeaders] annotation.
+ * Represents a [ResponseHeader] annotation value.
  *
  * @property [name] The header name.
  * @property [value] The header value.
