@@ -640,10 +640,17 @@ class KtorBindingApiFunctionConverter(
         return builder
     }
 
-    private fun CodeBlock.Builder.catchError(error: ApiResponse.Error): CodeBlock.Builder =
+    private fun CodeBlock.Builder.catchError(error: ApiResponse.Error): CodeBlock.Builder {
         this.nextControlFlow("catch(e: %T)", error.exception.typeName)
-            .addStatement(
-                """
+
+        this.addStatement(error.toResponseHeadersCodeBlock())
+
+        if (error.headers.isNotEmpty()) {
+            add("\n")
+        }
+
+        return this.addStatement(
+            """
             |$propertyNamePipeline.%M.%M(
             |    error = %T(
             |        type = "${error.value.type}",
@@ -654,15 +661,16 @@ class KtorBindingApiFunctionConverter(
             |        timestamp = %T.now(),
             |        help = ${error.value.help?.let { "\"$it\"" }}))
             """.trimMargin(),
-                applicationCallMemberName,
-                MemberName(
-                    packageName = "com.chrynan.kapi.server.core.util",
-                    simpleName = "respondError",
-                    isExtension = true
-                ),
-                ClassName.bestGuess("com.chrynan.kapi.core.ApiError"),
-                ClassName.bestGuess("kotlinx.datetime.Clock.System")
-            )
+            applicationCallMemberName,
+            MemberName(
+                packageName = "com.chrynan.kapi.server.core.util",
+                simpleName = "respondError",
+                isExtension = true
+            ),
+            ClassName.bestGuess("com.chrynan.kapi.core.ApiError"),
+            ClassName.bestGuess("kotlinx.datetime.Clock.System")
+        )
+    }
 
     companion object {
 
