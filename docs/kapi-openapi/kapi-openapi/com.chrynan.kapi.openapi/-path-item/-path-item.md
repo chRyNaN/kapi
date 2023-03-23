@@ -1,0 +1,6 @@
+//[kapi-openapi](../../../index.md)/[com.chrynan.kapi.openapi](../index.md)/[PathItem](index.md)/[PathItem](-path-item.md)
+
+# PathItem
+
+[common]\
+fun [PathItem](-path-item.md)(ref: [String](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html)? = null, summary: [String](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html)? = null, description: [String](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html)? = null, get: [Operation](../-operation/index.md)? = null, put: [Operation](../-operation/index.md)? = null, post: [Operation](../-operation/index.md)? = null, delete: [Operation](../-operation/index.md)? = null, options: [Operation](../-operation/index.md)? = null, head: [Operation](../-operation/index.md)? = null, patch: [Operation](../-operation/index.md)? = null, trace: [Operation](../-operation/index.md)? = null, servers: [List](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html)&lt;[Server](../-server/index.md)&gt;? = null, parameters: [List](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html)&lt;[ReferenceOrType](../-reference-or-type/index.md)&lt;[Parameter](../-parameter/index.md)&gt;&gt;? = null)

@@ -1,0 +1,6 @@
+//[kapi-server-processor-core](../../../index.md)/[com.chrynan.kapi.server.processor.core.model](../index.md)/[ApiFunction](index.md)/[ApiFunction](-api-function.md)
+
+# ApiFunction
+
+[jvm]\
+fun [ApiFunction](-api-function.md)(kotlinFunction: [KotlinFunctionDeclaration](../-kotlin-function-declaration/index.md), method: [HttpMethod](../../../../kapi-core/kapi-core/com.chrynan.kapi.core/-http-method/index.md), path: [String](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html), requestContentType: [String](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html)? = null, successResponse: [ApiResponse.Success](../-api-response/-success/index.md)? = null, errorResponses: [List](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html)&lt;[ApiResponse.Error](../-api-response/-error/index.md)&gt; = emptyList(), parameters: [List](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html)&lt;[ApiParameter](../-api-parameter/index.md)&gt; = emptyList(), extensionReceiver: [KotlinTypeUsage](../-kotlin-type-usage/index.md)? = null, isDeprecated: [Boolean](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html) = false, tags: [List](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html)&lt;[ApiTag](../-api-tag/index.md)&gt; = emptyList())

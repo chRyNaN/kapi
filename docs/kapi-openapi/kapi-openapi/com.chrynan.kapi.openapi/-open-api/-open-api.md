@@ -1,0 +1,6 @@
+//[kapi-openapi](../../../index.md)/[com.chrynan.kapi.openapi](../index.md)/[OpenApi](index.md)/[OpenApi](-open-api.md)
+
+# OpenApi
+
+[common]\
+fun [OpenApi](-open-api.md)(openApiVersion: [String](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html), info: [Info](../-info/index.md), jsonSchemaDialect: [String](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html)? = null, servers: [List](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html)&lt;[Server](../-server/index.md)&gt;? = null, paths: [Paths](../-paths/index.md)? = null, webhooks: [Map](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-map/index.html)&lt;[String](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html), [ReferenceOrType](../-reference-or-type/index.md)&lt;[PathItem](../-path-item/index.md)&gt;&gt;? = null, components: [Components](../-components/index.md)? = null, security: [List](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html)&lt;JsonElement&gt;? = null, tags: [List](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html)&lt;[Tag](../-tag/index.md)&gt;? = null, externalDocs: [ExternalDocumentation](../-external-documentation/index.md)? = null)
