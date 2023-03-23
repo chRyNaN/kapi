@@ -8,7 +8,6 @@ import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
 import com.google.devtools.ksp.getDeclaredFunctions
 import com.google.devtools.ksp.isConstructor
-import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
 import io.ktor.http.*
 
@@ -230,7 +229,7 @@ internal fun KSValueParameter.toKotlinParameterDeclaration(): KotlinParameterDec
 @OptIn(KspExperimental::class)
 internal fun KSClassDeclaration.toApiDefinition(contentTypesByAnnotationName: Map<String, String?>): ApiDefinition {
     val api = this.getAnnotationsByType(Api::class).firstOrNull()
-        ?: error("API definition must be annotated with the Api annotation.")
+        ?: error(message = "API definition must be annotated with the Api annotation.", symbol = this)
 
     val appInfo = api.info.takeIf { !it.isEmpty }?.let { info ->
         ApiInfo(
@@ -290,7 +289,10 @@ internal fun KSFunctionDeclaration.toApiFunction(contentTypesByAnnotationName: M
     val functionName = this.kotlinName.full
 
     if (this.typeParameters.isNotEmpty()) {
-        error("API function $functionName cannot have generic type parameters as the API processor has no way of knowing which value to use when calling the function.")
+        error(
+            message = "API function $functionName cannot have generic type parameters as the API processor has no way of knowing which value to use when calling the function.",
+            symbol = this
+        )
     }
 
     var delete: DELETE? = null
@@ -347,11 +349,11 @@ internal fun KSFunctionDeclaration.toApiFunction(contentTypesByAnnotationName: M
         }
     }
 
-    check(listOfNotNull(delete, get, head, options, patch, post, put).size <= 1) {
+    check(value = listOfNotNull(delete, get, head, options, patch, post, put).size <= 1, symbol = this) {
         "Only one of the following annotations is allowed for each API function: DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT. Function: $functionName"
     }
 
-    check(contentTypeCount <= 1) {
+    check(value = contentTypeCount <= 1, symbol = this) {
         "Only one Consumes annotation is allowed for an API function. Function: $functionName"
     }
 
@@ -391,40 +393,9 @@ internal fun KSFunctionDeclaration.toApiFunction(contentTypesByAnnotationName: M
         isDeprecated = isDeprecated
     )
 
-    apiFunction.validate()
+    validateApiFunction(function = apiFunction, symbol = this)
 
     return apiFunction
-}
-
-internal fun ApiFunction.validate() {
-    val functionName = this.kotlinFunction.name.full
-
-    if (
-        this.bodyParameterOrNull() != null &&
-        ContentType.Application.FormUrlEncoded.matches(requestContentType) &&
-        !this.bodyParameter().declaration.type.isParameters
-    ) {
-        error("API function Body parameter type must be `io.ktor.http.Parameters` if the content type is `application/x-www-form-urlencoded`. Function: $functionName")
-    } else if (
-        this.bodyParameterOrNull() != null &&
-        ContentType.MultiPart.FormData.matches(requestContentType) &&
-        !this.bodyParameter().declaration.type.isMultiPartData
-    ) {
-        error("API function Body parameter type must be `io.ktor.http.content.MultiPartData` if the content type is `multipart/form-data`. Function: $functionName")
-    } else if (
-        this.fieldParameters.isNotEmpty() &&
-        !ContentType.Application.FormUrlEncoded.matches(requestContentType)
-    ) {
-        error("API function containing a Field parameter must be setup to consume the content type of `application/x-www-form-urlencoded`. Function: $functionName")
-    } else if (this.partParameters.isNotEmpty() && !ContentType.MultiPart.FormData.matches(requestContentType)) {
-        error("API function containing a Part parameter must be setup to consume the content type of `multipart/form-data`. Function: $functionName")
-    } else if (this.fieldParameters.isNotEmpty() && this.partParameters.isNotEmpty()) {
-        error("API function cannot mix Field and Part parameters. Function: $functionName")
-    } else if (this.fieldParameters.isNotEmpty() && this.bodyParameterOrNull() != null) {
-        error("API function cannot mix Field and Body parameters. Function: $functionName")
-    } else if (this.partParameters.isNotEmpty() && this.bodyParameterOrNull() != null) {
-        error("API function cannot mix Part and Body parameters. Function: $functionName")
-    }
 }
 
 /**
@@ -473,7 +444,7 @@ internal fun KSValueParameter.toApiParameter(functionName: String): ApiParameter
     val body = this.getAnnotationsByType(Body::class).firstOrNull()
     val isDeprecated = this.getAnnotationsByType(Deprecated::class).firstOrNull() != null
 
-    check(listOfNotNull(path, query, field, part, header, body).size <= 1) {
+    check(value = listOfNotNull(path, query, field, part, header, body).size <= 1, symbol = this) {
         "Only one of the following annotations is allowed for each API function parameter: 'Path', 'Query', 'Field', 'Part', 'Header', and 'Body'. Function: $functionName; Parameter: ${this.name?.asString()}"
     }
 
@@ -526,8 +497,61 @@ internal fun KSValueParameter.toApiParameter(functionName: String): ApiParameter
                 type.isRoute || type.isApplicationCall || type.isUnit || type.isParameters || type.isMultiPartData ->
                     SupportedTypeParameter(declaration = parameterDeclaration, isDeprecated = isDeprecated)
 
-                else -> error("Unsupported API function parameter type.")
+                else -> error(message = "Unsupported API function parameter type.", symbol = this)
             }
         }
+    }
+}
+
+private fun validateApiFunction(function: ApiFunction, symbol: KSNode?) {
+    val functionName = function.kotlinFunction.name.full
+    val requestContentType = function.requestContentType
+
+    if (
+        function.bodyParameterOrNull() != null &&
+        ContentType.Application.FormUrlEncoded.matches(requestContentType) &&
+        !function.bodyParameter().declaration.type.isParameters
+    ) {
+        error(
+            message = "API function Body parameter type must be `io.ktor.http.Parameters` if the content type is `application/x-www-form-urlencoded`. Function: $functionName",
+            symbol = symbol
+        )
+    } else if (
+        function.bodyParameterOrNull() != null &&
+        ContentType.MultiPart.FormData.matches(requestContentType) &&
+        !function.bodyParameter().declaration.type.isMultiPartData
+    ) {
+        error(
+            message = "API function Body parameter type must be `io.ktor.http.content.MultiPartData` if the content type is `multipart/form-data`. Function: $functionName",
+            symbol = symbol
+        )
+    } else if (
+        function.fieldParameters.isNotEmpty() &&
+        !ContentType.Application.FormUrlEncoded.matches(requestContentType)
+    ) {
+        error(
+            message = "API function containing a Field parameter must be setup to consume the content type of `application/x-www-form-urlencoded`. Function: $functionName",
+            symbol = symbol
+        )
+    } else if (function.partParameters.isNotEmpty() && !ContentType.MultiPart.FormData.matches(requestContentType)) {
+        error(
+            message = "API function containing a Part parameter must be setup to consume the content type of `multipart/form-data`. Function: $functionName",
+            symbol = symbol
+        )
+    } else if (function.fieldParameters.isNotEmpty() && function.partParameters.isNotEmpty()) {
+        error(
+            message = "API function cannot mix Field and Part parameters. Function: $functionName",
+            symbol = symbol
+        )
+    } else if (function.fieldParameters.isNotEmpty() && function.bodyParameterOrNull() != null) {
+        error(
+            message = "API function cannot mix Field and Body parameters. Function: $functionName",
+            symbol = symbol
+        )
+    } else if (function.partParameters.isNotEmpty() && function.bodyParameterOrNull() != null) {
+        error(
+            message = "API function cannot mix Part and Body parameters. Function: $functionName",
+            symbol = symbol
+        )
     }
 }
