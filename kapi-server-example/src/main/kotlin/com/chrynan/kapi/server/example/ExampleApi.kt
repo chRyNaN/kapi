@@ -8,6 +8,7 @@ import com.chrynan.kapi.server.core.annotation.Body
 import com.chrynan.kapi.server.core.annotation.Header
 import com.chrynan.kapi.server.core.annotation.Path
 import com.chrynan.kapi.server.core.annotation.Query
+import com.chrynan.kapi.server.core.util.registerOpenApi
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
