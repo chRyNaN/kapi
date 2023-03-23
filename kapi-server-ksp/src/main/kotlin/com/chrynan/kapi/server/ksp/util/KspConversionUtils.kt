@@ -342,6 +342,21 @@ internal fun KSFunctionDeclaration.toApiFunction(contentTypesByAnnotationName: M
                 contentTypeCount++
             }
 
+            name == ApplicationFormUrlEncoded::class.qualifiedName -> {
+                requestContentType = annotation.toAnnotation(ApplicationFormUrlEncoded::class).contentType
+                contentTypeCount++
+            }
+
+            name == MultipartFormData::class.qualifiedName -> {
+                requestContentType = annotation.toAnnotation(MultipartFormData::class).contentType
+                contentTypeCount++
+            }
+
+            name == ApplicationJson::class.qualifiedName -> {
+                requestContentType = annotation.toAnnotation(ApplicationJson::class).contentType
+                contentTypeCount++
+            }
+
             contentTypesByAnnotationName.contains(name) -> {
                 requestContentType = contentTypesByAnnotationName[name]
                 contentTypeCount++

@@ -34,9 +34,3 @@ expect fun Route.registerOpenApi(
     registerOpenApiDocs: Boolean = true,
     registerSwaggerUI: Boolean = true
 )
-
-private fun Application.test(){
-    install(ContentNegotiation){
-
-    }
-}

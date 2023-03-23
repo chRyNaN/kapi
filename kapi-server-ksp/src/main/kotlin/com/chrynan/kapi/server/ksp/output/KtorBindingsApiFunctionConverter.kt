@@ -84,12 +84,23 @@ class KtorBindingApiFunctionConverter(
         block: CodeBlock.Builder.() -> Unit
     ): CodeBlock.Builder {
         val builder = this
+        val acceptContentType = function.requestContentType
+        val surroundInAccept = !acceptContentType.isNullOrBlank() && acceptContentType != "*/*"
 
         if (!basePath.isNullOrBlank()) {
             builder.beginControlFlow(
                 "$propertyNameRoute.%M(%S)",
                 MemberName(packageName = "io.ktor.server.routing", simpleName = "route", isExtension = true),
                 basePath
+            )
+        }
+
+        if (surroundInAccept) {
+            builder.beginControlFlow(
+                "$propertyNameRoute.%M(%T.parse(%L))",
+                MemberName(packageName = "io.ktor.server.routing", simpleName = "accept", isExtension = true),
+                ClassName.bestGuess("io.ktor.http.ContentType"),
+                acceptContentType?.let { "\"$it\"" }
             )
         }
 
@@ -115,6 +126,10 @@ class KtorBindingApiFunctionConverter(
         builder.block()
 
         builder.endControlFlow()
+
+        if (surroundInAccept) {
+            builder.endControlFlow()
+        }
 
         if (!basePath.isNullOrBlank()) {
             builder.endControlFlow()
@@ -522,7 +537,7 @@ class KtorBindingApiFunctionConverter(
                         )
                     } else {
                         addStatement(
-                            "$propertyNamePipeline.%M.%M(message = $propertyNameResponseBody)",
+                            "$propertyNamePipeline.%M.%M(\nstatus = %T.fromValue(value = %L), \nmessage = $propertyNameResponseBody)",
                             applicationCallMemberName,
                             if (response.isNullable) {
                                 MemberName(
@@ -536,7 +551,9 @@ class KtorBindingApiFunctionConverter(
                                     simpleName = "respond",
                                     isExtension = true
                                 )
-                            }
+                            },
+                            ClassName.bestGuess("io.ktor.http.HttpStatusCode"),
+                            function.successResponse?.statusCode ?: 200
                         )
                     }
                 }

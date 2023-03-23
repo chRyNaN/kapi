@@ -28,11 +28,16 @@ interface ExampleApi {
         ]
     )
     @ApplicationFormUrlEncoded
-    suspend fun getUser(
+    suspend fun getUserResponse(
         @Path("id") id: String,
         @Query("query") query: String,
         @Header("header") header: String
     ): Response<String>
+
+    @GET("/user/{id}")
+    suspend fun getUser(
+        @Path id: String
+    ): String
 
     @POST(path = "/message")
     suspend fun Route.postMessage(

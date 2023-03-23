@@ -84,3 +84,33 @@ annotation class MultipartFormData
 @MustBeDocumented
 @Consumes(contentType = "application/json")
 annotation class ApplicationJson
+
+/**
+ * Represents the [Consumes.contentType] value for the [ContentNegotiation] annotation. The actual value used in the
+ * [Consumes] annotation is an empty [String] since annotation properties cannot have null values, but that is
+ * essentially equivalent to `null` and will be converted to it.
+ */
+@Suppress("UnusedReceiverParameter")
+val ContentNegotiation.contentType: String?
+    get() = null
+
+/**
+ * Represents the [Consumes.contentType] value for the [ApplicationFormUrlEncoded] annotation.
+ */
+@Suppress("UnusedReceiverParameter")
+val ApplicationFormUrlEncoded.contentType: String
+    get() = "application/x-www-form-urlencoded"
+
+/**
+ * Represents the [Consumes.contentType] value for the [MultipartFormData] annotation.
+ */
+@Suppress("UnusedReceiverParameter")
+val MultipartFormData.contentType: String
+    get() = "multipart/form-data"
+
+/**
+ * Represents the [Consumes.contentType] value for the [ApplicationJson] annotation.
+ */
+@Suppress("UnusedReceiverParameter")
+val ApplicationJson.contentType: String
+    get() = "application/json"
