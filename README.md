@@ -26,8 +26,8 @@ TBD
 
 ## Documentation
 
-More detailed documentation is available in the [docs](https://github.com/chRyNaN/kapi/blob/develop/docs) folder. The
-entry point to the documentation can be found [here](https://github.com/chRyNaN/kapi/blob/develop/docs/index.md).
+More detailed documentation is available in the [docs](https://github.com/chRyNaN/kapi/blob/main/docs) folder. The
+entry point to the documentation can be found [here](https://github.com/chRyNaN/kapi/blob/main/docs/index.md).
 
 ## Security
 
