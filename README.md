@@ -1,11 +1,14 @@
 # kapi
 
 Kotlin multi-platform API utilities. Write APIs in Kotlin; generate Ktor bindings and Open API Specs.
+<br/>
+<img alt="GitHub tag (latest by date)" src="https://img.shields.io/github/v/tag/chRyNaN/kapi">
+![Build](https://github.com/chRyNaN/kapi/actions/workflows/build.yml/badge.svg)
 
 ```kotlin
 @Api
 interface IdentityApi {
-    
+
     @GET("/user/{id}")
     suspend fun getUser(@Path id: String): User
 }
@@ -21,7 +24,15 @@ TBD
 
 ## Defining an API
 
+## Documentation
 
+More detailed documentation is available in the [docs](https://github.com/chRyNaN/kapi/blob/develop/docs) folder. The
+entry point to the documentation can be found [here](https://github.com/chRyNaN/kapi/blob/develop/docs/index.md).
+
+## Security
+
+For security vulnerabilities, concerns, or issues, please responsibly disclose the information either by opening a
+public GitHub Issue or reaching out to the project owner.
 
 ## Inspiration
 
