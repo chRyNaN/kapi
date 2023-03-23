@@ -40,7 +40,7 @@ private fun ApiFunction.requestBodyCodeBlock(): CodeBlock {
     val builder = CodeBlock.builder()
 
     val body = this.bodyParameterOrNull()
-    val contentType = this.requestBodyType.contentType ?: "application/json"
+    val contentType = this.requestContentType ?: "*/*"
     val description = body?.kotlinType?.declaration?.documentation?.takeIf { it.isNotBlank() }
     val isRequired = body?.kotlinType?.usage?.isNullable != true
 

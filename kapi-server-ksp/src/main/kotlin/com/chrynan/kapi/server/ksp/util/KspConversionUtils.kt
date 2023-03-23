@@ -8,7 +8,9 @@ import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
 import com.google.devtools.ksp.getDeclaredFunctions
 import com.google.devtools.ksp.isConstructor
+import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
+import io.ktor.http.*
 
 internal val KSDeclaration.kotlinName: KotlinName
     get() = this.qualifiedName?.toKotlinName() ?: this.simpleName.toKotlinName()
@@ -226,7 +228,7 @@ internal fun KSValueParameter.toKotlinParameterDeclaration(): KotlinParameterDec
     )
 
 @OptIn(KspExperimental::class)
-internal fun KSClassDeclaration.toApiDefinition(): ApiDefinition {
+internal fun KSClassDeclaration.toApiDefinition(contentTypesByAnnotationName: Map<String, String?>): ApiDefinition {
     val api = this.getAnnotationsByType(Api::class).firstOrNull()
         ?: error("API definition must be annotated with the Api annotation.")
 
@@ -276,12 +278,15 @@ internal fun KSClassDeclaration.toApiDefinition(): ApiDefinition {
         tags = tags,
         type = this.toKotlinTypeDefinition(),
         documentation = this.docString,
-        functions = this.getAllFunctions().map { it.toApiFunction() }.filterNotNull().toList(),
+        functions = this.getAllFunctions()
+            .map { it.toApiFunction(contentTypesByAnnotationName) }
+            .filterNotNull()
+            .toList(),
         annotations = this.annotations.map { it.toKotlinAnnotation() }.toList()
     )
 }
 
-internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
+internal fun KSFunctionDeclaration.toApiFunction(contentTypesByAnnotationName: Map<String, String?>): ApiFunction? {
     val functionName = this.kotlinName.full
 
     if (this.typeParameters.isNotEmpty()) {
@@ -296,49 +301,49 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
     var post: POST? = null
     var put: PUT? = null
 
-    var formUrlEncoded: ApplicationFormUrlEncoded? = null
-    var multipart: MultipartFormData? = null
-    var contentNegotiation: ContentNegotiation? = null
-
     var produces: Produces? = null
 
     var isDeprecated = false
 
-    this.annotations.forEach { annotation ->
+    var requestContentType: String? = null
+    var contentTypeCount = 0
+
+    // Get the annotation names. Not performant as it has to resolve the types for each annotation, but we need the
+    // full name and this is the only way to get it. Note that duplicate annotations result in the usage of the last
+    // one; that should be fine for our current use cases.
+    val annotationsByNames = this.annotations.associateBy { annotation ->
+        annotation.annotationType.resolve().declaration.qualifiedName?.asString()
+    }
+
+    annotationsByNames.forEach { (name, annotation) ->
         when {
-            annotation.isOfType(DELETE::class) -> delete =
-                annotation.toAnnotation(DELETE::class)
+            name == DELETE::class.qualifiedName -> delete = annotation.toAnnotation(DELETE::class)
 
-            annotation.isOfType(GET::class) -> get =
-                annotation.toAnnotation(GET::class)
+            name == GET::class.qualifiedName -> get = annotation.toAnnotation(GET::class)
 
-            annotation.isOfType(HEAD::class) -> head =
-                annotation.toAnnotation(HEAD::class)
+            name == HEAD::class.qualifiedName -> head = annotation.toAnnotation(HEAD::class)
 
-            annotation.isOfType(OPTIONS::class) -> options =
-                annotation.toAnnotation(OPTIONS::class)
+            name == OPTIONS::class.qualifiedName -> options = annotation.toAnnotation(OPTIONS::class)
 
-            annotation.isOfType(PATCH::class) -> patch =
-                annotation.toAnnotation(PATCH::class)
+            name == PATCH::class.qualifiedName -> patch = annotation.toAnnotation(PATCH::class)
 
-            annotation.isOfType(POST::class) -> post =
-                annotation.toAnnotation(POST::class)
+            name == POST::class.qualifiedName -> post = annotation.toAnnotation(POST::class)
 
-            annotation.isOfType(PUT::class) -> put =
-                annotation.toAnnotation(PUT::class)
+            name == PUT::class.qualifiedName -> put = annotation.toAnnotation(PUT::class)
 
-            annotation.isOfType(ApplicationFormUrlEncoded::class) -> formUrlEncoded =
-                annotation.toAnnotation(ApplicationFormUrlEncoded::class)
+            name == Produces::class.qualifiedName -> produces = annotation.toAnnotation(Produces::class)
 
-            annotation.isOfType(MultipartFormData::class) -> multipart =
-                annotation.toAnnotation(MultipartFormData::class)
+            name == Deprecated::class.qualifiedName -> isDeprecated = true
 
-            annotation.isOfType(ContentNegotiation::class) -> contentNegotiation =
-                annotation.toAnnotation(ContentNegotiation::class)
+            name == Consumes::class.qualifiedName -> {
+                requestContentType = annotation.toAnnotation(Consumes::class).contentType
+                contentTypeCount++
+            }
 
-            annotation.isOfType(Produces::class) -> produces = annotation.toAnnotation(Produces::class)
-
-            annotation.isOfType(Deprecated::class) -> isDeprecated = true
+            contentTypesByAnnotationName.contains(name) -> {
+                requestContentType = contentTypesByAnnotationName[name]
+                contentTypeCount++
+            }
         }
     }
 
@@ -346,8 +351,8 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
         "Only one of the following annotations is allowed for each API function: DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT. Function: $functionName"
     }
 
-    check(listOfNotNull(formUrlEncoded, multipart, contentNegotiation).size <= 1) {
-        "Only one of the following annotations is allowed for each API function: FormUrlEncoded, Multipart, ContentNegotiation. Function: $functionName"
+    check(contentTypeCount <= 1) {
+        "Only one Consumes annotation is allowed for an API function. Function: $functionName"
     }
 
     val httpMethod = when {
@@ -364,13 +369,6 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
         (delete?.path ?: get?.path ?: head?.path ?: options?.path ?: patch?.path ?: post?.path ?: put?.path)
             ?: return null
     val parameters = this.parameters.map { it.toApiParameter(functionName = functionName) }
-    val requestBodyType = when {
-        formUrlEncoded != null -> ApiRequestBodyType.FormUrlEncoded
-        multipart != null -> ApiRequestBodyType.Multipart
-        contentNegotiation != null -> ApiRequestBodyType.ContentNegotiation()
-        parameters.any { it is BodyParameter } -> ApiRequestBodyType.ContentNegotiation()
-        else -> ApiRequestBodyType.None
-    }
     val successResponse = produces?.success?.let { success ->
         ApiResponse.Success(
             statusCode = success.statusCode,
@@ -385,7 +383,7 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
         kotlinFunction = this.toKotlinFunctionDeclaration(),
         method = httpMethod,
         path = path,
-        requestBodyType = requestBodyType,
+        requestContentType = requestContentType,
         successResponse = successResponse,
         extensionReceiver = this.extensionReceiver?.toKotlinTypeUsage(),
         parameters = parameters,
@@ -393,15 +391,40 @@ internal fun KSFunctionDeclaration.toApiFunction(): ApiFunction? {
         isDeprecated = isDeprecated
     )
 
-    if (apiFunction.bodyParameterOrNull() != null && (formUrlEncoded != null || multipart != null)) {
-        error("API function containing a Body parameter cannot be annotated with the FormUrlEncoded or Multipart annotations. Function: $functionName")
-    } else if (formUrlEncoded == null && apiFunction.fieldParameters.isNotEmpty()) {
-        error("API function containing a Field parameter must be annotated with the FormUrlEncoded annotation. Function: $functionName")
-    } else if (multipart == null && apiFunction.partParameters.isNotEmpty()) {
-        error("API function containing a Part parameter must be annotated with the Multipart annotation. Function: $functionName")
-    }
+    apiFunction.validate()
 
     return apiFunction
+}
+
+internal fun ApiFunction.validate() {
+    val functionName = this.kotlinFunction.name.full
+
+    if (
+        this.bodyParameterOrNull() != null &&
+        ContentType.Application.FormUrlEncoded.matches(requestContentType) &&
+        !this.bodyParameter().declaration.type.isParameters
+    ) {
+        error("API function Body parameter type must be `io.ktor.http.Parameters` if the content type is `application/x-www-form-urlencoded`. Function: $functionName")
+    } else if (
+        this.bodyParameterOrNull() != null &&
+        ContentType.MultiPart.FormData.matches(requestContentType) &&
+        !this.bodyParameter().declaration.type.isMultiPartData
+    ) {
+        error("API function Body parameter type must be `io.ktor.http.content.MultiPartData` if the content type is `multipart/form-data`. Function: $functionName")
+    } else if (
+        this.fieldParameters.isNotEmpty() &&
+        !ContentType.Application.FormUrlEncoded.matches(requestContentType)
+    ) {
+        error("API function containing a Field parameter must be setup to consume the content type of `application/x-www-form-urlencoded`. Function: $functionName")
+    } else if (this.partParameters.isNotEmpty() && !ContentType.MultiPart.FormData.matches(requestContentType)) {
+        error("API function containing a Part parameter must be setup to consume the content type of `multipart/form-data`. Function: $functionName")
+    } else if (this.fieldParameters.isNotEmpty() && this.partParameters.isNotEmpty()) {
+        error("API function cannot mix Field and Part parameters. Function: $functionName")
+    } else if (this.fieldParameters.isNotEmpty() && this.bodyParameterOrNull() != null) {
+        error("API function cannot mix Field and Body parameters. Function: $functionName")
+    } else if (this.partParameters.isNotEmpty() && this.bodyParameterOrNull() != null) {
+        error("API function cannot mix Part and Body parameters. Function: $functionName")
+    }
 }
 
 /**

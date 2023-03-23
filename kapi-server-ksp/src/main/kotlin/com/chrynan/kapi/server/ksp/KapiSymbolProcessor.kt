@@ -1,10 +1,14 @@
 package com.chrynan.kapi.server.ksp
 
 import com.chrynan.kapi.server.core.annotation.Api
+import com.chrynan.kapi.server.core.annotation.Consumes
 import com.chrynan.kapi.server.ksp.util.getSymbolsWithAnnotation
+import com.chrynan.kapi.server.ksp.util.kotlinName
 import com.chrynan.kapi.server.ksp.util.toApiDefinition
 import com.chrynan.kapi.server.processor.core.ApiProcessor
 import com.chrynan.kapi.server.processor.core.model.ApiDefinition
+import com.google.devtools.ksp.KspExperimental
+import com.google.devtools.ksp.getAnnotationsByType
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
@@ -31,9 +35,18 @@ class KapiSymbolProcessor(
      */
     private var roundCount = 1
 
+    @OptIn(KspExperimental::class)
     override fun process(resolver: Resolver): List<KSAnnotated> {
+        val contentTypesByAnnotationName = resolver.getSymbolsWithAnnotation(Consumes::class)
+            .filterIsInstance<KSClassDeclaration>()
+            .associate { annotationDeclaration ->
+                annotationDeclaration.kotlinName.full to annotationDeclaration.getAnnotationsByType(Consumes::class)
+                    .first()
+                    .contentType
+                    .takeIf { it.isNotBlank() }
+            }
         val apiAnnotatedElements = resolver.getSymbolsWithAnnotation(Api::class).filterIsInstance<KSClassDeclaration>()
-        val apiDefinitions = apiAnnotatedElements.map { it.toApiDefinition() }.toList()
+        val apiDefinitions = apiAnnotatedElements.map { it.toApiDefinition(contentTypesByAnnotationName) }.toList()
 
         allApis.addAll(apiDefinitions)
 
