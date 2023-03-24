@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+    - family-names: "Keenan"
+      given-names: "Christopher"
+      alias: chRyNaN
+      website: "https://chrynan.codes"
+contact:
+    - family-names: "Keenan"
+      given-names: "Christopher"
+      alias: chRyNaN
+      website: "https://chrynan.codes"
+title: "kapi"
+type: "software"
+abstract: "Kotlin multi-platform API utilities. Write APIs in Kotlin; generate Ktor bindings and Open API Specs."
+license: Apache-2.0
+keywords:
+    - kotlin
+    - api
+    - kapi
+    - ktor
+    - server
+    - swagger
+    - openapi
+    - "kotlin-library"
+    - "kotlin-multiplatform"
+    - "ktor-framework"
+    - "ktor-server"
+    - "kotlin-multiplatform-library"
+    - "kotlin-multiplatform-mobile"
+    - "api-development"
+repository-code: "https://github.com/chRyNaN/kapi"
+url: "https://github.com/chRyNaN/kapi"

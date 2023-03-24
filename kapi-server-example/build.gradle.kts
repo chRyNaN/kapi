@@ -12,3 +12,10 @@ dependencies {
 
     "ksp"(project(":kapi-server-ksp"))
 }
+
+kotlin {
+    sourceSets.main {
+        kotlin.srcDir("build/generated/ksp/main/kotlin")
+        resources.srcDir("build/generated/ksp/main/resources/")
+    }
+}
