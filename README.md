@@ -183,8 +183,8 @@ You can also create your own content type annotation like this:
 annotation class TextAny
 ```
 
-If an API function is set up to accept a particular content type that is not a blank String value or "*/*", then this
-will result in the generated Ktor endpoint being wrapped in an `accept(contentType) { ... }` function call.
+If an API function is set up to accept a particular content type that is not a blank String or any value ("*/*"),
+then this will result in the generated Ktor endpoint being wrapped in an `accept(contentType) { ... }` function call.
 
 #### Status Codes and Error Handling
 
@@ -247,9 +247,27 @@ This project was inspired by the works of the following open source projects and
 * [OpenAPI](https://www.openapis.org/)
 * [JAX-RS](https://en.wikipedia.org/wiki/Jakarta_RESTful_Web_Services)
 
+## Motivation 🧠
+
+This project arose from my desire to create server-side APIs in a reusable, compile-time safe, and Kotlin multiplatform
+friendly manner while still utilizing modern frameworks, such as Ktor. I didn't want to fiddle around with creating
+large JSON or YAML Open API files after already creating the Kotlin API endpoints just so client-side code can utilize
+my API. Also, I wanted to be able to write my APIs in Kotlin where each endpoint is a Kotlin function whose parameters
+are extracted from the HTTP request and whose return value is the HTTP response body. So, I created this library with
+the hope of providing a tool for anyone with similar desires for their APIs. The following can be considered benefits of
+utilizing this library over directly writing your server APIs in Ktor:
+
+* The APIs can be written in Kotlin, just as you would write any other Kotlin function. This should expedite the API
+  development as it no longer requires getting familiar with complex framework components.
+* Reusable interfaces with HTTP endpoint metadata. This allows separation from the HTTP concepts from the implementation
+  of the code itself. The interface function can contain all the annotation metadata about the HTTP and API concepts,
+  while the implementations can simply be focused on performing the business logic.
+* Auto-generation and hosting of Open API JSON files, so you don't have to fiddle with creating those files manually.
+
 ## Sponsorship ❤️
 
-Support this project by [becoming a sponsor](https://www.buymeacoffee.com/chrynan) of my work!
+Support this project by [becoming a sponsor](https://www.buymeacoffee.com/chrynan) of my work! And make sure to give the
+repository a ⭐
 
 ## License ⚖️
 
