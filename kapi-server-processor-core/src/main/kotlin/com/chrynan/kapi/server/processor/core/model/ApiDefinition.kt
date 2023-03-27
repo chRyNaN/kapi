@@ -1,5 +1,6 @@
 package com.chrynan.kapi.server.processor.core.model
 
+import com.chrynan.kapi.openapi.SecurityScheme
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -13,5 +14,7 @@ data class ApiDefinition(
     @SerialName(value = "type") val type: KotlinTypeDeclaration,
     @SerialName(value = "documentation") val documentation: String? = null,
     @SerialName(value = "functions") val functions: List<ApiFunction> = emptyList(),
-    @SerialName(value = "annotations") val annotations: List<KotlinAnnotationUsage> = emptyList()
+    @SerialName(value = "annotations") val annotations: List<KotlinAnnotationUsage> = emptyList(),
+    @SerialName(value = "security_schemes") val securitySchemes: Map<String, SecurityScheme> = emptyMap(),
+    @SerialName(value = "auths") val auths: List<ApiAuth> = emptyList()
 )

@@ -9,6 +9,7 @@ dependencies {
     implementation(project(":kapi-openapi"))
 
     implementation(Ktor.client.okHttp)
+    implementation(Ktor.server.auth)
 
     "ksp"(project(":kapi-server-ksp"))
 }

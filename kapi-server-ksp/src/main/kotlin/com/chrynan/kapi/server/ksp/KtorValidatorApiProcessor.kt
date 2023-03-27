@@ -84,6 +84,7 @@ class KtorValidatorApiProcessor(
                     }
                 }
 
+                is PrincipalParameter -> {}
                 is BodyParameter -> {}
                 is DefaultValueParameter -> {}
             }

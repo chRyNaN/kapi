@@ -121,13 +121,24 @@ data class HeaderParameter(
 @SerialName(value = "body")
 data class BodyParameter(
     @SerialName(value = "declaration") override val declaration: KotlinParameterDeclaration,
-    @SerialName(value = "kotlin_type") val kotlinType: KotlinTypeUsageWithDeclaration,
     @SerialName(value = "deprecated") override val isDeprecated: Boolean = false,
+    @SerialName(value = "kotlin_type") val kotlinType: KotlinTypeUsageWithDeclaration
 ) : ApiParameter() {
 
     @Transient
     override val value: String? = null
 }
+
+/**
+ * Represents an [ApiParameter] annotated with the [Principal] annotation.
+ */
+@Serializable
+@SerialName(value = "principal")
+data class PrincipalParameter(
+    @SerialName(value = "declaration") override val declaration: KotlinParameterDeclaration,
+    @SerialName(value = "value") override val value: String,
+    @SerialName(value = "deprecated") override val isDeprecated: Boolean = false
+) : ApiParameter()
 
 /**
  * Represents a function parameter that is not annotated with one of the supported annotations but contains a default

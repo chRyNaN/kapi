@@ -8,6 +8,7 @@ import com.chrynan.kapi.server.ksp.util.typeName
 import com.chrynan.kapi.server.processor.core.model.*
 import com.google.devtools.ksp.processing.KSPLogger
 import com.squareup.kotlinpoet.*
+import io.ktor.server.application.*
 
 class KtorBindingApiFunctionConverter(
     private val classPropertyNameApi: String,
@@ -465,6 +466,23 @@ class KtorBindingApiFunctionConverter(
         return builder
     }
 
+    private fun PrincipalParameter.toAssignmentDeclaration(): CodeBlock.Builder {
+        val builder = CodeBlock.builder()
+
+        val type = this.declaration.type
+        val propertyName = this.declaration.name
+        val parameterName = this.value.takeIf { it.isNotBlank() } ?: this.declaration.name
+
+        builder.add(
+            "$propertyName = $applicationCallMemberName.%M<%T>(%S)",
+            MemberName(packageName = "io.ktor.server.auth", simpleName = "Principal", isExtension = true),
+            type.typeName,
+            parameterName
+        )
+
+        return builder
+    }
+
     private fun CodeBlock.Builder.invokeApiFunction(function: ApiFunction): CodeBlock.Builder {
         val builder = this
 
@@ -625,6 +643,10 @@ class KtorBindingApiFunctionConverter(
             )
 
             is BodyParameter -> builder.addStatement(
+                parameter.toAssignmentDeclaration().add(if (isLast) "" else ",").build()
+            )
+
+            is PrincipalParameter -> builder.addStatement(
                 parameter.toAssignmentDeclaration().add(if (isLast) "" else ",").build()
             )
 

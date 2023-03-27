@@ -27,6 +27,7 @@ package com.chrynan.kapi.server.core.annotation
  * `null`, then this value will be equivalent to `null`.
  * @property [servers] An array of known servers that implement this API.
  * @property [tags] An array of tags applied to this API.
+ * @property [securitySchemes] Supported [SecurityScheme]s for this API.
  */
 @Target(AnnotationTarget.CLASS)
 @MustBeDocumented
@@ -35,7 +36,8 @@ annotation class Api(
     val basePath: String = "",
     val info: Info = Info(),
     val servers: Array<Server> = [],
-    val tags: Array<Tag> = []
+    val tags: Array<Tag> = [],
+    val securitySchemes: Array<SecurityScheme> = []
 )
 
 /**

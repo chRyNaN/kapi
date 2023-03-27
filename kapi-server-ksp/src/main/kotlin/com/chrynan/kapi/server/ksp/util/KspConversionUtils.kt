@@ -2,8 +2,13 @@ package com.chrynan.kapi.server.ksp.util
 
 import com.chrynan.kapi.core.ApiError
 import com.chrynan.kapi.core.HttpMethod
+import com.chrynan.kapi.openapi.OAuthFlow
+import com.chrynan.kapi.openapi.OAuthFlows
+import com.chrynan.kapi.openapi.SecurityScheme
 import com.chrynan.kapi.server.core.annotation.*
+import com.chrynan.kapi.server.core.annotation.Principal
 import com.chrynan.kapi.server.processor.core.model.*
+import com.chrynan.kapi.server.processor.core.model.SecurityRequirement
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
 import com.google.devtools.ksp.getDeclaredFunctions
@@ -226,8 +231,25 @@ internal fun KSValueParameter.toKotlinParameterDeclaration(): KotlinParameterDec
         )
     )
 
+internal fun Auth.toApiAuth(): ApiAuth =
+    ApiAuth(
+        requirements = this.requirements.map {
+            SecurityRequirement(
+                name = it.name,
+                scopes = it.scopes.toList()
+            )
+        },
+        concatenation = when (this.type) {
+            Auth.RequirementType.ANY -> ApiAuth.RequirementConcatenation.OR
+            Auth.RequirementType.ALL -> ApiAuth.RequirementConcatenation.AND
+        }
+    )
+
 @OptIn(KspExperimental::class)
-internal fun KSClassDeclaration.toApiDefinition(contentTypesByAnnotationName: Map<String, String?>): ApiDefinition {
+internal fun KSClassDeclaration.toApiDefinition(
+    contentTypesByAnnotationName: Map<String, String?>,
+    authAnnotationsByName: Map<String, List<ApiAuth>>
+): ApiDefinition {
     val api = this.getAnnotationsByType(Api::class).firstOrNull()
         ?: error(message = "API definition must be annotated with the Api annotation.", symbol = this)
 
@@ -268,6 +290,75 @@ internal fun KSClassDeclaration.toApiDefinition(contentTypesByAnnotationName: Ma
             description = tag.description.takeIf { it.isNotBlank() }
         )
     }
+    val securitySchemes = api.securitySchemes.associate { scheme ->
+        val oauthFlowMap = scheme.flows.associateBy { it.type }
+
+        val oauthFlows = if (oauthFlowMap.isNotEmpty()) {
+            OAuthFlows(
+                implicit = oauthFlowMap[com.chrynan.kapi.server.core.annotation.OAuthFlow.Type.IMPLICIT]?.let { flow ->
+                    OAuthFlow(
+                        authorizationUrl = flow.authorizationUrl,
+                        tokenUrl = flow.tokenUrl.takeIf { it.isNotBlank() },
+                        refreshUrl = flow.refreshUrl,
+                        scopes = flow.scopes.associate { it.name to it.description }
+                    )
+                },
+                password = oauthFlowMap[com.chrynan.kapi.server.core.annotation.OAuthFlow.Type.PASSWORD]?.let { flow ->
+                    OAuthFlow(
+                        authorizationUrl = flow.authorizationUrl,
+                        tokenUrl = flow.tokenUrl.takeIf { it.isNotBlank() },
+                        refreshUrl = flow.refreshUrl,
+                        scopes = flow.scopes.associate { it.name to it.description }
+                    )
+                },
+                clientCredentials = oauthFlowMap[com.chrynan.kapi.server.core.annotation.OAuthFlow.Type.CLIENT_CREDENTIALS]?.let { flow ->
+                    OAuthFlow(
+                        authorizationUrl = flow.authorizationUrl,
+                        tokenUrl = flow.tokenUrl.takeIf { it.isNotBlank() },
+                        refreshUrl = flow.refreshUrl,
+                        scopes = flow.scopes.associate { it.name to it.description }
+                    )
+                },
+                authorizationCode = oauthFlowMap[com.chrynan.kapi.server.core.annotation.OAuthFlow.Type.AUTHORIZATION_CODE]?.let { flow ->
+                    OAuthFlow(
+                        authorizationUrl = flow.authorizationUrl,
+                        tokenUrl = flow.tokenUrl.takeIf { it.isNotBlank() },
+                        refreshUrl = flow.refreshUrl,
+                        scopes = flow.scopes.associate { it.name to it.description }
+                    )
+                }
+            )
+        } else {
+            null
+        }
+
+        scheme.name to SecurityScheme(
+            type = scheme.type.openApiValue,
+            description = scheme.description.takeIf { it.isNotBlank() },
+            name = scheme.keyName.takeIf { it.isNotBlank() },
+            inValue = scheme.keyLocation.openApiValue,
+            scheme = scheme.scheme.takeIf { it.isNotBlank() },
+            bearerFormat = scheme.bearerFormat.takeIf { it.isNotBlank() },
+            openIdConnectUrl = scheme.openIdConnectUrl.takeIf { it.isNotBlank() },
+            flows = oauthFlows
+        )
+    }
+
+    val apiAuths = mutableListOf<ApiAuth>()
+    this.annotations.associateBy { annotation ->
+        annotation.annotationType.resolve().declaration.qualifiedName?.asString()
+    }.forEach { (name, annotation) ->
+        when {
+            name == Auth::class.qualifiedName -> {
+                apiAuths.add(annotation.toAnnotation(Auth::class).toApiAuth())
+            }
+
+            authAnnotationsByName.containsKey(name) -> {
+                apiAuths.addAll(authAnnotationsByName[name] ?: emptyList())
+            }
+        }
+    }
+    validateAuthAnnotations(securitySchemes = securitySchemes, apiAuths = apiAuths, symbol = this)
 
     return ApiDefinition(
         name = api.name,
@@ -278,14 +369,26 @@ internal fun KSClassDeclaration.toApiDefinition(contentTypesByAnnotationName: Ma
         type = this.toKotlinTypeDefinition(),
         documentation = this.docString,
         functions = this.getAllFunctions()
-            .map { it.toApiFunction(contentTypesByAnnotationName) }
+            .map {
+                it.toApiFunction(
+                    contentTypesByAnnotationName = contentTypesByAnnotationName,
+                    authAnnotationsByName = authAnnotationsByName,
+                    securitySchemes = securitySchemes
+                )
+            }
             .filterNotNull()
             .toList(),
-        annotations = this.annotations.map { it.toKotlinAnnotation() }.toList()
+        annotations = this.annotations.map { it.toKotlinAnnotation() }.toList(),
+        securitySchemes = securitySchemes,
+        auths = apiAuths
     )
 }
 
-internal fun KSFunctionDeclaration.toApiFunction(contentTypesByAnnotationName: Map<String, String?>): ApiFunction? {
+internal fun KSFunctionDeclaration.toApiFunction(
+    contentTypesByAnnotationName: Map<String, String?>,
+    authAnnotationsByName: Map<String, List<ApiAuth>>,
+    securitySchemes: Map<String, SecurityScheme>
+): ApiFunction? {
     val functionName = this.kotlinName.full
 
     if (this.typeParameters.isNotEmpty()) {
@@ -309,6 +412,8 @@ internal fun KSFunctionDeclaration.toApiFunction(contentTypesByAnnotationName: M
 
     var requestContentType: String? = null
     var contentTypeCount = 0
+
+    val apiAuths = mutableListOf<ApiAuth>()
 
     // Get the annotation names. Not performant as it has to resolve the types for each annotation, but we need the
     // full name and this is the only way to get it. Note that duplicate annotations result in the usage of the last
@@ -357,9 +462,17 @@ internal fun KSFunctionDeclaration.toApiFunction(contentTypesByAnnotationName: M
                 contentTypeCount++
             }
 
-            contentTypesByAnnotationName.contains(name) -> {
+            contentTypesByAnnotationName.containsKey(name) -> {
                 requestContentType = contentTypesByAnnotationName[name]
                 contentTypeCount++
+            }
+
+            name == Auth::class.qualifiedName -> {
+                apiAuths.add(annotation.toAnnotation(Auth::class).toApiAuth())
+            }
+
+            authAnnotationsByName.containsKey(name) -> {
+                apiAuths.addAll(authAnnotationsByName[name] ?: emptyList())
             }
         }
     }
@@ -371,6 +484,8 @@ internal fun KSFunctionDeclaration.toApiFunction(contentTypesByAnnotationName: M
     check(value = contentTypeCount <= 1, symbol = this) {
         "Only one Consumes annotation is allowed for an API function. Function: $functionName"
     }
+
+    validateAuthAnnotations(securitySchemes = securitySchemes, apiAuths = apiAuths, symbol = this)
 
     val httpMethod = when {
         delete != null -> HttpMethod.DELETE
@@ -405,7 +520,8 @@ internal fun KSFunctionDeclaration.toApiFunction(contentTypesByAnnotationName: M
         extensionReceiver = this.extensionReceiver?.toKotlinTypeUsage(),
         parameters = parameters,
         errorResponses = errorResponses ?: emptyList(),
-        isDeprecated = isDeprecated
+        isDeprecated = isDeprecated,
+        auths = apiAuths
     )
 
     validateApiFunction(function = apiFunction, symbol = this)
@@ -457,6 +573,7 @@ internal fun KSValueParameter.toApiParameter(functionName: String): ApiParameter
     val part = this.getAnnotationsByType(Part::class).firstOrNull()
     val header = this.getAnnotationsByType(Header::class).firstOrNull()
     val body = this.getAnnotationsByType(Body::class).firstOrNull()
+    val principal = this.getAnnotationsByType(Principal::class).firstOrNull()
     val isDeprecated = this.getAnnotationsByType(Deprecated::class).firstOrNull() != null
 
     check(value = listOfNotNull(path, query, field, part, header, body).size <= 1, symbol = this) {
@@ -503,6 +620,12 @@ internal fun KSValueParameter.toApiParameter(functionName: String): ApiParameter
             isDeprecated = isDeprecated
         )
 
+        principal != null -> PrincipalParameter(
+            declaration = parameterDeclaration,
+            value = principal.value.takeIf { it.isNotBlank() } ?: parameterDeclaration.name,
+            isDeprecated = isDeprecated
+        )
+
         this.hasDefault -> DefaultValueParameter(declaration = parameterDeclaration, isDeprecated = isDeprecated)
 
         else -> {
@@ -513,6 +636,34 @@ internal fun KSValueParameter.toApiParameter(functionName: String): ApiParameter
                     SupportedTypeParameter(declaration = parameterDeclaration, isDeprecated = isDeprecated)
 
                 else -> error(message = "Unsupported API function parameter type.", symbol = this)
+            }
+        }
+    }
+}
+
+private fun validateAuthAnnotations(
+    securitySchemes: Map<String, SecurityScheme>,
+    apiAuths: List<ApiAuth>,
+    symbol: KSNode?
+) {
+    val symbolName = when (symbol) {
+        is KSClassDeclaration -> "Class: ${symbol.kotlinName.full}"
+        is KSFunctionDeclaration -> "Function: ${symbol.kotlinName.full}"
+        else -> "Component: location: ${symbol?.location}"
+    }
+
+    apiAuths.forEach { auth ->
+        auth.requirements.forEach { requirement ->
+            if (requirement.name.isBlank()) {
+                error(
+                    message = "Cannot apply security requirement with blank name. $symbolName",
+                    symbol = symbol
+                )
+            } else if (!securitySchemes.containsKey(requirement.name)) {
+                error(
+                    message = "Cannot apply security requirement with name `${requirement.name}` to API without a corresponding SecurityScheme defined for that requirement. Add the `SecurityScheme` value to the `securitySchemes` property of the `@Api` annotation. $symbolName",
+                    symbol = symbol
+                )
             }
         }
     }

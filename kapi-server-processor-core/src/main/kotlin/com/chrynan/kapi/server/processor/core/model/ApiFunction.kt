@@ -17,7 +17,8 @@ data class ApiFunction(
     @SerialName(value = "parameters") val parameters: List<ApiParameter> = emptyList(),
     @SerialName(value = "extension_receiver") val extensionReceiver: KotlinTypeUsage? = null,
     @SerialName(value = "deprecated") val isDeprecated: Boolean = false,
-    @SerialName(value = "tags") val tags: List<ApiTag> = emptyList()
+    @SerialName(value = "tags") val tags: List<ApiTag> = emptyList(),
+    @SerialName(value = "auths") val auths: List<ApiAuth> = emptyList()
 )
 
 val ApiFunction.pathParameters: List<PathParameter>
@@ -34,6 +35,9 @@ val ApiFunction.partParameters: List<PartParameter>
 
 val ApiFunction.headerParameters: List<HeaderParameter>
     get() = parameters.filterIsInstance<HeaderParameter>()
+
+val ApiFunction.principalParameters: List<PrincipalParameter>
+    get() = parameters.filterIsInstance<PrincipalParameter>()
 
 fun ApiFunction.bodyParameter(): BodyParameter =
     parameters.filterIsInstance<BodyParameter>().first()

@@ -11,10 +11,25 @@ import com.chrynan.kapi.server.core.annotation.Query
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.plugins.*
 import io.ktor.server.routing.*
 
-@Api(basePath = "base")
+@Auth(
+    SecurityRequirement(name = "ReadAccess", scopes = ["read"]),
+    type = Auth.RequirementType.ALL
+)
+annotation class RequiresRead
+
+@Api(
+    basePath = "base",
+    securitySchemes = [
+        SecurityScheme(
+            name = "ReadAccess",
+            type = SecurityScheme.Type.OAUTH2
+        )
+    ]
+)
 interface ExampleApi {
 
     @GET(path = "/user/{id}")
@@ -28,6 +43,7 @@ interface ExampleApi {
         ]
     )
     @ApplicationFormUrlEncoded
+    @RequiresRead
     suspend fun getUserResponse(
         @Path("id") id: String,
         @Query("query") query: String,

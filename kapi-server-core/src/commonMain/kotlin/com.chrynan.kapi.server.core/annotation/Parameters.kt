@@ -25,8 +25,8 @@ package com.chrynan.kapi.server.core.annotation
  * **Note:** That this annotation cannot be provided on a parameter of an API function if a [Field] or [Part]
  * annotation is present on a parameter of that same API function.
  */
-@Target(AnnotationTarget.VALUE_PARAMETER)
 @MustBeDocumented
+@Target(AnnotationTarget.VALUE_PARAMETER)
 annotation class Body
 
 /**
@@ -119,3 +119,16 @@ annotation class Path(val value: String = "")
 @MustBeDocumented
 @Target(AnnotationTarget.VALUE_PARAMETER)
 annotation class Query(val value: String = "")
+
+/**
+ * The parameter of an API function annotated with [Principal] represents an auth principal that is retrieved from the
+ * HTTP request. A principal value can only be retrieved from a request if the auth has succeeded. The supported types
+ * for a principal value depend on the server framework, for example, Ktor requires the type to be a subtype of
+ * `io.ktor.server.auth.Principal` (which requires the Ktor plugin dependency).
+ *
+ * @property [value] The name of the auth provider to retrieve the principal from. If this value is blank, then the
+ * name of the parameter will be used instead.
+ */
+@MustBeDocumented
+@Target(AnnotationTarget.VALUE_PARAMETER)
+annotation class Principal(val value: String = "")

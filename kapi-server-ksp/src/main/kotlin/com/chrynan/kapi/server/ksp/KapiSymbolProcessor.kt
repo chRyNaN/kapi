@@ -1,9 +1,11 @@
 package com.chrynan.kapi.server.ksp
 
 import com.chrynan.kapi.server.core.annotation.Api
+import com.chrynan.kapi.server.core.annotation.Auth
 import com.chrynan.kapi.server.core.annotation.Consumes
 import com.chrynan.kapi.server.ksp.util.getSymbolsWithAnnotation
 import com.chrynan.kapi.server.ksp.util.kotlinName
+import com.chrynan.kapi.server.ksp.util.toApiAuth
 import com.chrynan.kapi.server.ksp.util.toApiDefinition
 import com.chrynan.kapi.server.processor.core.ApiProcessor
 import com.chrynan.kapi.server.processor.core.model.ApiDefinition
@@ -45,8 +47,20 @@ class KapiSymbolProcessor(
                     .contentType
                     .takeIf { it.isNotBlank() }
             }
+        val authAnnotationsByName = resolver.getSymbolsWithAnnotation(Auth::class)
+            .filterIsInstance<KSClassDeclaration>()
+            .associate { annotationDeclaration ->
+                annotationDeclaration.kotlinName.full to annotationDeclaration.getAnnotationsByType(Auth::class)
+                    .map { it.toApiAuth() }
+                    .toList()
+            }
         val apiAnnotatedElements = resolver.getSymbolsWithAnnotation(Api::class).filterIsInstance<KSClassDeclaration>()
-        val apiDefinitions = apiAnnotatedElements.map { it.toApiDefinition(contentTypesByAnnotationName) }.toList()
+        val apiDefinitions = apiAnnotatedElements.map {
+            it.toApiDefinition(
+                contentTypesByAnnotationName = contentTypesByAnnotationName,
+                authAnnotationsByName = authAnnotationsByName
+            )
+        }.toList()
 
         allApis.addAll(apiDefinitions)
 
