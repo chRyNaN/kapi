@@ -19,6 +19,7 @@ import io.ktor.server.routing.*
     SecurityRequirement(name = "ReadAccess", scopes = ["read"]),
     type = Auth.RequirementType.ALL
 )
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 annotation class RequiresRead
 
 @Api(
@@ -26,7 +27,17 @@ annotation class RequiresRead
     securitySchemes = [
         SecurityScheme(
             name = "ReadAccess",
-            type = SecurityScheme.Type.OAUTH2
+            type = SecurityScheme.Type.OAUTH2,
+            flows = [
+                OAuthFlow(
+                    type = OAuthFlow.Type.AUTHORIZATION_CODE,
+                    authorizationUrl = "",
+                    scopes = [
+                        OAuthScope("read"),
+                        OAuthScope("write")
+                    ]
+                )
+            ]
         )
     ]
 )

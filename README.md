@@ -131,6 +131,7 @@ be a supported type that can be provided by the generated code.
 * `@Part` - Represents a part of the HTTP request body when the content type is `multipart/form-data`.
 * `@Path` - Represents a path parameter extracted from the URL of the request.
 * `@Query` - Represents a query parameter extracted from the URL of the request.
+* `@Principal` - Represents an auth principal obtained from the request.
 
 ##### Supported Types
 
@@ -225,6 +226,59 @@ suspend fun getIdentity(@Path id: String): Identity
 
 In the above example, if the `getIdentity` API function throws an `IllegalStateException`, that will result in an HTTP
 response of type `ApiError` with a status code of `500`.
+
+### Authentication and Authorization
+
+Authentication and authorization for APIs is handled through the concept of "SecuritySchemes", "SecurityRequirements",
+and the `@Auth` annotation. First, you must establish the Security Schemes for an API by adding them to the `@Api`
+annotation:
+
+```kotlin
+@Api(
+    securitySchemes = [
+        SecurityScheme(
+            SecurityScheme(
+                name = "OAuthToken",
+                type = SecurityScheme.Type.OAUTH2,
+                flows = [
+                    OAuthFlow(
+                        type = OAuthFlow.Type.AUTHORIZATION_CODE,
+                        authorizationUrl = "https://auth.example.com",
+                        scopes = [
+                            OAuthScope("read"),
+                            OAuthScope("write")
+                        ]
+                    )
+                ]
+            )
+        )
+    ]
+)
+interface IdentityApiComponent { ... }
+```
+
+Then, create a convenience annotation for applying a Security Requirement for an API component that points to the above
+created Security Scheme:
+
+```kotlin
+@Auth(
+    SecurityRequirement(name = "OAuthToken", scopes = ["read"]),
+    type = Auth.RequirementType.ALL
+)
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+annotation class RequiresReadAccess
+```
+
+Finally, apply the annotation to any API components that require that permission to access:
+
+```kotlin
+@GET("/{id}")
+@RequiresReadAccess
+suspend fun getIdentity(@Path id: String): Identity
+```
+
+**Note:** To obtain the [Principal](https://ktor.io/docs/authentication.html#configure-provider) from the request, use
+the `@Principal` annotation on a parameter of an API function.
 
 ## Documentation 📄
 
