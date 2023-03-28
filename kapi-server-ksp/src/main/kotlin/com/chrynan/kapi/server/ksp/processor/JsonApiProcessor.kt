@@ -1,4 +1,4 @@
-package com.chrynan.kapi.server.ksp
+package com.chrynan.kapi.server.ksp.processor
 
 import com.chrynan.kapi.server.processor.core.ApiProcessor
 import com.chrynan.kapi.server.processor.core.model.ApiDefinition

@@ -1,7 +1,7 @@
-package com.chrynan.kapi.server.ksp
+package com.chrynan.kapi.server.ksp.processor
 
-import com.chrynan.kapi.server.ksp.output.KtorBindingApiFunctionConverter
-import com.chrynan.kapi.server.ksp.output.KtorBindingsApiDefinitionConverter
+import com.chrynan.kapi.server.ksp.output.KtorRoutingApiFunctionConverter
+import com.chrynan.kapi.server.ksp.output.KtorRoutingApiDefinitionConverter
 import com.chrynan.kapi.server.ksp.util.apiName
 import com.chrynan.kapi.server.processor.core.ApiProcessor
 import com.chrynan.kapi.server.processor.core.model.*
@@ -9,15 +9,15 @@ import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
 
-class KtorBindingsApiProcessor(
+class KtorRoutingApiProcessor(
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger
 ) : ApiProcessor {
 
     private val functionConverter =
-        KtorBindingApiFunctionConverter(classPropertyNameApi = classPropertyNameApi, logger = logger)
+        KtorRoutingApiFunctionConverter(classPropertyNameApi = classPropertyNameApi, logger = logger)
     private val apiDefinitionConverter =
-        KtorBindingsApiDefinitionConverter(
+        KtorRoutingApiDefinitionConverter(
             classPropertyNameApi = classPropertyNameApi,
             functionConverter = functionConverter
         )

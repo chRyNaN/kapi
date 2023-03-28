@@ -4,9 +4,9 @@ import com.chrynan.kapi.server.ksp.util.apiName
 import com.chrynan.kapi.server.processor.core.model.ApiDefinition
 import com.squareup.kotlinpoet.*
 
-class KtorBindingsApiDefinitionConverter(
+class KtorRoutingApiDefinitionConverter(
     private val classPropertyNameApi: String,
-    private val functionConverter: KtorBindingApiFunctionConverter
+    private val functionConverter: KtorRoutingApiFunctionConverter
 ) {
 
     operator fun invoke(definition: ApiDefinition): FileSpec {
@@ -71,7 +71,7 @@ class KtorBindingsApiDefinitionConverter(
 
     companion object {
 
-        private const val suffixKtorBindingClass = "KtorBinding"
+        private const val suffixKtorBindingClass = "Routing"
         private const val functionNameRegisterAllEndpointsForApi = "registerAllEndpoints"
         private const val parameterNameRouting = "routing"
     }

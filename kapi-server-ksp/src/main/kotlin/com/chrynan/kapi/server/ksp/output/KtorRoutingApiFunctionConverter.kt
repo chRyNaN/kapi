@@ -8,9 +8,8 @@ import com.chrynan.kapi.server.ksp.util.typeName
 import com.chrynan.kapi.server.processor.core.model.*
 import com.google.devtools.ksp.processing.KSPLogger
 import com.squareup.kotlinpoet.*
-import io.ktor.server.application.*
 
-class KtorBindingApiFunctionConverter(
+class KtorRoutingApiFunctionConverter(
     private val classPropertyNameApi: String,
     private val logger: KSPLogger
 ) {
