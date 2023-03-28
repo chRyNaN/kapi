@@ -24,6 +24,8 @@ kotlin {
                 api(project(":kapi-openapi"))
 
                 api(Ktor.server.core)
+                api(Ktor.server.auth)
+                api(Ktor.server.auth.jwt)
                 implementation(Ktor.client.contentNegotiation)
                 implementation("io.ktor:ktor-serialization-kotlinx-json:_")
                 implementation("io.ktor:ktor-server-openapi:_")
