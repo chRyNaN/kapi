@@ -150,6 +150,70 @@ fun Route.requireOauthScopes(
     build = build
 )
 
+/**
+ * Requires the specified OAuth 2.0 Token [Scope]s in order to access the nested routes. This delegates to the
+ * [requireScopes] function with [Scope] values obtained from a [JWTPrincipal] belonging to the provided authentication
+ * [provider]. Note that [Scope]s are compared by their [Scope.value] property for this function. This should be fine
+ * here since the scopes are retrieved via a particular authentication provider.
+ *
+ * ## Example Usage
+ *
+ * ```kotlin
+ * requireScopes(
+ *     provider = "myJwtAuthProvider",
+ *     scopes = setOf(MyApiScopes.READ)
+ * ) {
+ *     get("/user/{id}) { ... } // Will only be invoked when this call has the appropriate `MyApiScopes.READ` scope.
+ * }
+ * ```
+ */
+@JvmName("requireStringOauthScopes")
+fun Route.requireOauthScopes(
+    provider: String?,
+    scopes: Set<String>,
+    requirementPolicy: ScopeRequirementPolicy = ScopeRequirementPolicy.ALL,
+    onInvalid: suspend ApplicationCall.() -> Unit = defaultInvalidHandler,
+    build: Route.() -> Unit
+) = requireScopes(
+    scopes = scopes.map { StringValueScope(it) }.toSet(),
+    requirementPolicy = requirementPolicy,
+    onRetrieveScopes = onRetrieveOauth2TokenScopes(provider),
+    onInvalid = onInvalid,
+    build = build
+)
+
+/**
+ * Requires the specified OAuth 2.0 Token [Scope]s in order to access the nested routes. This delegates to the
+ * [requireScopes] function with [Scope] values obtained from a [JWTPrincipal] belonging to the provided authentication
+ * [provider]. Note that [Scope]s are compared by their [Scope.value] property for this function. This should be fine
+ * here since the scopes are retrieved via a particular authentication provider.
+ *
+ * ## Example Usage
+ *
+ * ```kotlin
+ * requireScopes(
+ *     provider = "myJwtAuthProvider",
+ *     scopes = setOf(MyApiScopes.READ)
+ * ) {
+ *     get("/user/{id}) { ... } // Will only be invoked when this call has the appropriate `MyApiScopes.READ` scope.
+ * }
+ * ```
+ */
+@JvmName("requireStringOauthScopes")
+fun Route.requireOauthScopes(
+    provider: String?,
+    vararg scopes: String,
+    requirementPolicy: ScopeRequirementPolicy = ScopeRequirementPolicy.ALL,
+    onInvalid: suspend ApplicationCall.() -> Unit = defaultInvalidHandler,
+    build: Route.() -> Unit
+) = requireScopes(
+    scopes = scopes.map { StringValueScope(it) }.toSet(),
+    requirementPolicy = requirementPolicy,
+    onRetrieveScopes = onRetrieveOauth2TokenScopes(provider),
+    onInvalid = onInvalid,
+    build = build
+)
+
 internal val ScopeBasedAuthorizationPlugin =
     createRouteScopedPlugin("ScopeBasedAuthorizationPlugin", ::ScopeBasedAuthorizationConfiguration) {
         on(AuthenticationChecked) { call ->
