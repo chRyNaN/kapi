@@ -73,6 +73,26 @@ kotlin {
 }
 ```
 
+### Configuration
+
+It possible to configure the kapi server KSP plugin
+by [providing KSP options](https://kotlinlang.org/docs/ksp-quickstart.html#pass-options-to-processors) in the
+`build.gradle.kts` file:
+
+```kotlin
+ksp {
+    arg("kapi.config.jsonProcessorConfig.enabled", "true")
+}
+```
+
+#### Available KSP configurations
+
+* `kapi.config.jsonProcessorConfig.enabled` - Enable/disable the generation of the `apis.json` file containing all the
+  information about the processed APIs. Defaults to `true`.
+* `kapi.config.ktorProcessorConfig.enabled` - Enable/disable the generation of Ktor bindings. Defaults to `true`.
+* `kapi.config.openApiProcessorConfig.enabled` - Enabled/disable the generation of Open API Specification files.
+  Defaults to `true`.
+
 ## Defining an API 🧑‍💻
 
 ### API components
