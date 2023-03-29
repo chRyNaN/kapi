@@ -289,7 +289,7 @@ created Security Scheme:
 annotation class RequiresReadAccess
 ```
 
-Finally, apply the annotation to any API components that require that permission to access:
+Finally, apply the annotation to any API components that require that scope to access:
 
 ```kotlin
 @GET("/{id}")
@@ -297,8 +297,24 @@ Finally, apply the annotation to any API components that require that permission
 suspend fun getIdentity(@Path id: String): Identity
 ```
 
-**Note:** To obtain the [Principal](https://ktor.io/docs/authentication.html#configure-provider) from the request, use
-the `@Principal` annotation on a parameter of an API function.
+**Note:** To obtain the [Principal](https://ktor.io/docs/authentication.html#configure-provider) from the result of
+successful authentication, use the `@Principal` annotation on a parameter of an API function.
+
+#### Authentication
+
+While OAuth scope-based Authorization is handled automatically within the generated code, the Authentication providers
+still have to be [established manually](https://ktor.io/docs/authentication.html). However, there is a convenience
+extension property automatically generated on the `KapiSecurity` model that can be used to gain access to all of an
+APIs `SecurityDefinitions`:
+
+```kotlin
+install(Authentication) {
+    Kapi.security.exampleApi.definitions.forEach { definition ->
+        definition.provider // String name value equivalent to the `@SecurityScheme.name` property value.
+        definition.scheme // Open API `SecurityScheme` model instance.
+    }
+}
+```
 
 ## Documentation 📄
 

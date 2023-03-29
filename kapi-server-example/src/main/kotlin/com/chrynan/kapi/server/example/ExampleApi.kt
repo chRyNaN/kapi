@@ -81,11 +81,3 @@ interface ExampleApi {
         multiPartData: MultiPartData
     )
 }
-
-fun Application.test(){
-    routing {
-        authenticate {
-
-        }
-    }
-}
