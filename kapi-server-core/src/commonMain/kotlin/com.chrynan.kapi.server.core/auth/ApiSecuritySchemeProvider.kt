@@ -6,8 +6,8 @@ import com.chrynan.kapi.server.core.annotation.Api
 /**
  * An interface for an API containing all its supported Open API [SecurityScheme]s. Implementations of this class are
  * generated for every [Api] component, where the data is extracted from the [Api.securitySchemes] property of the
- * [Api] annotation, and is made available via extensions on the [KapiAuth] component, which itself can be accessed via
- * the [auth] property.
+ * [Api] annotation, and is made available via extensions on the [KapiSecurity] component, which itself can be accessed via
+ * the [security] property.
  */
 interface ApiSecuritySchemeProvider {
 
