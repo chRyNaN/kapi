@@ -9,7 +9,7 @@ import com.chrynan.kapi.server.processor.core.model.*
 import com.google.devtools.ksp.processing.KSPLogger
 import com.squareup.kotlinpoet.*
 
-class KtorRoutingApiFunctionConverter(
+internal class KtorRoutingApiFunctionConverter(
     private val classPropertyNameApi: String,
     private val logger: KSPLogger
 ) {

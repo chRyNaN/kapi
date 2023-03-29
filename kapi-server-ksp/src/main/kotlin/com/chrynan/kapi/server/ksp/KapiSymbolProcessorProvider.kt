@@ -1,7 +1,7 @@
 package com.chrynan.kapi.server.ksp
 
 import com.chrynan.kapi.server.ksp.processor.JsonApiProcessor
-import com.chrynan.kapi.server.ksp.processor.KtorRoutingApiProcessor
+import com.chrynan.kapi.server.ksp.processor.KtorApiProcessor
 import com.chrynan.kapi.server.ksp.processor.KtorValidatorApiProcessor
 import com.chrynan.kapi.server.processor.core.ApiProcessor
 import com.google.devtools.ksp.processing.SymbolProcessor
@@ -24,7 +24,7 @@ class KapiSymbolProcessorProvider : SymbolProcessorProvider {
 
         if (config.openApiProcessorConfig.enabled) {
             apiProcessors.add(
-                KtorRoutingApiProcessor(
+                KtorApiProcessor(
                     codeGenerator = environment.codeGenerator,
                     logger = environment.logger
                 )

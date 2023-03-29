@@ -8,7 +8,7 @@ import com.google.devtools.ksp.processing.KSPLogger
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class JsonApiProcessor(
+internal class JsonApiProcessor(
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger
 ) : ApiProcessor {

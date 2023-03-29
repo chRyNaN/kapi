@@ -10,7 +10,7 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-class OpenApiFunctionConverter {
+internal class OpenApiFunctionConverter {
 
     operator fun invoke(function: ApiFunction) {
         function.path to PathItem(

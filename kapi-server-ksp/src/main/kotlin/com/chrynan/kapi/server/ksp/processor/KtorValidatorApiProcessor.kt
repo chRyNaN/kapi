@@ -5,7 +5,7 @@ import com.chrynan.kapi.server.processor.core.ApiProcessor
 import com.chrynan.kapi.server.processor.core.model.*
 import com.google.devtools.ksp.processing.KSPLogger
 
-class KtorValidatorApiProcessor(
+internal class KtorValidatorApiProcessor(
     private val logger: KSPLogger
 ) : ApiProcessor {
 

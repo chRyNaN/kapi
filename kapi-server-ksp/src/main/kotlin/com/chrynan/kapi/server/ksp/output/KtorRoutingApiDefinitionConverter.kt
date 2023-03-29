@@ -4,7 +4,7 @@ import com.chrynan.kapi.server.ksp.util.apiName
 import com.chrynan.kapi.server.processor.core.model.ApiDefinition
 import com.squareup.kotlinpoet.*
 
-class KtorRoutingApiDefinitionConverter(
+internal class KtorRoutingApiDefinitionConverter(
     private val classPropertyNameApi: String,
     private val functionConverter: KtorRoutingApiFunctionConverter
 ) {
@@ -28,7 +28,7 @@ class KtorRoutingApiDefinitionConverter(
             )
             .build()
 
-        return FileSpec.builder(packageName = definition.type.name.packageName!!, fileName = definition.apiName)
+        return FileSpec.builder(packageName = definition.type.name.packageName!!, fileName = bindingClassName)
             .addType(bindingClass)
             .addFunction(registerApiFunction)
             .build()
@@ -71,7 +71,7 @@ class KtorRoutingApiDefinitionConverter(
 
     companion object {
 
-        private const val suffixKtorBindingClass = "Routing"
+        internal const val suffixKtorBindingClass = "Routing"
         private const val functionNameRegisterAllEndpointsForApi = "registerAllEndpoints"
         private const val parameterNameRouting = "routing"
     }
