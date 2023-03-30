@@ -35,7 +35,13 @@ internal class KtorRoutingApiDefinitionConverter(
     }
 
     private fun ApiDefinition.toBindingClass(apiTypeName: ClassName, bindingClassName: String): TypeSpec {
-        val bindingFunctions = this.functions.map { functionConverter.invoke(function = it, basePath = this.basePath) }
+        val bindingFunctions = this.functions.map {
+            functionConverter.invoke(
+                function = it,
+                basePath = this.basePath,
+                parentAuths = this.auths
+            )
+        }
 
         val registerAllFunctionBuilder = FunSpec.builder(name = functionNameRegisterAllEndpointsForApi)
             .addModifiers(KModifier.INTERNAL)

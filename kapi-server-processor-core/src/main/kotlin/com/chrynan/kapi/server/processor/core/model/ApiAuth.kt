@@ -31,5 +31,6 @@ data class ApiAuth(
 @Serializable
 data class SecurityRequirement(
     @SerialName(value = "name") val name: String,
-    @SerialName(value = "scopes") val scopes: List<String> = emptyList()
+    @SerialName(value = "scopes") val scopes: List<String> = emptyList(),
+    @SerialName(value = "scope_concatenation") val scopeConcatenation: ApiAuth.RequirementConcatenation = ApiAuth.RequirementConcatenation.AND
 )

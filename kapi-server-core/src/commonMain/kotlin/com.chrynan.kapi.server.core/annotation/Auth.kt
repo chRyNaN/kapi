@@ -2,9 +2,11 @@
 
 package com.chrynan.kapi.server.core.annotation
 
+import com.chrynan.kapi.server.core.annotation.Auth.RequirementType
+
 /**
  * The component annotated with this class will require the provided [requirements] be met in order to access the API
- * component. The way in which the [requirements] are applied to the annotated component is dependent on the [type]
+ * component. The way in which the [requirements] are applied to the annotated component is dependent on the [requirementType]
  * value.
  *
  * The following list details the result of applying this annotation to different components:
@@ -38,16 +40,16 @@ package com.chrynan.kapi.server.core.annotation
  *
  * @property [requirements] The [SecurityRequirement]s that need to be met in order to access the annotated API
  * component.
- * @property [type] Defines how the [requirements] are applied. If the value is [RequirementType.ALL], then it is
- * equivalent to a logical AND, meaning that all the requirements must be met in order to access the component. If the
- * value is [RequirementType.ANY], then it is equivalent to a logical OR, meaning only one of the requirements must be
- * met in order to access the component.
+ * @property [requirementType] Defines how the [requirements] are applied. If the value is [RequirementType.ALL], then
+ * it is equivalent to a logical AND, meaning that all the requirements must be met in order to access the component.
+ * If the value is [RequirementType.ANY], then it is equivalent to a logical OR, meaning only one of the requirements
+ * must be met in order to access the component.
  */
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS, AnnotationTarget.ANNOTATION_CLASS)
 @MustBeDocumented
 annotation class Auth(
     vararg val requirements: SecurityRequirement,
-    val type: RequirementType = RequirementType.ALL
+    val requirementType: RequirementType = RequirementType.ALL
 ) {
 
     /**
@@ -73,12 +75,17 @@ annotation class Auth(
  * [Api.securitySchemes].
  * @property [scopes] The scopes that are required to access the annotated component. Usage of this property depends on
  * the particular [SecurityScheme] type.
+ * @property [scopeRequirementType] Defines how the [scopes] are applied. If the value is [RequirementType.ALL], then
+ * it is equivalent to a logical AND, meaning that all the scopes must be present in order to access the component. If
+ * the value is [RequirementType.ANY], then it is equivalent to a logical OR, meaning only one of the scopes must be
+ * present in order to access the component.
  */
 @Target()
 @MustBeDocumented
 annotation class SecurityRequirement(
     val name: String,
-    val scopes: Array<String> = []
+    val scopes: Array<String> = [],
+    val scopeRequirementType: RequirementType = RequirementType.ALL
 )
 
 /**

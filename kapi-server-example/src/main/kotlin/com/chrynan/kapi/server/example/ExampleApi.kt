@@ -8,6 +8,8 @@ import com.chrynan.kapi.server.core.annotation.Body
 import com.chrynan.kapi.server.core.annotation.Header
 import com.chrynan.kapi.server.core.annotation.Path
 import com.chrynan.kapi.server.core.annotation.Query
+import com.chrynan.kapi.server.core.auth.ScopeRequirementPolicy
+import com.chrynan.kapi.server.core.auth.requireOauthScopes
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -16,17 +18,24 @@ import io.ktor.server.plugins.*
 import io.ktor.server.routing.*
 
 @Auth(
-    SecurityRequirement(name = "ReadAccess", scopes = ["read"]),
-    type = Auth.RequirementType.ALL
+    SecurityRequirement(name = "OAuthProvider", scopes = ["read"]),
+    requirementType = Auth.RequirementType.ALL
 )
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 annotation class RequiresRead
+
+@Auth(
+    SecurityRequirement(name = "OAuthProvider", scopes = ["write"]),
+    requirementType = Auth.RequirementType.ALL
+)
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+annotation class RequiresWrite
 
 @Api(
     basePath = "base",
     securitySchemes = [
         SecurityScheme(
-            name = "ReadAccess",
+            name = "OAuthProvider",
             type = SecurityScheme.Type.OAUTH2,
             flows = [
                 OAuthFlow(
@@ -67,6 +76,8 @@ interface ExampleApi {
     ): String
 
     @POST(path = "/message")
+    @RequiresRead
+    @RequiresWrite
     suspend fun Route.postMessage(
         @Body message: String,
         isEncrypted: Boolean = false

@@ -236,10 +236,14 @@ internal fun Auth.toApiAuth(): ApiAuth =
         requirements = this.requirements.map {
             SecurityRequirement(
                 name = it.name,
-                scopes = it.scopes.toList()
+                scopes = it.scopes.toList(),
+                scopeConcatenation = when (it.scopeRequirementType) {
+                    Auth.RequirementType.ANY -> ApiAuth.RequirementConcatenation.OR
+                    Auth.RequirementType.ALL -> ApiAuth.RequirementConcatenation.AND
+                }
             )
         },
-        concatenation = when (this.type) {
+        concatenation = when (this.requirementType) {
             Auth.RequirementType.ANY -> ApiAuth.RequirementConcatenation.OR
             Auth.RequirementType.ALL -> ApiAuth.RequirementConcatenation.AND
         }

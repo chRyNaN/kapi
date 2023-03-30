@@ -17,7 +17,11 @@ internal class KtorRoutingApiFunctionConverter(
     private val applicationCallMemberName =
         MemberName(packageName = "io.ktor.server.application", simpleName = "call", isExtension = true)
 
-    operator fun invoke(function: ApiFunction, basePath: String? = null): FunSpec {
+    operator fun invoke(
+        function: ApiFunction,
+        basePath: String? = null,
+        parentAuths: List<ApiAuth>
+    ): FunSpec {
         var declareMultipartData = false
         var declareMultipartDataMap = false
         var declareParameters = false
@@ -48,15 +52,19 @@ internal class KtorRoutingApiFunctionConverter(
         }
 
         return function.create {
-            httpMethod(function = function, basePath = basePath) {
-                catchAnyErrors(function) {
-                    addDefaultProperties(
-                        declareMultipartData = declareMultipartData,
-                        declareMultipartDataMap = declareMultipartDataMap,
-                        declareParameters = declareParameters
-                    )
+            baseRoute(basePath) {
+                authentications(parentAuths + function.auths) {
+                    httpMethod(function = function) {
+                        catchAnyErrors(function) {
+                            addDefaultProperties(
+                                declareMultipartData = declareMultipartData,
+                                declareMultipartDataMap = declareMultipartDataMap,
+                                declareParameters = declareParameters
+                            )
 
-                    invokeApiFunction(function = function)
+                            invokeApiFunction(function = function)
+                        }
+                    }
                 }
             }
         }
@@ -78,22 +86,56 @@ internal class KtorRoutingApiFunctionConverter(
         return builder.build()
     }
 
-    private fun CodeBlock.Builder.httpMethod(
-        function: ApiFunction,
-        basePath: String? = null,
+    private fun CodeBlock.Builder.authentications(
+        apiAuths: List<ApiAuth>,
         block: CodeBlock.Builder.() -> Unit
     ): CodeBlock.Builder {
         val builder = this
-        val acceptContentType = function.requestContentType
-        val surroundInAccept = !acceptContentType.isNullOrBlank() && acceptContentType != "*/*"
 
-        if (!basePath.isNullOrBlank()) {
+        if (apiAuths.isNotEmpty()) {
+            val auth = apiAuths.first()
+            val updatedAuths = apiAuths.drop(1)
+
+            authenticate(auth) {
+                authentications(updatedAuths, block)
+            }
+        } else {
+            builder.block()
+        }
+
+        return builder
+    }
+
+    private fun CodeBlock.Builder.baseRoute(
+        basePath: String?,
+        block: CodeBlock.Builder.() -> Unit
+    ): CodeBlock.Builder {
+        val builder = this
+
+        if (basePath.isNullOrBlank()) {
+            builder.block()
+        } else {
             builder.beginControlFlow(
                 "$propertyNameRoute.%M(%S)",
                 MemberName(packageName = "io.ktor.server.routing", simpleName = "route", isExtension = true),
                 basePath
             )
+
+            builder.block()
+
+            builder.endControlFlow()
         }
+
+        return builder
+    }
+
+    private fun CodeBlock.Builder.httpMethod(
+        function: ApiFunction,
+        block: CodeBlock.Builder.() -> Unit
+    ): CodeBlock.Builder {
+        val builder = this
+        val acceptContentType = function.requestContentType
+        val surroundInAccept = !acceptContentType.isNullOrBlank() && acceptContentType != "*/*"
 
         if (surroundInAccept) {
             builder.beginControlFlow(
@@ -128,10 +170,6 @@ internal class KtorRoutingApiFunctionConverter(
         builder.endControlFlow()
 
         if (surroundInAccept) {
-            builder.endControlFlow()
-        }
-
-        if (!basePath.isNullOrBlank()) {
             builder.endControlFlow()
         }
 
@@ -708,6 +746,68 @@ internal class KtorRoutingApiFunctionConverter(
             ClassName.bestGuess("com.chrynan.kapi.core.ApiError"),
             ClassName.bestGuess("kotlinx.datetime.Clock.System")
         )
+    }
+
+    private fun CodeBlock.Builder.authenticate(
+        auth: ApiAuth?,
+        block: CodeBlock.Builder.() -> Unit
+    ): CodeBlock.Builder {
+        val builder = this
+
+        if (auth != null) {
+            auth.requirements.forEach { requirement ->
+                builder.beginControlFlow(
+                    "%M(%S, strategy = %M)",
+                    MemberName(packageName = "io.ktor.server.auth", simpleName = "authenticate", isExtension = true),
+                    requirement.name,
+                    MemberName(
+                        enclosingClassName = ClassName.bestGuess("io.ktor.server.auth.AuthenticationStrategy"),
+                        simpleName = if (auth.concatenation == ApiAuth.RequirementConcatenation.AND) "Required" else "FirstSuccessful",
+                        isExtension = false
+                    )
+                )
+
+                if (requirement.scopes.isNotEmpty()) {
+                    builder.beginControlFlow(
+                        """
+                        |%M(
+                        |  provider = %S,
+                        |  scopes = %M<%T>(%L),
+                        |  requirementPolicy = %M
+                        |)
+                        """.trimMargin(),
+                        MemberName(
+                            packageName = "com.chrynan.kapi.server.core.auth",
+                            simpleName = "requireOauthScopes",
+                            isExtension = true
+                        ),
+                        requirement.name,
+                        MemberName(packageName = "kotlin.collections", simpleName = "setOf", isExtension = false),
+                        String::class.asTypeName(),
+                        requirement.scopes.joinToString { "\"$it\"" },
+                        MemberName(
+                            enclosingClassName = ClassName.bestGuess("com.chrynan.kapi.server.core.auth.ScopeRequirementPolicy"),
+                            simpleName = if (requirement.scopeConcatenation == ApiAuth.RequirementConcatenation.AND) "ALL" else "ANY",
+                            isExtension = false
+                        )
+                    )
+                }
+            }
+
+            builder.block()
+
+            auth.requirements.forEach { requirement ->
+                builder.endControlFlow()
+
+                if (requirement.scopes.isNotEmpty()) {
+                    builder.endControlFlow()
+                }
+            }
+        } else {
+            builder.block()
+        }
+
+        return builder
     }
 
     companion object {
