@@ -1,6 +1,9 @@
+@file:OptIn(ExperimentalServerApi::class)
+
 package com.chrynan.kapi.server.example
 
 import com.chrynan.kapi.core.Kapi
+import com.chrynan.kapi.server.core.annotation.ExperimentalServerApi
 import com.chrynan.kapi.server.core.auth.security
 import com.chrynan.kapi.server.example.api.identityApi
 import com.chrynan.kapi.server.example.api.registerIdentityApi

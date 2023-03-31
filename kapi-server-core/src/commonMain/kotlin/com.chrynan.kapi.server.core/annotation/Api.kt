@@ -31,6 +31,7 @@ package com.chrynan.kapi.server.core.annotation
  */
 @Target(AnnotationTarget.CLASS)
 @MustBeDocumented
+@ExperimentalServerApi
 annotation class Api(
     val name: String = "",
     val basePath: String = "",
@@ -57,6 +58,7 @@ annotation class Api(
  */
 @Target()
 @MustBeDocumented
+@ExperimentalServerApi
 annotation class Info(
     val title: String = "",
     val summary: String = "",
@@ -89,6 +91,7 @@ annotation class Info(
  */
 @Target()
 @MustBeDocumented
+@ExperimentalServerApi
 annotation class Contact(
     val name: String = "",
     val url: String = "",
@@ -119,6 +122,7 @@ annotation class Contact(
  */
 @Target()
 @MustBeDocumented
+@ExperimentalServerApi
 annotation class License(
     val name: String = "",
     val identifier: String = "",
@@ -140,6 +144,7 @@ annotation class License(
  */
 @Target()
 @MustBeDocumented
+@ExperimentalServerApi
 annotation class Server(
     val url: String,
     val description: String = "",
@@ -161,6 +166,7 @@ annotation class Server(
  */
 @Target()
 @MustBeDocumented
+@ExperimentalServerApi
 annotation class ServerVariable(
     val name: String,
     val defaultValue: String,
@@ -181,6 +187,7 @@ annotation class ServerVariable(
  */
 @Target()
 @MustBeDocumented
+@ExperimentalServerApi
 annotation class Tag(
     val name: String,
     val description: String = ""

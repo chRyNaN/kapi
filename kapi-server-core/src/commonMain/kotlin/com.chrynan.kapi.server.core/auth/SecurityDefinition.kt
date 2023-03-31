@@ -2,6 +2,7 @@ package com.chrynan.kapi.server.core.auth
 
 import com.chrynan.kapi.server.core.annotation.Api
 import com.chrynan.kapi.openapi.SecurityScheme
+import com.chrynan.kapi.server.core.annotation.ExperimentalServerApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -11,6 +12,7 @@ import kotlinx.serialization.Serializable
  * it can be serialized.
  */
 @Serializable
+@ExperimentalServerApi
 data class SecurityDefinition(
     @SerialName(value = "provider") val provider: String,
     @SerialName(value = "scheme") val scheme: SecurityScheme

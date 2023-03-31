@@ -3,6 +3,7 @@
 package com.chrynan.kapi.server.core.util
 
 import com.chrynan.kapi.core.ApiError
+import com.chrynan.kapi.server.core.annotation.ExperimentalServerApi
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -19,6 +20,7 @@ import io.ktor.utils.io.jvm.javaio.*
  * Retrieves the parameters value associated with this [name] converting to type [R] using [DefaultConversionService]
  * or `null` if the value cannot be converted or there is no value associated with [name].
  */
+@ExperimentalServerApi
 @Suppress("unused")
 inline fun <reified R : Any> Parameters.getOrNull(name: String): R? =
     try {
@@ -34,6 +36,7 @@ inline fun <reified R : Any> Parameters.getOrNull(name: String): R? =
  * @throws MissingRequestParameterException if no values associated with this [name]
  * @throws ParameterConversionException when conversion from String to [R] fails
  */
+@ExperimentalServerApi
 @Suppress("KotlinRedundantDiagnosticSuppress")
 inline fun <reified R : Any> Headers.getOrFail(name: String): R {
     val values = getAll(name) ?: throw MissingRequestParameterException(name)
@@ -51,6 +54,7 @@ inline fun <reified R : Any> Headers.getOrFail(name: String): R {
  * Retrieves the headers value associated with this [name] converting to type [R] using [DefaultConversionService]
  * or `null` if the value cannot be converted or there is no value associated with [name].
  */
+@ExperimentalServerApi
 @Suppress("unused")
 inline fun <reified R : Any> Headers.getOrNull(name: String): R? =
     try {
@@ -63,6 +67,7 @@ inline fun <reified R : Any> Headers.getOrNull(name: String): R? =
  * Converts this [PartData] into a [ByteArray] if possible. If this is a [PartData.FormItem] instance, then an
  * exception will be thrown as that cannot be converted into an [ByteArray].
  */
+@ExperimentalServerApi
 @Suppress("unused")
 suspend fun PartData.asByteArray(): ByteArray =
     when (this) {
@@ -75,6 +80,7 @@ suspend fun PartData.asByteArray(): ByteArray =
 /**
  * Responds with the provided [error] applying the [ApiError.status] code if it is not `null`.
  */
+@ExperimentalServerApi
 suspend fun ApplicationCall.respondError(error: ApiError) {
     error.status?.let { statusCode ->
         this.respond(status = HttpStatusCode.fromValue(statusCode), message = error)

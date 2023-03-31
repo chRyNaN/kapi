@@ -1,6 +1,9 @@
+@file:OptIn(ExperimentalServerApi::class)
+
 package com.chrynan.kapi.server.example.api
 
 import com.chrynan.kapi.server.core.annotation.Auth
+import com.chrynan.kapi.server.core.annotation.ExperimentalServerApi
 import com.chrynan.kapi.server.core.annotation.SecurityRequirement
 
 internal object ApiSecurity {

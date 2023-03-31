@@ -27,6 +27,7 @@ package com.chrynan.kapi.server.core.annotation
  */
 @MustBeDocumented
 @Target(AnnotationTarget.VALUE_PARAMETER)
+@ExperimentalServerApi
 annotation class Body
 
 /**
@@ -47,6 +48,7 @@ annotation class Body
  */
 @MustBeDocumented
 @Target(AnnotationTarget.VALUE_PARAMETER)
+@ExperimentalServerApi
 annotation class Field(val value: String = "")
 
 /**
@@ -61,6 +63,7 @@ annotation class Field(val value: String = "")
  */
 @MustBeDocumented
 @Target(AnnotationTarget.VALUE_PARAMETER)
+@ExperimentalServerApi
 annotation class Header(val value: String = "")
 
 /**
@@ -88,6 +91,7 @@ annotation class Header(val value: String = "")
  */
 @MustBeDocumented
 @Target(AnnotationTarget.VALUE_PARAMETER)
+@ExperimentalServerApi
 annotation class Part(
     val value: String = "",
     val encoding: String = ""
@@ -104,6 +108,7 @@ annotation class Part(
  */
 @MustBeDocumented
 @Target(AnnotationTarget.VALUE_PARAMETER)
+@ExperimentalServerApi
 annotation class Path(val value: String = "")
 
 /**
@@ -118,6 +123,7 @@ annotation class Path(val value: String = "")
  */
 @MustBeDocumented
 @Target(AnnotationTarget.VALUE_PARAMETER)
+@ExperimentalServerApi
 annotation class Query(val value: String = "")
 
 /**
@@ -131,4 +137,5 @@ annotation class Query(val value: String = "")
  */
 @MustBeDocumented
 @Target(AnnotationTarget.VALUE_PARAMETER)
+@ExperimentalServerApi
 annotation class Principal(val value: String = "")

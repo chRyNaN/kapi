@@ -25,6 +25,7 @@ package com.chrynan.kapi.server.core.annotation
 @MustBeDocumented
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
+@ExperimentalServerApi
 annotation class DELETE(val path: String)
 
 /**
@@ -52,6 +53,7 @@ annotation class DELETE(val path: String)
 @MustBeDocumented
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
+@ExperimentalServerApi
 annotation class GET(val path: String)
 
 /**
@@ -79,6 +81,7 @@ annotation class GET(val path: String)
 @MustBeDocumented
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
+@ExperimentalServerApi
 annotation class HEAD(val path: String)
 
 /**
@@ -106,6 +109,7 @@ annotation class HEAD(val path: String)
 @MustBeDocumented
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
+@ExperimentalServerApi
 annotation class OPTIONS(val path: String)
 
 /**
@@ -133,6 +137,7 @@ annotation class OPTIONS(val path: String)
 @MustBeDocumented
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
+@ExperimentalServerApi
 annotation class PATCH(val path: String)
 
 /**
@@ -160,6 +165,7 @@ annotation class PATCH(val path: String)
 @MustBeDocumented
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
+@ExperimentalServerApi
 annotation class POST(val path: String)
 
 /**
@@ -187,4 +193,5 @@ annotation class POST(val path: String)
 @MustBeDocumented
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
+@ExperimentalServerApi
 annotation class PUT(val path: String)

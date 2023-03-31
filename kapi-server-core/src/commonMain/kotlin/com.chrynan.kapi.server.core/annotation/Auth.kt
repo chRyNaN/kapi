@@ -47,6 +47,7 @@ import com.chrynan.kapi.server.core.annotation.Auth.RequirementType
  */
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS, AnnotationTarget.ANNOTATION_CLASS)
 @MustBeDocumented
+@ExperimentalServerApi
 annotation class Auth(
     vararg val requirements: SecurityRequirement,
     val requirementType: RequirementType = RequirementType.ALL
@@ -58,6 +59,7 @@ annotation class Auth(
      * access the component. A value of [RequirementType.ANY] is equivalent to a logical OR, meaning that only one of
      * the requirements must be met in order to access the component.
      */
+    @ExperimentalServerApi
     enum class RequirementType {
 
         ANY,
@@ -82,6 +84,7 @@ annotation class Auth(
  */
 @Target()
 @MustBeDocumented
+@ExperimentalServerApi
 annotation class SecurityRequirement(
     val name: String,
     val scopes: Array<String> = [],
@@ -114,6 +117,7 @@ annotation class SecurityRequirement(
  */
 @Target()
 @MustBeDocumented
+@ExperimentalServerApi
 annotation class SecurityScheme(
     val name: String,
     val type: Type,
@@ -130,6 +134,7 @@ annotation class SecurityScheme(
      * The supported [SecurityScheme] types. These typically correspond to the supported security schemes in the Open
      * API specification.
      */
+    @ExperimentalServerApi
     enum class Type {
 
         API_KEY,
@@ -140,6 +145,7 @@ annotation class SecurityScheme(
     }
 }
 
+@ExperimentalServerApi
 val SecurityScheme.Type.openApiValue: String
     get() = when (this) {
         SecurityScheme.Type.API_KEY -> "apiKey"
@@ -149,6 +155,7 @@ val SecurityScheme.Type.openApiValue: String
         SecurityScheme.Type.OPEN_ID_CONNECT -> "openIdConnect"
     }
 
+@ExperimentalServerApi
 enum class KeyLocation {
 
     HEADER,
@@ -157,6 +164,7 @@ enum class KeyLocation {
     UNDEFINED
 }
 
+@ExperimentalServerApi
 val KeyLocation.openApiValue: String?
     get() = when (this) {
         KeyLocation.HEADER -> "header"
@@ -167,6 +175,7 @@ val KeyLocation.openApiValue: String?
 
 @Target()
 @MustBeDocumented
+@ExperimentalServerApi
 annotation class OAuthFlow(
     val type: Type,
     val authorizationUrl: String,
@@ -186,6 +195,7 @@ annotation class OAuthFlow(
 
 @Target()
 @MustBeDocumented
+@ExperimentalServerApi
 annotation class OAuthScope(
     val name: String,
     val description: String = ""

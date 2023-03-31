@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalServerApi::class)
+
 package com.chrynan.kapi.server.example.api
 
 import com.chrynan.kapi.server.core.annotation.*

@@ -4,6 +4,7 @@ package com.chrynan.kapi.server.core.auth
 
 import com.auth0.jwt.interfaces.Payload
 import com.chrynan.kapi.core.ApiError
+import com.chrynan.kapi.server.core.annotation.ExperimentalServerApi
 import com.chrynan.kapi.server.core.util.respondError
 import com.chrynan.kapi.server.core.util.tryOrNull
 import io.ktor.http.*
@@ -32,6 +33,7 @@ import kotlinx.datetime.Clock
  * }
  * ```
  */
+@ExperimentalServerApi
 fun Route.requireScopes(
     scopes: Set<Scope>,
     requirementPolicy: ScopeRequirementPolicy = ScopeRequirementPolicy.ALL,
@@ -74,6 +76,7 @@ fun Route.requireScopes(
  * }
  * ```
  */
+@ExperimentalServerApi
 fun Route.requireScopes(
     vararg scopes: Scope,
     requirementPolicy: ScopeRequirementPolicy = ScopeRequirementPolicy.ALL,
@@ -105,6 +108,7 @@ fun Route.requireScopes(
  * }
  * ```
  */
+@ExperimentalServerApi
 fun Route.requireOauthScopes(
     provider: String?,
     scopes: Set<Scope>,
@@ -136,6 +140,7 @@ fun Route.requireOauthScopes(
  * }
  * ```
  */
+@ExperimentalServerApi
 fun Route.requireOauthScopes(
     provider: String?,
     vararg scopes: Scope,
@@ -167,6 +172,7 @@ fun Route.requireOauthScopes(
  * }
  * ```
  */
+@ExperimentalServerApi
 @JvmName("requireStringOauthScopes")
 fun Route.requireOauthScopes(
     provider: String?,
@@ -199,6 +205,7 @@ fun Route.requireOauthScopes(
  * }
  * ```
  */
+@ExperimentalServerApi
 @JvmName("requireStringOauthScopes")
 fun Route.requireOauthScopes(
     provider: String?,
@@ -214,6 +221,7 @@ fun Route.requireOauthScopes(
     build = build
 )
 
+@ExperimentalServerApi
 internal val ScopeBasedAuthorizationPlugin =
     createRouteScopedPlugin("ScopeBasedAuthorizationPlugin", ::ScopeBasedAuthorizationConfiguration) {
         on(AuthenticationChecked) { call ->
@@ -237,6 +245,7 @@ internal val ScopeBasedAuthorizationPlugin =
         }
     }
 
+@ExperimentalServerApi
 private val defaultInvalidHandler: suspend ApplicationCall.() -> Unit = {
     this.respondError(
         error = ApiError(
@@ -248,6 +257,7 @@ private val defaultInvalidHandler: suspend ApplicationCall.() -> Unit = {
     )
 }
 
+@ExperimentalServerApi
 private fun onRetrieveOauth2TokenScopes(provider: String?): suspend ApplicationCall.() -> Set<Scope> = {
     this.principal<JWTPrincipal>(provider)
         ?.payload
@@ -262,6 +272,7 @@ private fun onRetrieveOauth2TokenScopes(provider: String?): suspend ApplicationC
  * That specification states that the scopes should be a [String] value of space-delimited scope values under the
  * "scope" claim in the JWT payload.
  */
+@ExperimentalServerApi
 private fun Payload.oauth2TokenScopeValuesOrNull(): Set<String>? =
     tryOrNull {
         this.getClaim("scope")?.asString()?.trim()?.split(' ')?.toSet()
@@ -272,6 +283,7 @@ private fun Payload.oauth2TokenScopeValuesOrNull(): Set<String>? =
  * authentication already succeeded by using the [requireScopes] function. It is common to have enum classes extend
  * this [Scope] interface to encapsulate all the possible scope parameter values.
  */
+@ExperimentalServerApi
 interface Scope {
 
     val value: String
@@ -283,12 +295,14 @@ interface Scope {
  * succeed and access to be granted to the route. The [ALL] value indicates that all the provided scopes are required
  * for the authorization to succeed and access to be granted to the route.
  */
+@ExperimentalServerApi
 enum class ScopeRequirementPolicy {
 
     ANY,
     ALL
 }
 
+@ExperimentalServerApi
 internal class ScopeBasedAuthorizationConfiguration {
 
     var scopes: Set<Scope> = emptySet()
@@ -304,6 +318,7 @@ internal class ScopeBasedAuthorizationConfiguration {
  * [RouteSelectorEvaluation.qualityTransparent] value. Useful for helper DSL methods that may wrap routes but should
  * not change priority of routing.
  */
+@ExperimentalServerApi
 private class TransparentRouteSelector : RouteSelector() {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
@@ -316,6 +331,7 @@ private class TransparentRouteSelector : RouteSelector() {
  * two "read" scopes belong to different authentication providers, they may be considered different, but this class
  * will consider them the same if their [value]s are equal.
  */
+@ExperimentalServerApi
 private class StringValueScope(override val value: String) : Scope {
 
     override fun hashCode(): Int = value.hashCode()

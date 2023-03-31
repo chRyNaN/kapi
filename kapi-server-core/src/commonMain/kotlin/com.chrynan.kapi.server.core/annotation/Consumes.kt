@@ -2,8 +2,6 @@
 
 package com.chrynan.kapi.server.core.annotation
 
-import io.ktor.http.*
-
 /**
  * Defines the content types that an API function can accept for the request body. This annotation can be applied
  * directly to an API function to indicate which content types that function accepts for the request body, like in the
@@ -46,6 +44,7 @@ import io.ktor.http.*
  */
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.ANNOTATION_CLASS)
 @MustBeDocumented
+@ExperimentalServerApi
 annotation class Consumes(val contentType: String)
 
 /**
@@ -56,6 +55,7 @@ annotation class Consumes(val contentType: String)
 @Target(AnnotationTarget.FUNCTION)
 @MustBeDocumented
 @Consumes(contentType = "")
+@ExperimentalServerApi
 annotation class ContentNegotiation
 
 /**
@@ -65,6 +65,7 @@ annotation class ContentNegotiation
 @Target(AnnotationTarget.FUNCTION)
 @MustBeDocumented
 @Consumes(contentType = "application/x-www-form-urlencoded")
+@ExperimentalServerApi
 annotation class ApplicationFormUrlEncoded
 
 /**
@@ -74,6 +75,7 @@ annotation class ApplicationFormUrlEncoded
 @Target(AnnotationTarget.FUNCTION)
 @MustBeDocumented
 @Consumes(contentType = "multipart/form-data")
+@ExperimentalServerApi
 annotation class MultipartFormData
 
 /**
@@ -83,6 +85,7 @@ annotation class MultipartFormData
 @Target(AnnotationTarget.FUNCTION)
 @MustBeDocumented
 @Consumes(contentType = "application/json")
+@ExperimentalServerApi
 annotation class ApplicationJson
 
 /**
@@ -91,6 +94,7 @@ annotation class ApplicationJson
  * essentially equivalent to `null` and will be converted to it.
  */
 @Suppress("UnusedReceiverParameter")
+@ExperimentalServerApi
 val ContentNegotiation.contentType: String?
     get() = null
 
@@ -98,6 +102,7 @@ val ContentNegotiation.contentType: String?
  * Represents the [Consumes.contentType] value for the [ApplicationFormUrlEncoded] annotation.
  */
 @Suppress("UnusedReceiverParameter")
+@ExperimentalServerApi
 val ApplicationFormUrlEncoded.contentType: String
     get() = "application/x-www-form-urlencoded"
 
@@ -105,6 +110,7 @@ val ApplicationFormUrlEncoded.contentType: String
  * Represents the [Consumes.contentType] value for the [MultipartFormData] annotation.
  */
 @Suppress("UnusedReceiverParameter")
+@ExperimentalServerApi
 val MultipartFormData.contentType: String
     get() = "multipart/form-data"
 
@@ -112,5 +118,6 @@ val MultipartFormData.contentType: String
  * Represents the [Consumes.contentType] value for the [ApplicationJson] annotation.
  */
 @Suppress("UnusedReceiverParameter")
+@ExperimentalServerApi
 val ApplicationJson.contentType: String
     get() = "application/json"

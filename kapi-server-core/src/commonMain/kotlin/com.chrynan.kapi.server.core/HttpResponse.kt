@@ -3,6 +3,7 @@
 package com.chrynan.kapi.server.core
 
 import com.chrynan.kapi.core.Response
+import com.chrynan.kapi.server.core.annotation.ExperimentalServerApi
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
@@ -12,6 +13,7 @@ import io.ktor.util.reflect.*
 /**
  * A wrapper around the data associated with an HTTP response.
  */
+@ExperimentalServerApi
 sealed class HttpResponseData<T> private constructor() {
 
     abstract val statusCode: Int
@@ -39,6 +41,7 @@ sealed class HttpResponseData<T> private constructor() {
 /**
  * A [Response] instance that wraps a [HttpResponseData] model.
  */
+@ExperimentalServerApi
 interface HttpResponse<T> : Response<T> {
 
     override fun raw(): HttpResponseData<T>
@@ -48,12 +51,14 @@ interface HttpResponse<T> : Response<T> {
  * Retrieves the raw [HttpResponseData] from this [Response] model if this [Response] model is a [HttpResponse]
  * instance.
  */
+@ExperimentalServerApi
 fun <T> Response<T>.rawHttpResponseData(): HttpResponseData<T>? =
     (this as? HttpResponse<T>)?.raw()
 
 /**
  * Creates an instance of [HttpResponse] for a success from the provided values.
  */
+@ExperimentalServerApi
 inline fun <reified T> Response.Companion.success(
     statusCode: Int,
     message: String? = null,
@@ -71,6 +76,7 @@ inline fun <reified T> Response.Companion.success(
 /**
  * Creates an instance of [HttpResponse] for an error from the provided values.
  */
+@ExperimentalServerApi
 inline fun <reified T> Response.Companion.error(
     statusCode: Int,
     message: String? = null,
@@ -88,6 +94,7 @@ inline fun <reified T> Response.Companion.error(
 /**
  * Implementation of the [HttpResponse] interface.
  */
+@ExperimentalServerApi
 @PublishedApi
 internal class HttpResponseImpl<T> @PublishedApi internal constructor(
     private val headers: Headers = Headers.Empty,

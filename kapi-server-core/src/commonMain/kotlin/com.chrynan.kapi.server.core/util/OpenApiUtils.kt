@@ -3,6 +3,7 @@
 package com.chrynan.kapi.server.core.util
 
 import com.chrynan.kapi.openapi.OpenApi
+import com.chrynan.kapi.server.core.annotation.ExperimentalServerApi
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.html.*
@@ -26,6 +27,7 @@ import kotlinx.serialization.json.Json
  * @param [registerOpenApiDocs] Whether the Open API documentation should be rendered and hosted for this [openApi].
  * @param [registerSwaggerUI] Whether the Swagger UI HTML should be rendered and hosted for this [openApi].
  */
+@ExperimentalServerApi
 expect fun Route.registerOpenApi(
     path: String,
     name: String,

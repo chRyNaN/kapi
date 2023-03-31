@@ -6,6 +6,7 @@ import com.chrynan.kapi.core.HttpMethod
 import com.chrynan.kapi.server.core.annotation.*
 import kotlin.reflect.KClass
 
+@ExperimentalServerApi
 val HttpMethod.annotationClass: KClass<*>?
     get() = when (this) {
         HttpMethod.GET -> GET::class
@@ -18,5 +19,6 @@ val HttpMethod.annotationClass: KClass<*>?
         else -> null
     }
 
+@ExperimentalServerApi
 fun <A : Annotation> HttpMethod.Companion.getByAnnotationClass(kClass: KClass<A>): HttpMethod? =
     HttpMethod.values().firstOrNull { it.annotationClass == kClass }

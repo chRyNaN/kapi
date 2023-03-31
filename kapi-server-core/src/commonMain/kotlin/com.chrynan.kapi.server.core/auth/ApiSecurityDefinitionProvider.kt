@@ -2,6 +2,7 @@ package com.chrynan.kapi.server.core.auth
 
 import com.chrynan.kapi.openapi.SecurityScheme
 import com.chrynan.kapi.server.core.annotation.Api
+import com.chrynan.kapi.server.core.annotation.ExperimentalServerApi
 
 /**
  * An interface for an API containing all its supported Open API [SecurityDefinition]s. Implementations of this class
@@ -9,6 +10,7 @@ import com.chrynan.kapi.server.core.annotation.Api
  * [Api] annotation, and is made available via extensions on the [KapiSecurity] component, which itself can be accessed
  * via the [security] property.
  */
+@ExperimentalServerApi
 interface ApiSecurityDefinitionProvider {
 
     /**

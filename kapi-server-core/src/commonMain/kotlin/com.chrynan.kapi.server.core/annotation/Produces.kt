@@ -16,8 +16,9 @@ import com.chrynan.kapi.core.Response
  * thrown from the API function, it is caught and an [ApiError] will be emitted as the HTTP response, using the values
  * provided in the [Error] instance.
  */
-@MustBeDocumented
 @Target(AnnotationTarget.FUNCTION)
+@MustBeDocumented
+@ExperimentalServerApi
 annotation class Produces(
     val success: Success = Success(),
     val errors: Array<Error<*>> = []
@@ -42,6 +43,7 @@ annotation class Produces(
  */
 @Target()
 @MustBeDocumented
+@ExperimentalServerApi
 annotation class Success(
     val statusCode: Int = 200,
     val contentType: String = "",
@@ -73,6 +75,7 @@ annotation class Success(
  */
 @Target()
 @MustBeDocumented
+@ExperimentalServerApi
 annotation class Error<T : Throwable>(
     val statusCode: Int,
     val exception: KClass<T>,
@@ -95,6 +98,7 @@ annotation class Error<T : Throwable>(
  */
 @Target()
 @MustBeDocumented
+@ExperimentalServerApi
 annotation class ResponseHeader(
     val name: String,
     val value: String,
