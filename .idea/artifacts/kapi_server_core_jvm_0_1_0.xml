@@ -2,7 +2,7 @@
   <artifact type="jar" name="kapi-server-core-jvm-0.1.0">
     <output-path>$PROJECT_DIR$/kapi-server-core/build/libs</output-path>
     <root id="archive" name="kapi-server-core-jvm-0.1.0.jar">
-      <element id="module-output" name="kapi.kapi-server-core.jvmMain" />
+      <element id="module-output" name="com.chrynan.kapi.kapi.kapi-server-core.jvmMain" />
     </root>
   </artifact>
 </component>
