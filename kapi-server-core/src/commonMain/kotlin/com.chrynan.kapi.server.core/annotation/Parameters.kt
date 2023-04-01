@@ -1,5 +1,7 @@
 package com.chrynan.kapi.server.core.annotation
 
+import com.chrynan.kapi.server.core.util.*
+
 /**
  * The parameter of an API function annotated with [Body] represents the request body of the HTTP endpoint. A [Body]
  * parameter can be of any type, but the deserialization approach must first be established with the server framework,
@@ -31,14 +33,12 @@ package com.chrynan.kapi.server.core.annotation
 annotation class Body
 
 /**
- * The parameter of an API function annotated with [Field] represents a form url-encoded field extracted from the
- * request body of the HTTP endpoint. A [Field] parameter can be one of the following types:
- *
- * - Kotlin primitive
- * - List, Collection, or Array of type String
- *
- * **Note:** To use this annotation on a parameter in an API function, the API function has to be annotated with
- * [ApplicationFormUrlEncoded].
+ * The parameter of an API function annotated with [Field] represents a field extracted from the request body of the
+ * HTTP endpoint. A [Field] is extracted from the HTTP request body with the use of an [HttpRequestParameterExtractor].
+ * The Kotlin types of a [Field] annotated parameter and the supported request body content types depend on the
+ * [HttpRequestParameterExtractor] implementation used. By default, the [DefaultHttpRequestParameterExtractor] is used
+ * which supports the `application/x-www-form-urlencoded`, `multipart/form-data`, and `application/json` request body
+ * content types.
  *
  * **Note:** That this annotation cannot be provided on a parameter of an API function if a [Body] or [Part]
  * annotation is present on a parameter of that same API function.

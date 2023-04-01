@@ -27,49 +27,12 @@ internal class KtorRoutingApiFunctionConverter(
         function: ApiFunction,
         basePath: String? = null,
         parentAuths: List<ApiAuth>
-    ): FunSpec {
-        var declareMultipartData = false
-        var declareMultipartDataMap = false
-        var declareParameters = false
-
-        function.parameters.forEach { parameter ->
-            when {
-                parameter is BodyParameter && parameter.declaration.type.isMultiPartData -> {
-                    declareMultipartData = true
-                }
-
-                parameter is PartParameter -> {
-                    declareMultipartData = true
-                    declareMultipartDataMap = true
-                }
-
-                (parameter is BodyParameter && parameter.declaration.type.isParameters) || (parameter is FieldParameter) -> {
-                    declareParameters = true
-                }
-
-                (parameter is SupportedTypeParameter && parameter.declaration.type.isParameters) -> {
-                    declareParameters = true
-                }
-
-                (parameter is SupportedTypeParameter && parameter.declaration.type.isMultiPartData) -> {
-                    declareMultipartData = true
-                }
-            }
-        }
-
-        return function.create {
-            baseRoute(basePath) {
-                authentications(parentAuths + function.auths) {
-                    httpMethod(function = function) {
-                        catchAnyErrors(function) {
-                            addDefaultProperties(
-                                declareMultipartData = declareMultipartData,
-                                declareMultipartDataMap = declareMultipartDataMap,
-                                declareParameters = declareParameters
-                            )
-
-                            invokeApiFunction(function = function)
-                        }
+    ): FunSpec = function.create {
+        baseRoute(basePath) {
+            authentications(parentAuths + function.auths) {
+                httpMethod(function = function) {
+                    catchAnyErrors(function) {
+                        invokeApiFunction(function = function)
                     }
                 }
             }
@@ -180,42 +143,6 @@ internal class KtorRoutingApiFunctionConverter(
         }
 
         return builder
-    }
-
-    private fun CodeBlock.Builder.addDefaultProperties(
-        declareMultipartData: Boolean,
-        declareMultipartDataMap: Boolean,
-        declareParameters: Boolean
-    ): CodeBlock.Builder {
-        if (declareMultipartData) {
-            this.addStatement(
-                "val $propertyNameMultipartData = $propertyNamePipeline.%M.%M()",
-                applicationCallMemberName,
-                MemberName(packageName = "io.ktor.server.request", simpleName = "receiveMultipart", isExtension = true)
-            )
-        }
-
-        if (declareMultipartDataMap) {
-            this.addStatement(
-                "val $propertyNameMultipartDataMap = $propertyNameMultipartData.%M().%M { it.name }",
-                MemberName(packageName = "io.ktor.http.content", simpleName = "readAllParts", isExtension = true),
-                MemberName(packageName = "kotlin.collections", simpleName = "associateBy", isExtension = true)
-            )
-        }
-
-        if (declareParameters) {
-            this.addStatement(
-                "val $propertyNameParameters = $propertyNamePipeline.%M.%M()",
-                applicationCallMemberName,
-                MemberName(packageName = "io.ktor.server.request", simpleName = "receiveParameters", isExtension = true)
-            )
-        }
-
-        if (declareParameters || declareMultipartData || declareMultipartDataMap) {
-            this.add("\n")
-        }
-
-        return this
     }
 
     private fun CodeBlock.Builder.invokeApiFunction(function: ApiFunction): CodeBlock.Builder {
@@ -523,9 +450,6 @@ internal class KtorRoutingApiFunctionConverter(
 
     companion object {
 
-        private const val propertyNameMultipartData = "multipartData"
-        private const val propertyNameMultipartDataMap = "multipartDataMap"
-        private const val propertyNameParameters = "parameters"
         private const val propertyNameRoute = "route"
         private const val propertyNamePipeline = "pipeline"
         private const val propertyNameResponseBody = "responseBody"

@@ -23,6 +23,9 @@ import java.io.InputStream
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 
+/**
+ * A component that is responsible for extracting parameter data from an HTTP request for an API function.
+ */
 @ExperimentalServerApi
 interface HttpRequestParameterExtractor {
 

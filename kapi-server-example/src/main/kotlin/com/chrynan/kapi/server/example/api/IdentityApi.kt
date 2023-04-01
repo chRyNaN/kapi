@@ -5,9 +5,9 @@ package com.chrynan.kapi.server.example.api
 import com.chrynan.kapi.server.core.annotation.*
 import com.chrynan.kapi.server.core.annotation.GET
 import com.chrynan.kapi.server.core.annotation.Path
-import com.chrynan.kapi.server.example.model.GetIdentityPageBody
 import com.chrynan.kapi.server.example.model.Identity
 import com.chrynan.kapi.server.example.model.Page
+import com.chrynan.kapi.server.example.model.PageDirection
 import io.ktor.server.plugins.*
 
 @Api(
@@ -56,6 +56,7 @@ interface IdentityApi {
     @ApplicationJson
     @RequiresAdminScope
     suspend fun getIdentityPage(
-        @Body body: GetIdentityPageBody
+        @Field direction: PageDirection,
+        @Field id: String
     ): Page<Identity>
 }

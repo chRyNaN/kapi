@@ -54,7 +54,7 @@ internal class KtorValidatorApiProcessor(
             }
 
             when (parameter) {
-                is PathParameter, is QueryParameter, is FieldParameter, is HeaderParameter -> {
+                is PathParameter, is QueryParameter, is HeaderParameter -> {
                     if (!parameterType.isBasicSupportedParameterType) {
                         logger.throwUnsupportedParameterTypeError(
                             function = this,
@@ -87,6 +87,7 @@ internal class KtorValidatorApiProcessor(
                 is PrincipalParameter -> {}
                 is BodyParameter -> {}
                 is DefaultValueParameter -> {}
+                is FieldParameter -> {}
             }
         }
 

@@ -695,14 +695,6 @@ private fun validateApiFunction(function: ApiFunction, symbol: KSNode?) {
             message = "API function Body parameter type must be `io.ktor.http.content.MultiPartData` if the content type is `multipart/form-data`. Function: $functionName",
             symbol = symbol
         )
-    } else if (
-        function.fieldParameters.isNotEmpty() &&
-        !ContentType.Application.FormUrlEncoded.matches(requestContentType)
-    ) {
-        error(
-            message = "API function containing a Field parameter must be setup to consume the content type of `application/x-www-form-urlencoded`. Function: $functionName",
-            symbol = symbol
-        )
     } else if (function.partParameters.isNotEmpty() && !ContentType.MultiPart.FormData.matches(requestContentType)) {
         error(
             message = "API function containing a Part parameter must be setup to consume the content type of `multipart/form-data`. Function: $functionName",
