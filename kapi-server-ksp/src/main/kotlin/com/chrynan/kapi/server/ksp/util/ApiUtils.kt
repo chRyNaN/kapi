@@ -1,6 +1,9 @@
+@file:OptIn(ExperimentalServerApi::class)
+
 package com.chrynan.kapi.server.ksp.util
 
 import com.chrynan.kapi.server.core.annotation.Contact
+import com.chrynan.kapi.server.core.annotation.ExperimentalServerApi
 import com.chrynan.kapi.server.core.annotation.Info
 import com.chrynan.kapi.server.core.annotation.License
 import com.chrynan.kapi.server.processor.core.model.*
