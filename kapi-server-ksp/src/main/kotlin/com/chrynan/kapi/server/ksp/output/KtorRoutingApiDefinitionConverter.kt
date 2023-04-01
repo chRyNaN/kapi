@@ -1,11 +1,15 @@
 package com.chrynan.kapi.server.ksp.output
 
+import com.chrynan.kapi.server.core.annotation.ExperimentalServerApi
+import com.chrynan.kapi.server.core.util.HttpRequestParameterExtractor
 import com.chrynan.kapi.server.ksp.util.apiName
 import com.chrynan.kapi.server.processor.core.model.ApiDefinition
 import com.squareup.kotlinpoet.*
 
+@OptIn(ExperimentalServerApi::class)
 internal class KtorRoutingApiDefinitionConverter(
-    private val classPropertyNameApi: String,
+    private val propertyNameApi: String,
+    private val propertyNameParameterExtractorFactory: String,
     private val functionConverter: KtorRoutingApiFunctionConverter
 ) {
 
@@ -19,16 +23,40 @@ internal class KtorRoutingApiDefinitionConverter(
         val registerApiFunction = FunSpec.builder(name = "register${definition.apiName}")
             .addModifiers(KModifier.PUBLIC)
             .receiver(ClassName.bestGuess("io.ktor.server.routing.Routing"))
-            .addParameter(name = classPropertyNameApi, type = apiTypeName)
+            .addParameter(name = propertyNameApi, type = apiTypeName)
+            .addParameter(
+                ParameterSpec.builder(
+                    name = propertyNameParameterExtractorFactory,
+                    type = HttpRequestParameterExtractor.Factory::class.asTypeName()
+                ).defaultValue(
+                    "%M()",
+                    MemberName(
+                        packageName = "com.chrynan.kapi.server.core.util",
+                        simpleName = "defaultHttpRequestParameterExtractorFactory",
+                        isExtension = false
+                    )
+                ).build()
+            )
             .addCode(
                 CodeBlock.builder()
-                    .addStatement("val binding = %N($classPropertyNameApi = $classPropertyNameApi)", bindingClass)
+                    .addStatement(
+                        "val binding = %N($propertyNameApi = $propertyNameApi, $propertyNameParameterExtractorFactory = $propertyNameParameterExtractorFactory)",
+                        bindingClass
+                    )
                     .addStatement("binding.$functionNameRegisterAllEndpointsForApi($parameterNameRouting = this)")
                     .build()
             )
             .build()
 
         return FileSpec.builder(packageName = definition.type.name.packageName!!, fileName = bindingClassName)
+            .addAnnotation(
+                AnnotationSpec.builder(ClassName.bestGuess("kotlin.OptIn"))
+                    .addMember(
+                        "%T::class",
+                        ClassName.bestGuess("com.chrynan.kapi.server.core.annotation.ExperimentalServerApi")
+                    )
+                    .build()
+            )
             .addType(bindingClass)
             .addFunction(registerApiFunction)
             .build()
@@ -60,14 +88,26 @@ internal class KtorRoutingApiDefinitionConverter(
         return TypeSpec.classBuilder(name = bindingClassName)
             .addModifiers(KModifier.PRIVATE)
             .addProperty(
-                PropertySpec.builder(name = classPropertyNameApi, type = apiTypeName)
-                    .initializer(classPropertyNameApi)
+                PropertySpec.builder(name = propertyNameApi, type = apiTypeName)
+                    .initializer(propertyNameApi)
+                    .addModifiers(KModifier.PRIVATE)
+                    .build()
+            )
+            .addProperty(
+                PropertySpec.builder(
+                    name = propertyNameParameterExtractorFactory,
+                    type = HttpRequestParameterExtractor.Factory::class.asTypeName()
+                ).initializer(propertyNameParameterExtractorFactory)
                     .addModifiers(KModifier.PRIVATE)
                     .build()
             )
             .primaryConstructor(
                 FunSpec.constructorBuilder()
-                    .addParameter(name = classPropertyNameApi, type = apiTypeName)
+                    .addParameter(name = propertyNameApi, type = apiTypeName)
+                    .addParameter(
+                        name = propertyNameParameterExtractorFactory,
+                        type = HttpRequestParameterExtractor.Factory::class.asTypeName()
+                    )
                     .build()
             )
             .addFunctions(bindingFunctions)

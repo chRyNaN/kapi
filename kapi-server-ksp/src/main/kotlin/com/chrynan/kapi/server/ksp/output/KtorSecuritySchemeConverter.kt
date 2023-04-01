@@ -1,8 +1,11 @@
+@file:OptIn(ExperimentalServerApi::class)
+
 package com.chrynan.kapi.server.ksp.output
 
 import com.chrynan.kapi.openapi.OAuthFlow
 import com.chrynan.kapi.openapi.OAuthFlows
 import com.chrynan.kapi.openapi.SecurityScheme
+import com.chrynan.kapi.server.core.annotation.ExperimentalServerApi
 import com.chrynan.kapi.server.core.auth.ApiSecurityDefinitionProvider
 import com.chrynan.kapi.server.core.auth.KapiSecurity
 import com.chrynan.kapi.server.core.auth.SecurityDefinition
@@ -21,6 +24,14 @@ internal class KtorSecuritySchemeConverter {
             packageName = definition.type.name.packageName!!,
             fileName = providerTypeSpec.name ?: definition.apiName
         )
+            .addAnnotation(
+                AnnotationSpec.builder(ClassName.bestGuess("kotlin.OptIn"))
+                    .addMember(
+                        "%T::class",
+                        ClassName.bestGuess("com.chrynan.kapi.server.core.annotation.ExperimentalServerApi")
+                    )
+                    .build()
+            )
             .addType(providerTypeSpec)
             .addProperty(definition.toKapiSecurityExtensionPropertySpec())
             .build()

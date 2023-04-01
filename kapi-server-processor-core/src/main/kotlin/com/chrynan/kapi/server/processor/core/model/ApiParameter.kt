@@ -6,6 +6,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import com.chrynan.kapi.server.core.annotation.*
+import com.chrynan.kapi.server.core.util.ParameterAnnotationType
 
 /**
  * Represents a parameter to an API function (a function of a type annotated with the `@Api` annotation). This model
@@ -175,3 +176,17 @@ data class SupportedTypeParameter(
     @Transient
     override val value: String? = null
 }
+
+@ExperimentalServerApi
+val ApiParameter.annotationType: ParameterAnnotationType?
+    get() = when (this) {
+        is BodyParameter -> ParameterAnnotationType.BODY
+        is PathParameter -> ParameterAnnotationType.PATH
+        is PartParameter -> ParameterAnnotationType.PART
+        is FieldParameter -> ParameterAnnotationType.FIELD
+        is HeaderParameter -> ParameterAnnotationType.HEADER
+        is QueryParameter -> ParameterAnnotationType.QUERY
+        is PrincipalParameter -> ParameterAnnotationType.PRINCIPAL
+        is SupportedTypeParameter -> ParameterAnnotationType.SUPPORTED
+        else -> null
+    }

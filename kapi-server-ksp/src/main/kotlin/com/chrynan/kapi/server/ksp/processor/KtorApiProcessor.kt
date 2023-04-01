@@ -17,10 +17,15 @@ internal class KtorApiProcessor(
 ) : ApiProcessor {
 
     private val routingFunctionConverter =
-        KtorRoutingApiFunctionConverter(classPropertyNameApi = classPropertyNameApi, logger = logger)
+        KtorRoutingApiFunctionConverter(
+            propertyNameApi = propertyNameApi,
+            propertyNameParameterExtractorFactory = propertyNameParameterExtractorFactory,
+            logger = logger
+        )
     private val routingApiDefinitionConverter =
         KtorRoutingApiDefinitionConverter(
-            classPropertyNameApi = classPropertyNameApi,
+            propertyNameApi = propertyNameApi,
+            propertyNameParameterExtractorFactory = propertyNameParameterExtractorFactory,
             functionConverter = routingFunctionConverter
         )
     private val securitySchemeConverter = KtorSecuritySchemeConverter()
@@ -60,6 +65,7 @@ internal class KtorApiProcessor(
 
     companion object {
 
-        private const val classPropertyNameApi: String = "api"
+        private const val propertyNameApi: String = "api"
+        private const val propertyNameParameterExtractorFactory = "parameterExtractorFactory"
     }
 }

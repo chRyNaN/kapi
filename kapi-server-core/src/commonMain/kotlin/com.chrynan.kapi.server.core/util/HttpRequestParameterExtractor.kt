@@ -312,6 +312,7 @@ class DefaultHttpRequestParameterExtractor(
     ): T = when (typeInfo.type) {
         Route::class -> route as T
         ApplicationCall::class -> route as T
+        Unit::class -> Unit as T
         else -> error("Unsupported type for API function parameter `$name`. Make sure the parameter is annotated, is a supported type, or has a default value.")
     }
 

@@ -1,6 +1,11 @@
+@file:OptIn(ExperimentalServerApi::class, ExperimentalServerApi::class)
+
 package com.chrynan.kapi.server.ksp.output
 
 import com.chrynan.kapi.core.HttpMethod
+import com.chrynan.kapi.server.core.annotation.ExperimentalServerApi
+import com.chrynan.kapi.server.core.util.HttpRequestParameterExtractor
+import com.chrynan.kapi.server.core.util.ParameterAnnotationType
 import com.chrynan.kapi.server.ksp.util.addStatement
 import com.chrynan.kapi.server.ksp.util.controlFlow
 import com.chrynan.kapi.server.ksp.util.throwError
@@ -10,7 +15,8 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.squareup.kotlinpoet.*
 
 internal class KtorRoutingApiFunctionConverter(
-    private val classPropertyNameApi: String,
+    private val propertyNameApi: String,
+    private val propertyNameParameterExtractorFactory: String,
     private val logger: KSPLogger
 ) {
 
@@ -212,314 +218,6 @@ internal class KtorRoutingApiFunctionConverter(
         return this
     }
 
-    private fun ApiParameter.toAssignmentDeclaration(function: ApiFunction): CodeBlock.Builder {
-        val builder = CodeBlock.builder()
-
-        val type = this.declaration.type
-        val propertyName = this.declaration.name
-        val parameterName = this.value?.takeIf { it.isNotBlank() } ?: this.declaration.name
-
-        builder.add("$propertyName = ")
-
-        when (this) {
-            is PathParameter -> builder.add(
-                "$propertyNamePipeline.%M.parameters.",
-                applicationCallMemberName
-            )
-
-            is QueryParameter -> builder.add(
-                "$propertyNamePipeline.%M.request.queryParameters.",
-                applicationCallMemberName
-            )
-
-            is FieldParameter -> builder.add("${propertyNameParameters}.")
-            is HeaderParameter -> builder.add(
-                "$propertyNamePipeline.%M.request.headers.",
-                applicationCallMemberName
-            )
-
-            else -> logger.throwError(message = "Unexpected parameter type ${type.name} for API function ${function.kotlinFunction.name.full}.")
-        }
-
-        when {
-            type.isList -> builder.add(
-                "%M(name = %S)",
-                MemberName(
-                    enclosingClassName = ClassName.bestGuess("io.ktor.util.StringValues"),
-                    simpleName = "getAll",
-                    isExtension = false
-                ),
-                parameterName
-            )
-
-            type.isSet -> builder.add(
-                "%M(name = %S).%M()",
-                MemberName(
-                    enclosingClassName = ClassName.bestGuess("io.ktor.util.StringValues"),
-                    simpleName = "getAll",
-                    isExtension = false
-                ),
-                parameterName,
-                MemberName(packageName = "kotlin.collections", simpleName = "toSet", isExtension = true)
-            )
-
-            type.isCollection -> builder.add(
-                "%M(name = %S)",
-                MemberName(
-                    enclosingClassName = ClassName.bestGuess("io.ktor.util.StringValues"),
-                    simpleName = "getAll",
-                    isExtension = false
-                ),
-                parameterName
-            )
-
-            type.isArray -> builder.add(
-                "%M(name = %S).%M()",
-                MemberName(
-                    enclosingClassName = ClassName.bestGuess("io.ktor.util.StringValues"),
-                    simpleName = "getAll",
-                    isExtension = false
-                ),
-                parameterName,
-                MemberName(packageName = "kotlin.collections", simpleName = "toTypedArray", isExtension = true)
-            )
-
-            else -> builder.add(
-                "%M<%T>(name = %S)",
-                MemberName(
-                    packageName = "com.chrynan.kapi.server.core.util",
-                    simpleName = "getOrNull",
-                    isExtension = true
-                ),
-                type.typeName,
-                parameterName
-            )
-        }
-
-        if (!type.isNullable) {
-            builder.add(
-                " \n?: %M(\"%L parameter value must be present and not null.\")",
-                MemberName(packageName = "kotlin", simpleName = "error", isExtension = false),
-                parameterName
-            )
-        }
-
-        return builder
-    }
-
-    private fun PartParameter.toAssignmentDeclaration(function: ApiFunction): CodeBlock.Builder {
-        val builder = CodeBlock.builder()
-
-        val type = this.declaration.type
-        val propertyName = this.declaration.name
-        val parameterName = this.value.takeIf { it.isNotBlank() } ?: this.declaration.name
-        val partDataGetter = "$propertyNameMultipartDataMap[\"$parameterName\"]"
-        val formItemClassName = ClassName.bestGuess("io.ktor.http.content.PartData.FormItem")
-
-        builder.add("$propertyName = ")
-
-        when {
-            type.isBoolean -> builder.add(
-                "($partDataGetter as %T).value.%M()",
-                formItemClassName,
-                MemberName(packageName = "kotlin.text", simpleName = "toBoolean", isExtension = true)
-            )
-
-            type.isByte -> builder.add(
-                "($partDataGetter as %T).value.%M()",
-                formItemClassName,
-                MemberName(packageName = "kotlin.text", simpleName = "toByte", isExtension = true)
-            )
-
-            type.isShort -> builder.add(
-                "($partDataGetter as %T).value.%M()",
-                formItemClassName,
-                MemberName(packageName = "kotlin.text", simpleName = "toShort", isExtension = true)
-            )
-
-            type.isInt -> builder.add(
-                "($partDataGetter as %T).value.%M()",
-                formItemClassName,
-                MemberName(packageName = "kotlin.text", simpleName = "toInt", isExtension = true)
-            )
-
-            type.isLong -> builder.add(
-                "($partDataGetter as %T).value.%M()",
-                formItemClassName,
-                MemberName(packageName = "kotlin.text", simpleName = "toLong", isExtension = true)
-            )
-
-            type.isUByte -> builder.add(
-                "($partDataGetter as %T).value.%M()",
-                formItemClassName,
-                MemberName(packageName = "kotlin.text", simpleName = "toUByte", isExtension = true)
-            )
-
-            type.isUShort -> builder.add(
-                "($partDataGetter as %T).value.%M()",
-                formItemClassName,
-                MemberName(packageName = "kotlin.text", simpleName = "toUShort", isExtension = true)
-            )
-
-            type.isUInt -> builder.add(
-                "($partDataGetter as %T).value.%M()",
-                formItemClassName,
-                MemberName(packageName = "kotlin.text", simpleName = "toUInt", isExtension = true)
-            )
-
-            type.isULong -> builder.add(
-                "($partDataGetter as %T).value.%M()",
-                formItemClassName,
-                MemberName(packageName = "kotlin.text", simpleName = "toULong", isExtension = true)
-            )
-
-            type.isFloat -> builder.add(
-                "($partDataGetter as %T).value.%M()",
-                formItemClassName,
-                MemberName(packageName = "kotlin.text", simpleName = "toFloat", isExtension = true)
-            )
-
-            type.isDouble -> builder.add(
-                "($partDataGetter as %T).value.%M()",
-                formItemClassName,
-                MemberName(packageName = "kotlin.text", simpleName = "toDouble", isExtension = true)
-            )
-
-            type.isChar -> builder.add(
-                "($partDataGetter as %T).value.%M()[0]",
-                formItemClassName,
-                MemberName(packageName = "io.ktor.util", simpleName = "toCharArray", isExtension = true)
-            )
-
-            type.isString -> builder.add("($partDataGetter as %T).value")
-            type.isPartData && type.name.full.endsWith("FormItem") -> builder.add(
-                "($partDataGetter as %T)",
-                formItemClassName
-            )
-
-            type.isPartData && type.name.full.endsWith("FileItem") -> builder.add(
-                "($partDataGetter as %T)",
-                ClassName.bestGuess("io.ktor.http.content.PartData.FileItem")
-            )
-
-            type.isPartData && type.name.full.endsWith("BinaryItem") -> builder.add(
-                "($partDataGetter as %T)",
-                ClassName.bestGuess("io.ktor.http.content.PartData.BinaryItem")
-            )
-
-            type.isPartData && type.name.full.endsWith("BinaryChannelItem") -> builder.add(
-                "($partDataGetter as %T)",
-                ClassName.bestGuess("io.ktor.http.content.PartData.BinaryChannelItem")
-            )
-
-            type.isPartData -> builder.add(partDataGetter)
-            type.isMultiPartData -> builder.add(propertyNameMultipartData)
-            type.isInputStream -> builder.add(
-                "$partDataGetter.%M()",
-                MemberName(
-                    packageName = "com.chrynan.kapi.server.core.util",
-                    simpleName = "asInputStream",
-                    isExtension = true
-                )
-            )
-
-            type.isInput -> builder.add(
-                "$partDataGetter.%M()",
-                MemberName(
-                    packageName = "com.chrynan.kapi.server.core.util",
-                    simpleName = "asInput",
-                    isExtension = true
-                )
-            )
-
-            type.isByteReadChannel -> builder.add(
-                "$partDataGetter.%M()",
-                MemberName(
-                    packageName = "com.chrynan.kapi.server.core.util",
-                    simpleName = "asByteReadChannel",
-                    isExtension = true
-                )
-            )
-
-            type.isByteArray -> builder.add(
-                "$partDataGetter.%M()",
-                MemberName(
-                    packageName = "com.chrynan.kapi.server.core.util",
-                    simpleName = "asByteArray",
-                    isExtension = true
-                )
-            )
-
-            else -> logger.throwError(message = "Unexpected Part parameter type ${type.name.full} for API function ${function.kotlinFunction.name.full}.")
-        }
-
-        return builder
-    }
-
-    private fun BodyParameter.toAssignmentDeclaration(): CodeBlock.Builder {
-        val builder = CodeBlock.builder()
-
-        val type = this.declaration.type
-        val propertyName = this.declaration.name
-
-        builder.add("$propertyName = ")
-
-        when {
-            type.isNullable -> builder.add(
-                "$propertyNamePipeline.%M.%M<%T>()",
-                applicationCallMemberName,
-                MemberName(packageName = "io.ktor.server.request", simpleName = "receiveNullable", isExtension = true),
-                type.typeName
-            )
-
-            type.isString -> builder.add(
-                "$propertyNamePipeline.%M.%M()",
-                applicationCallMemberName,
-                MemberName(packageName = "io.ktor.server.request", simpleName = "receiveText", isExtension = true)
-            )
-
-            type.isByteReadChannel -> builder.add(
-                "$propertyNamePipeline.%M.%M()",
-                applicationCallMemberName,
-                MemberName(packageName = "io.ktor.server.request", simpleName = "receiveChannel", isExtension = true)
-            )
-
-            type.isInputStream -> builder.add(
-                "$propertyNamePipeline.%M.%M()",
-                applicationCallMemberName,
-                MemberName(packageName = "io.ktor.server.request", simpleName = "receiveStream", isExtension = true)
-            )
-
-            type.isMultiPartData -> builder.add(propertyNameMultipartData)
-            type.isParameters -> builder.add(propertyNameParameters)
-            else -> builder.add(
-                "$propertyNamePipeline.%M.%M<%T>()",
-                applicationCallMemberName,
-                MemberName(packageName = "io.ktor.server.request", simpleName = "receive", isExtension = true),
-                type.typeName
-            )
-        }
-
-        return builder
-    }
-
-    private fun PrincipalParameter.toAssignmentDeclaration(): CodeBlock.Builder {
-        val builder = CodeBlock.builder()
-
-        val type = this.declaration.type
-        val propertyName = this.declaration.name
-        val parameterName = this.value.takeIf { it.isNotBlank() } ?: this.declaration.name
-
-        builder.add(
-            "$propertyName = $applicationCallMemberName.%M<%T>(%S)",
-            MemberName(packageName = "io.ktor.server.auth", simpleName = "Principal", isExtension = true),
-            type.typeName,
-            parameterName
-        )
-
-        return builder
-    }
-
     private fun CodeBlock.Builder.invokeApiFunction(function: ApiFunction): CodeBlock.Builder {
         val builder = this
 
@@ -527,7 +225,7 @@ internal class KtorRoutingApiFunctionConverter(
         val assignableParameters = function.parameters.filter { it !is DefaultValueParameter }
 
         return builder.controlFlow(
-            value = "$classPropertyNameApi.%M",
+            value = "$propertyNameApi.%M",
             blockWithoutControlFlow = function.extensionReceiver == null,
             args = arrayOf(MemberName(packageName = "kotlin", simpleName = "apply", isExtension = true))
         ) {
@@ -539,6 +237,17 @@ internal class KtorRoutingApiFunctionConverter(
                 }
             }
 
+            addStatement(
+                """
+                |val $propertyNameParameterExtractor = $propertyNameParameterExtractorFactory.invoke(
+                |  route = $propertyNameRoute,
+                |  call = $propertyNamePipeline.%M,
+                |  requestBodyContentType = ${function.requestContentType?.let { "\"$it\"" }}
+                |)
+                """.trimMargin(),
+                applicationCallMemberName
+            )
+
             function.kotlinFunction.returnType?.let { returnType ->
                 if (!returnType.isUnit && !returnType.isNothing) {
                     add("val $propertyNameResponseBody: %T = ", returnType.typeName)
@@ -546,22 +255,23 @@ internal class KtorRoutingApiFunctionConverter(
             }
 
             when {
-                receiver == null -> builder.add("${classPropertyNameApi}.${function.kotlinFunction.name.short}(\n")
+                receiver == null -> builder.add("${propertyNameApi}.${function.kotlinFunction.name.short}(\n")
                 receiver.isApplicationCall -> builder.add(
                     "$propertyNamePipeline.%M.${function.kotlinFunction.name.short}(\n",
                     applicationCallMemberName
                 )
 
                 receiver.isRoute -> builder.add("$propertyNameRoute.${function.kotlinFunction.name.short}(\n")
-                else -> logger.throwError(message = "Unexpected Part extension receiver type ${receiver.name.full} for API function ${function.kotlinFunction.name.full}.")
+                else -> logger.throwError(message = "Unexpected extension receiver type ${receiver.name.full} for API function ${function.kotlinFunction.name.full}.")
             }
             indent()
             assignableParameters
                 .mapIndexed { index, parameter ->
                     addParameterAssignment(
-                        function = function,
+                        functionName = function.kotlinFunction.name.short,
                         parameter = parameter,
-                        isLast = index == assignableParameters.lastIndex
+                        index = index,
+                        lastIndex = assignableParameters.lastIndex
                     )
                 }
             unindent()
@@ -648,49 +358,50 @@ internal class KtorRoutingApiFunctionConverter(
     }
 
     private fun CodeBlock.Builder.addParameterAssignment(
-        function: ApiFunction,
+        functionName: String,
         parameter: ApiParameter,
-        isLast: Boolean
+        index: Int,
+        lastIndex: Int
     ): CodeBlock {
         val builder = this
 
+        val isLast = index == lastIndex
         val parameterType = parameter.declaration.type
-        val parameterAndPropertyName = parameter.declaration.name
+        val parameterName = parameter.declaration.name
+        val parameterValue = parameter.value?.takeIf { it.isNotBlank() } ?: parameter.declaration.name
 
-        when (parameter) {
-            is SupportedTypeParameter -> when {
-                parameterType.isUnit -> builder.addStatement(
-                    "$parameterAndPropertyName = %T${if (isLast) "" else ","}",
-                    ClassName.bestGuess("kotlin.Unit")
-                )
+        add(
+            """
+                |$parameterName = $propertyNameParameterExtractor.extractParameter(
+                |  name = %S,
+                |  index = %L,
+                |  annotationType = %T.%L,
+                |  typeInfo = %M<%T>(),
+                |  isNullable = %L
+                |)
+                """.trimMargin(),
+            parameterValue,
+            index,
+            ParameterAnnotationType::class.asTypeName(),
+            parameter.annotationType?.name ?: ParameterAnnotationType.SUPPORTED.name,
+            MemberName(packageName = "io.ktor.util.reflect", simpleName = "typeInfo", isExtension = false),
+            parameterType.typeName,
+            parameterType.isNullable
+        )
 
-                parameterType.isApplicationCall -> builder.addStatement(
-                    "$parameterAndPropertyName = $propertyNamePipeline.%M${if (isLast) "" else ","}",
-                    applicationCallMemberName
-                )
-
-                parameterType.isRoute -> builder.addStatement("$parameterAndPropertyName = $propertyNameRoute${if (isLast) "" else ","}")
-                parameterType.isParameters -> builder.addStatement("$parameterAndPropertyName = $propertyNameParameters${if (isLast) "" else ","}")
-                parameterType.isMultiPartData -> builder.addStatement("$parameterAndPropertyName = $propertyNameMultipartData${if (isLast) "" else ","}")
-                else -> logger.throwError(message = "Unexpected supported parameter type ${parameterType.name.full} for API function ${function.kotlinFunction.name.full}.")
-            }
-
-            is PartParameter -> builder.addStatement(
-                parameter.toAssignmentDeclaration(function = function).add(if (isLast) "" else ",").build()
-            )
-
-            is BodyParameter -> builder.addStatement(
-                parameter.toAssignmentDeclaration().add(if (isLast) "" else ",").build()
-            )
-
-            is PrincipalParameter -> builder.addStatement(
-                parameter.toAssignmentDeclaration().add(if (isLast) "" else ",").build()
-            )
-
-            else -> builder.addStatement(
-                parameter.toAssignmentDeclaration(function = function).add(if (isLast) "" else ",").build()
+        if (!parameterType.isNullable) {
+            add(
+                " ?: %M(%S)",
+                MemberName(packageName = "kotlin", simpleName = "error", isExtension = false),
+                "Parameter `$parameterValue` for API function `$functionName` must not be `null`."
             )
         }
+
+        if (!isLast) {
+            add(",")
+        }
+
+        add("\n")
 
         return builder.build()
     }
@@ -818,5 +529,6 @@ internal class KtorRoutingApiFunctionConverter(
         private const val propertyNameRoute = "route"
         private const val propertyNamePipeline = "pipeline"
         private const val propertyNameResponseBody = "responseBody"
+        private const val propertyNameParameterExtractor = "parameterExtractor"
     }
 }
