@@ -10,6 +10,7 @@ import com.chrynan.kapi.server.core.auth.ApiSecurityDefinitionProvider
 import com.chrynan.kapi.server.core.auth.KapiSecurity
 import com.chrynan.kapi.server.core.auth.SecurityDefinition
 import com.chrynan.kapi.server.ksp.util.apiName
+import com.chrynan.kapi.server.ksp.util.simpleName
 import com.chrynan.kapi.server.processor.core.model.ApiDefinition
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
@@ -274,17 +275,6 @@ internal class KtorSecuritySchemeConverter {
 
         return builder.build()
     }
-
-    private val <T> KCallable<T>.simpleName: String
-        get() {
-            val lastDot = name.lastIndexOf('.')
-
-            return if (lastDot != -1 && lastDot < name.lastIndex) {
-                name.substring(startIndex = 0, endIndex = lastDot)
-            } else {
-                name
-            }
-        }
 
     private fun String.lowercaseFirstChar(): String =
         this.replaceFirstChar { it.lowercase() }

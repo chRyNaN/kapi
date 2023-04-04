@@ -12,7 +12,7 @@ import kotlinx.serialization.SerialName
  * @property [enum] An enumeration of string values to be used if the substitution options are from a limited set. The
  * array MUST NOT be empty.
  * @property [default] **REQUIRED**. The default value to use for substitution, which SHALL be sent if an alternate
- * value is not supplied. Note this behavior is different than the Schema Object’s treatment of default values,
+ * value is not supplied. Note this behavior is different from the Schema Object’s treatment of default values,
  * because in those cases parameter values are optional. If the enum is defined, the value MUST exist in the enum’s
  * values.
  * @property [description] An optional description for the server variable.

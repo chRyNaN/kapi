@@ -15,7 +15,6 @@
             <option value="$PROJECT_DIR$/kapi-openapi" />
             <option value="$PROJECT_DIR$/kapi-server-core" />
             <option value="$PROJECT_DIR$/kapi-server-example" />
-            <option value="$PROJECT_DIR$/kapi-server-gradle" />
             <option value="$PROJECT_DIR$/kapi-server-ksp" />
             <option value="$PROJECT_DIR$/kapi-server-processor-core" />
           </set>

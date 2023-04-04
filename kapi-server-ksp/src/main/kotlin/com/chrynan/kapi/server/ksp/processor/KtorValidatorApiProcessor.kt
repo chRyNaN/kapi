@@ -20,7 +20,7 @@ internal class KtorValidatorApiProcessor(
     }
 
     private fun ApiFunction.validate() {
-        this.extensionReceiver?.let { receiver ->
+        this.kotlinFunction.extensionReceiver?.let { receiver ->
             if (!receiver.isSupportedExtensionReceiverType) {
                 logger.throwUnsupportedExtensionReceiverTypeError(
                     function = this,

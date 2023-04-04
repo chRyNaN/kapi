@@ -148,12 +148,12 @@ internal class KtorRoutingApiFunctionConverter(
     private fun CodeBlock.Builder.invokeApiFunction(function: ApiFunction): CodeBlock.Builder {
         val builder = this
 
-        val receiver = function.extensionReceiver
+        val receiver = function.kotlinFunction.extensionReceiver
         val assignableParameters = function.parameters.filter { it !is DefaultValueParameter }
 
         return builder.controlFlow(
             value = "$propertyNameApi.%M",
-            blockWithoutControlFlow = function.extensionReceiver == null,
+            blockWithoutControlFlow = function.kotlinFunction.extensionReceiver == null,
             args = arrayOf(MemberName(packageName = "kotlin", simpleName = "apply", isExtension = true))
         ) {
             function.successResponse?.let { success ->

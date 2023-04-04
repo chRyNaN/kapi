@@ -15,7 +15,6 @@ data class ApiFunction(
     @SerialName(value = "success_response") val successResponse: ApiResponse.Success? = null,
     @SerialName(value = "error_responses") val errorResponses: List<ApiResponse.Error> = emptyList(),
     @SerialName(value = "parameters") val parameters: List<ApiParameter> = emptyList(),
-    @SerialName(value = "extension_receiver") val extensionReceiver: KotlinTypeUsage? = null,
     @SerialName(value = "deprecated") val isDeprecated: Boolean = false,
     @SerialName(value = "tags") val tags: List<ApiTag> = emptyList(),
     @SerialName(value = "auths") val auths: List<ApiAuth> = emptyList()

@@ -508,9 +508,9 @@ internal fun KSFunctionDeclaration.toApiFunction(
     val successResponse = produces?.success?.let { success ->
         ApiResponse.Success(
             statusCode = success.statusCode,
-            description = success.description,
+            description = success.description.takeIf { it.isNotBlank() },
             headers = success.headers.map { it.toResponseHeader() },
-            contentType = success.contentType
+            contentType = success.contentType.takeIf { it.isNotBlank() }
         )
     }
     val errorResponses = produces?.errors?.map { error -> error.toErrorResponse() }
@@ -521,7 +521,6 @@ internal fun KSFunctionDeclaration.toApiFunction(
         path = path,
         requestContentType = requestContentType,
         successResponse = successResponse,
-        extensionReceiver = this.extensionReceiver?.toKotlinTypeUsage(),
         parameters = parameters,
         errorResponses = errorResponses ?: emptyList(),
         isDeprecated = isDeprecated,
@@ -547,6 +546,7 @@ internal fun ResponseHeader.toResponseHeader(): ApiResponseHeader =
 internal fun Error<*>.toErrorResponse(): ApiResponse.Error =
     ApiResponse.Error(
         statusCode = this.statusCode,
+        contentType = this.contentType.takeIf { it.isNotBlank() },
         description = this.details.takeIf { it.isNotBlank() } ?: "${this.statusCode} ${this.title}",
         headers = this.headers.map { it.toResponseHeader() },
         exception = KotlinTypeUsage(

@@ -27,6 +27,7 @@ fun Application.module() {
 ## Status ⚠️
 
 This project is in an early stage and under active development. Breaking changes may occur between released versions.
+Until the version is a release version of `1.0.0` or greater, this project is considered to be in an experimental state.
 
 ## Getting Started 🏁
 
@@ -316,6 +317,16 @@ install(Authentication) {
 }
 ```
 
+### Registering an API
+
+To register an API with Ktor, just invoke the generated `Route` extension function providing the API implementation:
+
+```kotlin
+routing {
+    registerIdentityApi(api = IdentityApiImpl())
+}
+```
+
 ## Documentation 📄
 
 More detailed documentation is available in the [docs](https://github.com/chRyNaN/kapi/blob/main/docs) folder. The
@@ -358,6 +369,12 @@ utilizing this library over directly writing your server APIs in Ktor:
 
 Support this project by [becoming a sponsor](https://www.buymeacoffee.com/chrynan) of my work! And make sure to give the
 repository a ⭐
+
+## Contributing ✍️
+
+Outside contributions are welcome for this project. Please follow the [code of conduct](CODE_OF_CONDUCT.md)
+and [coding conventions](CODING_CONVENTIONS.md) when contributing. If contributing code, please add thorough documents
+and tests. Thank you!
 
 ## License ⚖️
 

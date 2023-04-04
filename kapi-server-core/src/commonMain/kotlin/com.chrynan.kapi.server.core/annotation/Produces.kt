@@ -58,6 +58,11 @@ annotation class Success(
  *
  * @property [statusCode] The HTTP status code value to respond with when an exception with type [exception] [KClass]
  * is thrown from the API function. This value is also used for the [ApiError.status] value.
+ * @property [contentType] The supported content type returned by an API function. The content type specified must be a
+ * single non-blank valid value. A blank content type provided results in a default value of `&#42;/&#42;`, which means
+ * it relies on the server framework's content negotiation support (which may allow any type or specific types).
+ * However, since the server framework's content negotiation support is separate from this library, it will be
+ * registered in any generated documentation as supporting any type.
  * @property [exception] The exception [KClass] that when thrown from the API function results in an [ApiError] HTTP
  * response with the provided values of this annotation class.
  * @property [type] Corresponds to the [ApiError.type] property.
@@ -78,6 +83,7 @@ annotation class Success(
 @ExperimentalServerApi
 annotation class Error<T : Throwable>(
     val statusCode: Int,
+    val contentType: String = "",
     val exception: KClass<T>,
     val type: String = "about:blank",
     val title: String = "",

@@ -1,6 +1,8 @@
 package com.chrynan.kapi.server.ksp.output
 
 import com.chrynan.kapi.openapi.*
+import com.chrynan.kapi.server.core.annotation.ExperimentalServerApi
+import com.chrynan.kapi.server.ksp.util.OpenApiTypeRegistrar
 import com.chrynan.kapi.server.ksp.util.typeName
 import com.chrynan.kapi.server.processor.core.model.*
 import com.squareup.kotlinpoet.ClassName
@@ -10,7 +12,19 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-internal class OpenApiFunctionConverter {
+@ExperimentalServerApi
+internal class OpenApiFunctionConverter(
+    private val typeRegistrar: OpenApiTypeRegistrar
+) {
+
+    fun test(api: ApiDefinition) {
+        api.functions.forEach {
+            listOfNotNull(
+                it.kotlinFunction.returnType,
+                it.kotlinFunction.extensionReceiver
+            )
+        }
+    }
 
     operator fun invoke(function: ApiFunction) {
         function.path to PathItem(
@@ -101,39 +115,7 @@ internal class OpenApiFunctionConverter {
             .build()
     }
 
-    private fun ApiResponse.toResponseCodeBlock(kotlinReturnType: KotlinTypeUsage?): CodeBlock {
-        val builder = CodeBlock.builder()
-
-        val description = this.description.takeIf { it.isNotBlank() } ?: this.statusCode.toString()
-        val contentType = if (this is ApiResponse.Success) {
-            this.contentType.takeIf { it.isNotBlank() } ?: "*/*"
-        } else {
-            "application/json"
-        }
-        val content = if (
-            kotlinReturnType == null ||
-            kotlinReturnType.isUnit ||
-            kotlinReturnType.isNothing ||
-            (kotlinReturnType.isResponse && kotlinReturnType.typeArguments.first().type?.isUnit == true) ||
-            (kotlinReturnType.isResponse && kotlinReturnType.typeArguments.first().type?.isNothing == true)
-        ) {
-            null
-        } else {
-            mapOf(
-                contentType to MediaType(
-                    schema = if (this is ApiResponse.Error) {
-                        Schema()
-                    } else {
-                        Schema()
-                    }
-                )
-            )
-        }
-
-        return builder.build()
-    }
-
-    private fun ApiParameter.toParameterCodeBlock(): CodeBlock {
+    private fun ApiParameter.toParameterInstantiationCodeBlock(): CodeBlock {
         val builder = CodeBlock.builder()
 
         val name = this.value?.takeIf { it.isNotBlank() } ?: this.declaration.name
