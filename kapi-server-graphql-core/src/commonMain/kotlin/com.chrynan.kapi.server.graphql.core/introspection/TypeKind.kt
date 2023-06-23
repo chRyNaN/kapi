@@ -1,10 +1,12 @@
-package com.chrynan.kapi.server.graphql.core
+@file:Suppress("unused")
+
+package com.chrynan.kapi.server.graphql.core.introspection
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class Kind(val serialName: String) {
+enum class TypeKind(val serialName: String) {
 
     @SerialName(value = "ENUM")
     ENUM(serialName = "ENUM"),
@@ -32,7 +34,7 @@ enum class Kind(val serialName: String) {
 
     companion object {
 
-        fun fromSerialName(name: String, ignoreCase: Boolean = true): Kind? =
+        fun getBySerialName(name: String, ignoreCase: Boolean = true): TypeKind? =
             values().firstOrNull {
                 if (ignoreCase) {
                     it.serialName.lowercase() == name.lowercase()
@@ -41,20 +43,4 @@ enum class Kind(val serialName: String) {
                 }
             }
     }
-}
-
-@Serializable
-data class TypeRef(
-    @SerialName(value = "kind") val kind: Kind,
-    @SerialName(value = "name") val name: String? = "",
-    @SerialName(value = "ofType") val ofType: TypeRef? = null
-) {
-
-    /**
-     * Retrieves the nested [TypeRef] of this [TypeRef]. For instance, if this is a wrapped [TypeRef], such as, a
-     * [Kind.LIST], then it would be a TypeRef of a TypeRef. This property gets the inner-most [TypeRef]. For example,
-     * if this class represented a [TypeRef] of [Kind.LIST] of [Kind.NON_NULL] of a [Kind.SCALAR] ([String!]), then
-     * this [rawType] property would return the [Kind.SCALAR] [TypeRef] (String).
-     */
-    val rawType: TypeRef = ofType?.rawType ?: this
 }
