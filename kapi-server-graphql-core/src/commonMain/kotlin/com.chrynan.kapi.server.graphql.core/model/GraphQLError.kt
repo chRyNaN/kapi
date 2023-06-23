@@ -59,6 +59,14 @@ interface GraphQLError {
     ): GraphQLError
 }
 
+operator fun GraphQLError.component1(): String = message
+
+operator fun GraphQLError.component2(): List<SourceLocation?>? = locations
+
+operator fun GraphQLError.component3(): List<PathSegment?>? = path
+
+operator fun GraphQLError.component4(): JsonObject? = extensions
+
 /**
  * Creates a [GraphQLError] instance with the provided values.
  *
