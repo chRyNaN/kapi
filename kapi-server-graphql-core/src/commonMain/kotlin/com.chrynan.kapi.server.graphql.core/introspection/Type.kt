@@ -299,10 +299,10 @@ sealed class Type private constructor() {
 }
 
 /**
- * Retrieves the nested [TypeRef] of this [TypeRef]. For instance, if this is a wrapped [TypeRef], such as, a
- * [TypeKind.LIST], then it would be a TypeRef of a TypeRef. This property gets the innermost [TypeRef]. For example,
- * if this class represented a [TypeRef] of [TypeKind.LIST] of [TypeKind.NON_NULL] of a [TypeKind.SCALAR] ([String!]),
- * then this [rawType] property would return the [TypeKind.SCALAR] [TypeRef] (String).
+ * Retrieves the nested [Type] of this [Type]. For instance, if this is a wrapped [Type], such as, a
+ * [TypeKind.LIST], then it would be a TypeRef of a TypeRef. This property gets the innermost [Type]. For example,
+ * if this class represented a [Type] of [TypeKind.LIST] of [TypeKind.NON_NULL] of a [TypeKind.SCALAR] ([String!]),
+ * then this [rawType] property would return the [TypeKind.SCALAR] [Type] (String).
  */
 @Suppress("RecursivePropertyAccessor")
 val Type.rawType: Type
