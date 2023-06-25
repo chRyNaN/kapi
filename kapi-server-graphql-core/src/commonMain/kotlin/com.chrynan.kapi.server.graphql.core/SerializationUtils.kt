@@ -24,3 +24,6 @@ internal fun <T> Json.encodeToGraphQLJson(
         json
     }
 }
+
+fun <T> Json.encodeToJsonElement(value: ResolvedType<T>): JsonElement =
+    Json.encodeToJsonElement(serializer = value.serializer, value = value.value)

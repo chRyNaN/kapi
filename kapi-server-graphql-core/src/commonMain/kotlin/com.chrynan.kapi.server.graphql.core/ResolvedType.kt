@@ -2,7 +2,13 @@
 
 package com.chrynan.kapi.server.graphql.core
 
+import com.chrynan.kapi.server.graphql.core.language.Arguments
+import graphql.execution.MergedField
+import graphql.language.SelectionSet
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializer
@@ -19,25 +25,51 @@ interface ResolvedType<T> {
 
     val serializersModule: SerializersModule
 
-    suspend fun getField(name: String, arguments: Map<String, Any> = emptyMap()): ResolvedType<*>
+    suspend fun getField(name: String, arguments: Arguments): ResolvedType<*>
 }
 
 @Suppress("UNCHECKED_CAST")
 suspend inline fun <T, reified R> ResolvedType<T>.getTypedField(
     name: String,
-    arguments: Map<String, Any> = emptyMap()
+    arguments: Arguments
 ): ResolvedType<R> =
     getField(name = name, arguments = arguments) as ResolvedType<R>
+
+suspend fun <T> ResolvedType<T>.execute(
+    json: Json,
+    selectionSet: SelectionSet
+): JsonElement {
+    // TODO: Convert the SelectionSet into the groupedFieldSet.
+    // Refer to the following: https://spec.graphql.org/June2018/#sec-Executing-Selection-Sets
+    val groupedFieldSet: Map<String, List<MergedField>> = emptyMap()
+
+    buildJsonObject { }
+    groupedFieldSet.values.flatten()
+        .forEach { field ->
+            val resolvedType = this.getField(name = field.name, arguments = Arguments()) // TODO: Handle arguments
+
+            val jsonElement = if (field.singleField.selectionSet.selections.isNotEmpty()) {
+                resolvedType.execute(
+                    json = json,
+                    selectionSet = field.singleField.selectionSet
+                )
+            } else {
+                json.encodeToJsonElement(value = resolvedType)
+            }
+        }
+
+    TODO()
+}
 
 abstract class ResolvedTypeImpl<T> @PublishedApi internal constructor(
     override val value: T,
     override val kType: KType,
     override val serializer: KSerializer<T>,
     override val serializersModule: SerializersModule,
-    private val getField: suspend (name: String, arguments: Map<String, Any>) -> ResolvedType<*>
+    private val getField: suspend (name: String, arguments: Arguments) -> ResolvedType<*>
 ) : ResolvedType<T> {
 
-    override suspend fun getField(name: String, arguments: Map<String, Any>): ResolvedType<*> =
+    override suspend fun getField(name: String, arguments: Arguments): ResolvedType<*> =
         getField.invoke(name, arguments)
 
     override fun equals(other: Any?): Boolean {
@@ -71,7 +103,7 @@ inline fun <reified T> ResolvedType(
     kType: KType = typeOf<T>(),
     serializersModule: SerializersModule = EmptySerializersModule(),
     serializer: KSerializer<T> = serializersModule.serializer(),
-    noinline getField: suspend (name: String, arguments: Map<String, Any>) -> ResolvedType<*>
+    noinline getField: suspend (name: String, arguments: Arguments) -> ResolvedType<*>
 ) = object : ResolvedTypeImpl<T>(
     value = value,
     kType = kType,
