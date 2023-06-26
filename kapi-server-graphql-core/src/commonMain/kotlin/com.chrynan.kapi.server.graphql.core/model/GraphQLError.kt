@@ -1,5 +1,6 @@
 package com.chrynan.kapi.server.graphql.core.model
 
+import com.chrynan.kapi.server.graphql.core.language.SourceLocation
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

@@ -1,4 +1,4 @@
-package com.chrynan.kapi.server.graphql.core.model
+package com.chrynan.kapi.server.graphql.core.language
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
