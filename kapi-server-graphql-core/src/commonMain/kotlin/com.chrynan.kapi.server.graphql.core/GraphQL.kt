@@ -1,5 +1,6 @@
 package com.chrynan.kapi.server.graphql.core
 
+import com.chrynan.kapi.server.graphql.core.model.GraphQLEnvironment
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.toList
@@ -34,39 +35,9 @@ object GraphQL {
     // Maps to BatchLoader
     annotation class Loader(val name: String = "")
 
-    @JvmInline
-    value class Context(val values: Map<String, Any>)
-
-    class Environment(
-        val arguments: Map<String, Any> = emptyMap(),
-        val context: Context,
-        val source: Any? = null
-    ) {
-
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other !is Environment) return false
-
-            if (arguments != other.arguments) return false
-            if (context != other.context) return false
-
-            return source == other.source
-        }
-
-        override fun hashCode(): Int {
-            var result = arguments.hashCode()
-            result = 31 * result + context.hashCode()
-            result = 31 * result + (source?.hashCode() ?: 0)
-            return result
-        }
-
-        override fun toString(): String =
-            "Environment(arguments=$arguments, context=$context, source=$source)"
-    }
-
     fun interface DataFetcher<T> {
 
-        suspend fun fetch(environment: Environment): T
+        suspend fun fetch(environment: GraphQLEnvironment): T
     }
 
     fun interface BatchLoader<Key, Value> {
@@ -89,7 +60,7 @@ object GraphQL {
         private val keys = mutableSetOf<Key>()
         private val result = MutableStateFlow<Map<Key, Value>?>(null)
 
-        override suspend fun fetch(environment: Environment): Value {
+        override suspend fun fetch(environment: GraphQLEnvironment): Value {
             val key = keyResolver.invoke(arguments = environment.arguments)
 
             keys.add(key)
@@ -128,7 +99,7 @@ object GraphQL {
     }
 }
 
-suspend operator fun <T> GraphQL.DataFetcher<T>.invoke(environment: GraphQL.Environment): T =
+suspend operator fun <T> GraphQL.DataFetcher<T>.invoke(environment: GraphQLEnvironment): T =
     fetch(environment = environment)
 
 suspend operator fun <Key, Value> GraphQL.BatchLoader<Key, Value>.invoke(keys: Set<Key>): Map<Key, Value> =

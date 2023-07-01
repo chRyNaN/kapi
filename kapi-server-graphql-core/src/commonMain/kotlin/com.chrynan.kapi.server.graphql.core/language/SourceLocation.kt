@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * Represents the location of a [GraphQLError] in a GraphQL Schema.
+ * Represents the location of content in a GraphQL Schema or Operation.
  */
 @Serializable
 class SourceLocation(

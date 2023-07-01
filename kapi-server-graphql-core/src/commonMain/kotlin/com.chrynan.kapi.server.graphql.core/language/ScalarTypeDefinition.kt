@@ -3,41 +3,36 @@ package com.chrynan.kapi.server.graphql.core.language
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import kotlinx.serialization.json.Json
 
-/**
- * Represents a GraphQL Argument passed in through a query to access a field.
- *
- * @property [name] The name of the argument.
- * @property [value] The [Value] representing the value fo the argument. This can be converted to the
- * appropriate type via a call to the [value] function.
- */
 @Serializable
-class Argument(
-    @SerialName(value = "name") val name: String,
-    @SerialName(value = "value") val value: Value,
+class ScalarTypeDefinition(
+    @SerialName(value = "name") override val name: String,
+    @SerialName(value = "directives") override val directives: List<Directive> = emptyList(),
+    @SerialName(value = "description") override val description: Description? = null,
     @SerialName(value = "source_location") override val sourceLocation: SourceLocation? = null,
     @SerialName(value = "comments") override val comments: List<Comment> = emptyList(),
     @SerialName(value = "ignored_chars") override val ignoredChars: IgnoredChars = IgnoredChars.EMPTY,
     @SerialName(value = "additional_data") override val additionalData: Map<String, String> = emptyMap()
-) : Node {
+) : TypeDefinition,
+    DescribedNode,
+    DirectivesContainer,
+    NamedNode {
 
     @Transient
-    override val children: List<Node> = listOf(value)
+    override val children: List<Node> = directives
 
-    /**
-     * Creates a copy of this [Argument] by overriding the provided values.
-     */
     fun copy(
         name: String = this.name,
-        value: Value = this.value,
+        directives: List<Directive> = this.directives,
+        description: Description? = this.description,
         sourceLocation: SourceLocation? = this.sourceLocation,
         comments: List<Comment> = this.comments,
         ignoredChars: IgnoredChars = this.ignoredChars,
         additionalData: Map<String, String> = this.additionalData
-    ): Argument = Argument(
+    ): ScalarTypeDefinition = ScalarTypeDefinition(
         name = name,
-        value = value,
+        directives = directives,
+        description = description,
         sourceLocation = sourceLocation,
         comments = comments,
         ignoredChars = ignoredChars,
@@ -46,29 +41,18 @@ class Argument(
 
     override fun isContentEqualTo(node: Node): Boolean {
         if (this == node) return true
-        if (node !is Argument) return false
+        if (node !is ScalarTypeDefinition) return false
 
         return name == node.name
     }
 
-    operator fun component1(): String = name
-
-    operator fun component2(): Value = value
-
-    /**
-     * This is a convenience function for invoking the [Value.value] function on the [value] property.
-     *
-     * @see [Value.value]
-     */
-    inline fun <reified T> value(json: Json = Json.Default): T =
-        value.value(json = json)
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is Argument) return false
+        if (other !is ScalarTypeDefinition) return false
 
         if (name != other.name) return false
-        if (value != other.value) return false
+        if (directives != other.directives) return false
+        if (description != other.description) return false
         if (sourceLocation != other.sourceLocation) return false
         if (comments != other.comments) return false
         if (ignoredChars != other.ignoredChars) return false
@@ -79,7 +63,8 @@ class Argument(
 
     override fun hashCode(): Int {
         var result = name.hashCode()
-        result = 31 * result + value.hashCode()
+        result = 31 * result + directives.hashCode()
+        result = 31 * result + (description?.hashCode() ?: 0)
         result = 31 * result + (sourceLocation?.hashCode() ?: 0)
         result = 31 * result + comments.hashCode()
         result = 31 * result + ignoredChars.hashCode()
@@ -89,9 +74,10 @@ class Argument(
     }
 
     override fun toString(): String =
-        "Argument(" +
+        "ScalarTypeDefinition(" +
                 "name='$name', " +
-                "value=$value, " +
+                "directives=$directives, " +
+                "description=$description, " +
                 "sourceLocation=$sourceLocation, " +
                 "comments=$comments, " +
                 "ignoredChars=$ignoredChars, " +

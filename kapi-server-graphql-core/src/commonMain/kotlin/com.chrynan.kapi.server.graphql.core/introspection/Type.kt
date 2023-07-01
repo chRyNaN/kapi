@@ -272,7 +272,7 @@ sealed class Type private constructor() {
     }
 
     @Serializable
-    class Array(
+    class Collection(
         @SerialName(value = "name") override val name: String,
         @SerialName(value = "description") override val description: String? = null,
         @SerialName(value = "ofType") override val ofType: Type
