@@ -5,17 +5,20 @@ import kotlinx.serialization.*
 @Serializable
 @SerialName(value = "Field")
 class Field(
-    @SerialName(value = "name") val name: String,
+    @SerialName(value = "name") override val name: String,
     @SerialName(value = "alias") val alias: String? = null,
     @SerialName(value = "arguments") val arguments: Arguments = emptyArguments(),
-    @SerialName(value = "directives") val directives: List<Directive> = emptyList(),
-    @SerialName(value = "selection_set") val selectionSet: SelectionSet? = null,
+    @SerialName(value = "directives") override val directives: List<Directive> = emptyList(),
+    @SerialName(value = "selection_set") override val selectionSet: SelectionSet? = null,
     @SerialName(value = "source_location") override val sourceLocation: SourceLocation? = null,
     @SerialName(value = "comments") override val comments: List<Comment> = emptyList(),
     @SerialName(value = "ignored_chars") override val ignoredChars: IgnoredChars = IgnoredChars.EMPTY,
     @SerialName(value = "additional_data") override val additionalData: Map<String, String> = emptyMap()
 ) : Node,
-    Selection {
+    NamedNode,
+    Selection,
+    SelectionSetContainer,
+    DirectivesContainer {
 
     @Transient
     override val children: List<Node> = buildList {

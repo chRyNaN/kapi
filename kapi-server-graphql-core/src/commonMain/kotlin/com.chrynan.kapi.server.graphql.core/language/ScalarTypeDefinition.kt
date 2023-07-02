@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
+@SerialName(value = "ScalarTypeDefinition")
 class ScalarTypeDefinition(
     @SerialName(value = "name") override val name: String,
     @SerialName(value = "directives") override val directives: List<Directive> = emptyList(),

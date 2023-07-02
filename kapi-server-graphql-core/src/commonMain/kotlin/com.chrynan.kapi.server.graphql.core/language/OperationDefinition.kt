@@ -10,17 +10,21 @@ import kotlinx.serialization.Transient
  * definition of the types associated with the operations.
  */
 @Serializable
+@SerialName(value = "OperationDefinition")
 class OperationDefinition(
-    @SerialName(value = "name") val name: String,
+    @SerialName(value = "name") override val name: String,
     @SerialName(value = "operation") val operation: Operation,
     @SerialName(value = "variables") val variables: List<VariableDefinition> = emptyList(),
-    @SerialName(value = "directives") val directives: List<Directive> = emptyList(),
-    @SerialName(value = "selection_set") val selectionSet: SelectionSet,
+    @SerialName(value = "directives") override val directives: List<Directive> = emptyList(),
+    @SerialName(value = "selection_set") override val selectionSet: SelectionSet,
     @SerialName(value = "source_location") override val sourceLocation: SourceLocation? = null,
     @SerialName(value = "comments") override val comments: List<Comment> = emptyList(),
     @SerialName(value = "ignored_chars") override val ignoredChars: IgnoredChars = IgnoredChars.EMPTY,
     @SerialName(value = "additional_data") override val additionalData: Map<String, String> = emptyMap()
-) : Definition {
+) : Definition,
+    NamedNode,
+    SelectionSetContainer,
+    DirectivesContainer {
 
     @Transient
     override val children: List<Node> = buildList {

@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
+@SerialName(value = "UnionTypeDefinition")
 class UnionTypeDefinition(
     @SerialName(value = "member_types") val memberTypes: List<TypeName> = emptyList(),
     @SerialName(value = "name") override val name: String,

@@ -14,14 +14,16 @@ import kotlinx.serialization.Transient
 @Serializable
 @SerialName(value = "FragmentSpread")
 class FragmentSpread(
-    @SerialName(value = "name") val name: String,
-    @SerialName(value = "directives") val directives: List<Directive> = emptyList(),
+    @SerialName(value = "name") override val name: String,
+    @SerialName(value = "directives") override val directives: List<Directive> = emptyList(),
     @SerialName(value = "source_location") override val sourceLocation: SourceLocation? = null,
     @SerialName(value = "comments") override val comments: List<Comment> = emptyList(),
     @SerialName(value = "ignored_chars") override val ignoredChars: IgnoredChars = IgnoredChars.EMPTY,
     @SerialName(value = "additional_data") override val additionalData: Map<String, String> = emptyMap()
 ) : Node,
-    Selection {
+    NamedNode,
+    Selection,
+    DirectivesContainer {
 
     @Transient
     override val children: List<Node> = directives

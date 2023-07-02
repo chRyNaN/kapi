@@ -6,16 +6,21 @@ import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
 
 @Serializable
+@SerialName(value = "InputValueDefinition")
 class InputValueDefinition(
-    @SerialName(value = "name") val name: String,
+    @SerialName(value = "name") override val name: String,
     @SerialName(value = "type") val type: TypeName,
     @SerialName(value = "default_value") val defaultValue: Value? = null,
-    @SerialName(value = "directives") val directives: List<Directive> = emptyList(),
+    @SerialName(value = "description") override val description: Description? = null,
+    @SerialName(value = "directives") override val directives: List<Directive> = emptyList(),
     @SerialName(value = "source_location") override val sourceLocation: SourceLocation? = null,
     @SerialName(value = "comments") override val comments: List<Comment> = emptyList(),
     @SerialName(value = "ignored_chars") override val ignoredChars: IgnoredChars = IgnoredChars.EMPTY,
     @SerialName(value = "additional_data") override val additionalData: Map<String, String> = emptyMap()
-) : Node {
+) : Node,
+    NamedNode,
+    DescribedNode,
+    DirectivesContainer {
 
     @Transient
     override val children: List<Node> = buildList {
@@ -32,6 +37,7 @@ class InputValueDefinition(
         name: String = this.name,
         type: TypeName = this.type,
         defaultValue: Value? = this.defaultValue,
+        description: Description? = this.description,
         directives: List<Directive> = this.directives,
         sourceLocation: SourceLocation? = this.sourceLocation,
         comments: List<Comment> = this.comments,
@@ -41,6 +47,7 @@ class InputValueDefinition(
         name = name,
         type = type,
         defaultValue = defaultValue,
+        description = description,
         directives = directives,
         sourceLocation = sourceLocation,
         comments = comments,
@@ -70,6 +77,7 @@ class InputValueDefinition(
         if (name != other.name) return false
         if (type != other.type) return false
         if (defaultValue != other.defaultValue) return false
+        if (description != other.description) return false
         if (directives != other.directives) return false
         if (sourceLocation != other.sourceLocation) return false
         if (comments != other.comments) return false
@@ -83,6 +91,7 @@ class InputValueDefinition(
         var result = name.hashCode()
         result = 31 * result + type.hashCode()
         result = 31 * result + (defaultValue?.hashCode() ?: 0)
+        result = 31 * result + (description?.hashCode() ?: 0)
         result = 31 * result + directives.hashCode()
         result = 31 * result + (sourceLocation?.hashCode() ?: 0)
         result = 31 * result + comments.hashCode()
@@ -97,6 +106,7 @@ class InputValueDefinition(
                 "name='$name', " +
                 "type=$type, " +
                 "defaultValue=$defaultValue, " +
+                "description=$description, " +
                 "directives=$directives, " +
                 "sourceLocation=$sourceLocation, " +
                 "comments=$comments, " +

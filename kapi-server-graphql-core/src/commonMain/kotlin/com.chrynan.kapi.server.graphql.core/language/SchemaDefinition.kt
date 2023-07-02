@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
+@SerialName(value = "SchemaDefinition")
 class SchemaDefinition(
     @SerialName(value = "types") val types: List<OperationTypeDefinition> = emptyList(),
     @SerialName(value = "directives") override val directives: List<Directive> = emptyList(),

@@ -5,16 +5,20 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
-class InputObjectDefinition(
-    @SerialName(value = "name") val name: String,
-    @SerialName(value = "directives") val directives: List<Directive> = emptyList(),
+@SerialName(value = "InputObjectTypeDefinition")
+class InputObjectTypeDefinition(
+    @SerialName(value = "name") override val name: String,
+    @SerialName(value = "directives") override val directives: List<Directive> = emptyList(),
     @SerialName(value = "values") val values: List<InputValueDefinition> = emptyList(),
-    @SerialName(value = "description") val description: Description? = null,
+    @SerialName(value = "description") override val description: Description? = null,
     @SerialName(value = "source_location") override val sourceLocation: SourceLocation? = null,
     @SerialName(value = "comments") override val comments: List<Comment> = emptyList(),
     @SerialName(value = "ignored_chars") override val ignoredChars: IgnoredChars = IgnoredChars.EMPTY,
     @SerialName(value = "additional_data") override val additionalData: Map<String, String> = emptyMap()
-) : TypeDefinition {
+) : TypeDefinition,
+    NamedNode,
+    DescribedNode,
+    DirectivesContainer {
 
     @Transient
     override val children: List<Node> = buildList {
@@ -31,7 +35,7 @@ class InputObjectDefinition(
         comments: List<Comment> = this.comments,
         ignoredChars: IgnoredChars = this.ignoredChars,
         additionalData: Map<String, String> = this.additionalData
-    ): InputObjectDefinition = InputObjectDefinition(
+    ): InputObjectTypeDefinition = InputObjectTypeDefinition(
         name = name,
         directives = directives,
         values = values,
@@ -44,14 +48,14 @@ class InputObjectDefinition(
 
     override fun isContentEqualTo(node: Node): Boolean {
         if (this == node) return true
-        if (node !is InputObjectDefinition) return false
+        if (node !is InputObjectTypeDefinition) return false
 
         return name == node.name
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is InputObjectDefinition) return false
+        if (other !is InputObjectTypeDefinition) return false
 
         if (name != other.name) return false
         if (directives != other.directives) return false
@@ -79,7 +83,7 @@ class InputObjectDefinition(
     }
 
     override fun toString(): String =
-        "InputObjectDefinition(" +
+        "InputObjectTypeDefinition(" +
                 "name='$name', " +
                 "directives=$directives, " +
                 "values=$values, " +

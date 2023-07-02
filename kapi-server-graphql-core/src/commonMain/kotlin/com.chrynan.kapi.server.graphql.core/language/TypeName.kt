@@ -10,13 +10,16 @@ import kotlinx.serialization.Transient
  * Likewise, a GraphQL Schema defines types, each of these types has a name which can be represented by this class.
  */
 @Serializable
+@SerialName(value = "TypeName")
 class TypeName(
-    @SerialName(value = "name") val name: String,
+    @SerialName(value = "name") override val name: String,
     @SerialName(value = "source_location") override val sourceLocation: SourceLocation? = null,
     @SerialName(value = "comments") override val comments: List<Comment> = emptyList(),
     @SerialName(value = "ignored_chars") override val ignoredChars: IgnoredChars = IgnoredChars.EMPTY,
     @SerialName(value = "additional_data") override val additionalData: Map<String, String> = emptyMap()
-) : Node {
+) : Node,
+    Type,
+    NamedNode {
 
     @Transient
     override val children: List<Node> = emptyList()

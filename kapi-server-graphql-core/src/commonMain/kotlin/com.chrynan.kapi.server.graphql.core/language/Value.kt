@@ -12,6 +12,7 @@ import kotlinx.serialization.serializer
  * to an argument in a schema.
  */
 @Serializable
+@SerialName(value = "Value")
 class Value(
     @SerialName(value = "element") val element: JsonElement,
     @SerialName(value = "source_location") override val sourceLocation: SourceLocation? = null,

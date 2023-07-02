@@ -5,10 +5,11 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
+@SerialName(value = "InterfaceTypeDefinition")
 class InterfaceTypeDefinition(
     @SerialName(value = "name") override val name: String,
-    @SerialName(value = "implements") val implements: List<TypeName> = emptyList(),
-    @SerialName(value = "field_definitions") val fieldDefinitions: List<FieldDefinition> = emptyList(),
+    @SerialName(value = "implements") override val implements: List<TypeName> = emptyList(),
+    @SerialName(value = "field_definitions") override val fieldDefinitions: List<FieldDefinition> = emptyList(),
     @SerialName(value = "directives") override val directives: List<Directive> = emptyList(),
     @SerialName(value = "description") override val description: Description? = null,
     @SerialName(value = "source_location") override val sourceLocation: SourceLocation? = null,
@@ -18,7 +19,8 @@ class InterfaceTypeDefinition(
 ) : ImplementingTypeDefinition,
     DirectivesContainer,
     NamedNode,
-    DescribedNode {
+    DescribedNode,
+    SDLExtensionDefinition {
 
     @Transient
     override val children: List<Node> = buildList {

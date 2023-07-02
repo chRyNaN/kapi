@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
+@SerialName(value = "Document")
 class Document(
     @SerialName(value = "definitions") val definitions: List<Definition> = emptyList(),
     @SerialName(value = "source_location") override val sourceLocation: SourceLocation? = null,

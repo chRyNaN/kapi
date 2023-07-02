@@ -8,13 +8,15 @@ import kotlinx.serialization.Transient
  * Represents a reference to a variable within a GraphQL Operation.
  */
 @Serializable
+@SerialName(value = "VariableReference")
 class VariableReference(
-    @SerialName(value = "name") val name: String,
+    @SerialName(value = "name") override val name: String,
     @SerialName(value = "source_location") override val sourceLocation: SourceLocation? = null,
     @SerialName(value = "comments") override val comments: List<Comment> = emptyList(),
     @SerialName(value = "ignored_chars") override val ignoredChars: IgnoredChars = IgnoredChars.EMPTY,
     @SerialName(value = "additional_data") override val additionalData: Map<String, String> = emptyMap()
-) : Node {
+) : Node,
+    NamedNode {
 
     @Transient
     override val children: List<Node> = emptyList()

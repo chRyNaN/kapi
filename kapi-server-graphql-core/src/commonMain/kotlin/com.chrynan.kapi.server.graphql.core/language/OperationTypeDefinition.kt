@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
+@SerialName(value = "OperationTypeDefinition")
 class OperationTypeDefinition(
     @SerialName(value = "name") override val name: String,
     @SerialName(value = "type_name") val typeName: TypeName,

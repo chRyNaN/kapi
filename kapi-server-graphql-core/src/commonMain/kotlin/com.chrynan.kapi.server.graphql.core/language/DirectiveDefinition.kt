@@ -5,8 +5,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
+@SerialName(value = "DirectiveDefinition")
 class DirectiveDefinition(
-    @SerialName(value = "name") val name: String,
+    @SerialName(value = "name") override val name: String,
     @SerialName(value = "repeatable") val isRepeatable: Boolean = false,
     @SerialName(value = "description") val description: Description? = null,
     @SerialName(value = "input_values") val inputValues: List<InputValueDefinition> = emptyList(),
@@ -15,7 +16,8 @@ class DirectiveDefinition(
     @SerialName(value = "comments") override val comments: List<Comment> = emptyList(),
     @SerialName(value = "ignored_chars") override val ignoredChars: IgnoredChars = IgnoredChars.EMPTY,
     @SerialName(value = "additional_data") override val additionalData: Map<String, String> = emptyMap()
-) : Definition {
+) : SDLDefinition,
+    NamedNode {
 
     @Transient
     override val children: List<Node> = buildList {

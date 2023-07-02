@@ -6,16 +6,19 @@ import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
 
 @Serializable
+@SerialName(value = "VariableDefinition")
 class VariableDefinition(
-    @SerialName(value = "name") val name: String,
+    @SerialName(value = "name") override val name: String,
     @SerialName(value = "type") val type: TypeName,
     @SerialName(value = "default_value") val defaultValue: Value? = null,
-    @SerialName(value = "directives") val directives: List<Directive> = emptyList(),
+    @SerialName(value = "directives") override val directives: List<Directive> = emptyList(),
     @SerialName(value = "source_location") override val sourceLocation: SourceLocation? = null,
     @SerialName(value = "comments") override val comments: List<Comment> = emptyList(),
     @SerialName(value = "ignored_chars") override val ignoredChars: IgnoredChars = IgnoredChars.EMPTY,
     @SerialName(value = "additional_data") override val additionalData: Map<String, String> = emptyMap()
-) : Node {
+) : Node,
+    NamedNode,
+    DirectivesContainer {
 
     @Transient
     override val children: List<Node> = buildList {

@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
+@SerialName(value = "SelectionSet")
 class SelectionSet(
     @SerialName(value = "selections") val selections: List<Selection> = emptyList(),
     @SerialName(value = "source_location") override val sourceLocation: SourceLocation? = null,

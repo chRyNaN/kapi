@@ -3,18 +3,10 @@ package com.chrynan.kapi.server.graphql.core.language
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import kotlinx.serialization.json.Json
 
-/**
- * Represents a GraphQL Argument passed in through a query to access a field.
- *
- * @property [name] The name of the argument.
- * @property [value] The [Value] representing the value fo the argument. This can be converted to the
- * appropriate type via a call to the [value] function.
- */
 @Serializable
-@SerialName(value = "Argument")
-class Argument(
+@SerialName(value = "ObjectField")
+class ObjectField(
     @SerialName(value = "name") override val name: String,
     @SerialName(value = "value") val value: Value,
     @SerialName(value = "source_location") override val sourceLocation: SourceLocation? = null,
@@ -27,9 +19,6 @@ class Argument(
     @Transient
     override val children: List<Node> = listOf(value)
 
-    /**
-     * Creates a copy of this [Argument] by overriding the provided values.
-     */
     fun copy(
         name: String = this.name,
         value: Value = this.value,
@@ -37,7 +26,7 @@ class Argument(
         comments: List<Comment> = this.comments,
         ignoredChars: IgnoredChars = this.ignoredChars,
         additionalData: Map<String, String> = this.additionalData
-    ): Argument = Argument(
+    ): ObjectField = ObjectField(
         name = name,
         value = value,
         sourceLocation = sourceLocation,
@@ -48,26 +37,14 @@ class Argument(
 
     override fun isContentEqualTo(node: Node): Boolean {
         if (this == node) return true
-        if (node !is Argument) return false
+        if (node !is ObjectField) return false
 
         return name == node.name
     }
 
-    operator fun component1(): String = name
-
-    operator fun component2(): Value = value
-
-    /**
-     * This is a convenience function for invoking the [Value.value] function on the [value] property.
-     *
-     * @see [Value.value]
-     */
-    inline fun <reified T> value(json: Json = Json.Default): T =
-        value.value(json = json)
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is Argument) return false
+        if (other !is ObjectField) return false
 
         if (name != other.name) return false
         if (value != other.value) return false
@@ -91,7 +68,7 @@ class Argument(
     }
 
     override fun toString(): String =
-        "Argument(" +
+        "ObjectField(" +
                 "name='$name', " +
                 "value=$value, " +
                 "sourceLocation=$sourceLocation, " +
