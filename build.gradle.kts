@@ -14,6 +14,12 @@ plugins {
     id("com.vanniktech.dependency.graph.generator") version "0.7.0"
 }
 
+buildscript {
+    dependencies {
+        classpath("com.strumenta.antlr-kotlin:antlr-kotlin-gradle-plugin:b5135079b8")
+    }
+}
+
 allprojects {
     repositories {
         google()
