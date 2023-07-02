@@ -35,7 +35,10 @@ kotlin {
                 implementation("com.strumenta.antlr-kotlin:antlr-kotlin-runtime:b5135079b8")
 
                 // Multiplatform Locale
-                implementation("com.chrynan.locale:locale-core:0.1.0")
+                implementation("com.chrynan.locale:locale-core:_")
+
+                // I/0 - OKIO
+                implementation("com.squareup.okio:okio:_")
             }
 
             kotlin.srcDir("build/generated-src/commonMain/kotlin")
