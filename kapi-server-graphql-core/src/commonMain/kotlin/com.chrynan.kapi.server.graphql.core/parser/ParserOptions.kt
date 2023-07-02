@@ -73,6 +73,47 @@ class ParserOptions(
     val parsingListener: ParsingListener = ParsingListener.NOOP
 ) {
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ParserOptions) return false
+
+        if (isCaptureIgnoredChars != other.isCaptureIgnoredChars) return false
+        if (isCaptureSourceLocation != other.isCaptureSourceLocation) return false
+        if (isCaptureLineComments != other.isCaptureLineComments) return false
+        if (isReaderTrackData != other.isReaderTrackData) return false
+        if (maxCharacters != other.maxCharacters) return false
+        if (maxTokens != other.maxTokens) return false
+        if (maxWhitespaceTokens != other.maxWhitespaceTokens) return false
+        if (maxRuleDepth != other.maxRuleDepth) return false
+
+        return parsingListener == other.parsingListener
+    }
+
+    override fun hashCode(): Int {
+        var result = isCaptureIgnoredChars.hashCode()
+        result = 31 * result + isCaptureSourceLocation.hashCode()
+        result = 31 * result + isCaptureLineComments.hashCode()
+        result = 31 * result + isReaderTrackData.hashCode()
+        result = 31 * result + maxCharacters
+        result = 31 * result + maxTokens
+        result = 31 * result + maxWhitespaceTokens
+        result = 31 * result + maxRuleDepth
+        result = 31 * result + parsingListener.hashCode()
+        return result
+    }
+
+    override fun toString(): String =
+        "ParserOptions(" +
+                "isCaptureIgnoredChars=$isCaptureIgnoredChars, " +
+                "isCaptureSourceLocation=$isCaptureSourceLocation, " +
+                "isCaptureLineComments=$isCaptureLineComments, " +
+                "isReaderTrackData=$isReaderTrackData, " +
+                "maxCharacters=$maxCharacters, " +
+                "maxTokens=$maxTokens, " +
+                "maxWhitespaceTokens=$maxWhitespaceTokens, " +
+                "maxRuleDepth=$maxRuleDepth, " +
+                "parsingListener=$parsingListener)"
+
     companion object {
         /**
          * A graphql hacking vector is to send nonsensical queries with large tokens that contain a repeated characters
