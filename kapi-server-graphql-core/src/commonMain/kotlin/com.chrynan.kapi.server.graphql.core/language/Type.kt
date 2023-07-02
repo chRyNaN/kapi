@@ -1,3 +1,6 @@
 package com.chrynan.kapi.server.graphql.core.language
 
-sealed interface Type
+import kotlinx.serialization.Serializable
+
+@Serializable
+sealed interface Type : Node
