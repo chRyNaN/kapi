@@ -9,7 +9,7 @@ import kotlinx.serialization.json.Json
 @SerialName(value = "InputValueDefinition")
 class InputValueDefinition(
     @SerialName(value = "name") override val name: String,
-    @SerialName(value = "type") val type: TypeName,
+    @SerialName(value = "type") val type: Type,
     @SerialName(value = "default_value") val defaultValue: Value? = null,
     @SerialName(value = "description") override val description: Description? = null,
     @SerialName(value = "directives") override val directives: List<Directive> = emptyList(),
@@ -35,7 +35,7 @@ class InputValueDefinition(
 
     fun copy(
         name: String = this.name,
-        type: TypeName = this.type,
+        type: Type = this.type,
         defaultValue: Value? = this.defaultValue,
         description: Description? = this.description,
         directives: List<Directive> = this.directives,

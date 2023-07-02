@@ -7,7 +7,7 @@ import kotlinx.serialization.Transient
 @Serializable
 @SerialName(value = "UnionTypeDefinition")
 class UnionTypeDefinition(
-    @SerialName(value = "member_types") val memberTypes: List<TypeName> = emptyList(),
+    @SerialName(value = "member_types") val memberTypes: List<Type> = emptyList(),
     @SerialName(value = "name") override val name: String,
     @SerialName(value = "directives") override val directives: List<Directive> = emptyList(),
     @SerialName(value = "description") override val description: Description? = null,
@@ -27,7 +27,7 @@ class UnionTypeDefinition(
     }
 
     fun copy(
-        memberTypes: List<TypeName> = this.memberTypes,
+        memberTypes: List<Type> = this.memberTypes,
         name: String = this.name,
         directives: List<Directive> = this.directives,
         description: Description? = this.description,

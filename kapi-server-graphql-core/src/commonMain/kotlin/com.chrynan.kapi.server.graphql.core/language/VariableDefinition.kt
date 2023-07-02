@@ -9,7 +9,7 @@ import kotlinx.serialization.json.Json
 @SerialName(value = "VariableDefinition")
 class VariableDefinition(
     @SerialName(value = "name") override val name: String,
-    @SerialName(value = "type") val type: TypeName,
+    @SerialName(value = "type") val type: Type,
     @SerialName(value = "default_value") val defaultValue: Value? = null,
     @SerialName(value = "directives") override val directives: List<Directive> = emptyList(),
     @SerialName(value = "source_location") override val sourceLocation: SourceLocation? = null,
@@ -33,7 +33,7 @@ class VariableDefinition(
 
     fun copy(
         name: String = this.name,
-        type: TypeName = this.type,
+        type: Type = this.type,
         defaultValue: Value? = this.defaultValue,
         directives: List<Directive> = this.directives,
         sourceLocation: SourceLocation? = this.sourceLocation,

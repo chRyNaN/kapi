@@ -5,7 +5,7 @@ package com.chrynan.kapi.server.graphql.core.language
  */
 sealed interface ImplementingTypeDefinition : TypeDefinition {
 
-    val implements: List<TypeName>
+    val implements: List<Type>
 
     val fieldDefinitions: List<FieldDefinition>
 }

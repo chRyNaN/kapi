@@ -8,7 +8,7 @@ import kotlinx.serialization.Transient
 @SerialName(value = "ObjectTypeDefinition")
 class ObjectTypeDefinition(
     @SerialName(value = "name") override val name: String,
-    @SerialName(value = "implements") override val implements: List<TypeName> = emptyList(),
+    @SerialName(value = "implements") override val implements: List<Type> = emptyList(),
     @SerialName(value = "field_definitions") override val fieldDefinitions: List<FieldDefinition> = emptyList(),
     @SerialName(value = "directives") override val directives: List<Directive> = emptyList(),
     @SerialName(value = "description") override val description: Description? = null,
@@ -30,7 +30,7 @@ class ObjectTypeDefinition(
 
     fun copy(
         name: String = this.name,
-        implements: List<TypeName> = this.implements,
+        implements: List<Type> = this.implements,
         fieldDefinitions: List<FieldDefinition> = this.fieldDefinitions,
         directives: List<Directive> = this.directives,
         description: Description? = this.description,
