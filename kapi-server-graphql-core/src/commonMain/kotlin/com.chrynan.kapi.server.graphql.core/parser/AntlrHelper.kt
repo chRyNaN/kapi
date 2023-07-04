@@ -3,7 +3,6 @@
 package com.chrynan.kapi.server.graphql.core.parser
 
 import com.chrynan.kapi.server.graphql.core.language.SourceLocation
-import graphql.parser.MultiSourceReader
 import org.antlr.v4.kotlinruntime.Token
 import org.antlr.v4.kotlinruntime.tree.TerminalNode
 
@@ -28,16 +27,22 @@ internal object AntlrHelper {
         return SourceLocation(line, column, sourceAndLine.sourceName)
     }
 
-    fun createSourceLocation(multiSourceReader: MultiSourceReader, token: Token): SourceLocation {
-        return createSourceLocation(multiSourceReader, token.line, token.charPositionInLine)
-    }
+    fun createSourceLocation(multiSourceReader: MultiSourceReader, token: Token): SourceLocation =
+        createSourceLocation(multiSourceReader, token.line, token.charPositionInLine)
 
-    fun createSourceLocation(multiSourceReader: MultiSourceReader, terminalNode: TerminalNode): SourceLocation {
-        return createSourceLocation(
-            multiSourceReader,
-            terminalNode.symbol?.line ?: 0,
-            terminalNode.symbol?.charPositionInLine ?: 0
-        )
+    fun createSourceLocation(multiSourceReader: MultiSourceReader, terminalNode: TerminalNode): SourceLocation? {
+        val line = terminalNode.symbol?.line
+        val charPositionInLine = terminalNode.symbol?.charPositionInLine
+
+        return if (line == null || charPositionInLine == null) {
+            null
+        } else {
+            createSourceLocation(
+                multiSourceReader,
+                terminalNode.symbol?.line ?: 0,
+                terminalNode.symbol?.charPositionInLine ?: 0
+            )
+        }
     }
 
     /* grabs 3 lines before and after the syntax error */

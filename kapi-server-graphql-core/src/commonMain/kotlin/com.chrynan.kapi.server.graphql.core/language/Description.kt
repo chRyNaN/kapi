@@ -6,13 +6,13 @@ import kotlinx.serialization.Serializable
 @Serializable
 class Description(
     @SerialName(value = "content") val content: String,
-    @SerialName(value = "source_location") val sourceLocation: SourceLocation,
+    @SerialName(value = "source_location") val sourceLocation: SourceLocation? = null,
     @SerialName(value = "multiline") val isMultiline: Boolean = false
 ) {
 
     fun copy(
         content: String = this.content,
-        sourceLocation: SourceLocation = this.sourceLocation,
+        sourceLocation: SourceLocation? = this.sourceLocation,
         isMultiline: Boolean = this.isMultiline
     ): Description = Description(
         content = content,

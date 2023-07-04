@@ -3,7 +3,6 @@ package com.chrynan.kapi.server.graphql.core.language
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import kotlinx.serialization.json.Json
 
 @Serializable
 @SerialName(value = "InputValueDefinition")
@@ -54,14 +53,6 @@ class InputValueDefinition(
         ignoredChars = ignoredChars,
         additionalData = additionalData
     )
-
-    /**
-     * This is a convenience function for invoking the [Value.value] function on the [defaultValue] property.
-     *
-     * @see [Value.value]
-     */
-    inline fun <reified T> defaultValue(json: Json = Json.Default): T? =
-        defaultValue?.value(json = json)
 
     override fun isContentEqualTo(node: Node): Boolean {
         if (this == node) return true

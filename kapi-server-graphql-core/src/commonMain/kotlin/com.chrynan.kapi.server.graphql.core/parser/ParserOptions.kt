@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package com.chrynan.kapi.server.graphql.core.parser
 
 /**
@@ -175,7 +177,7 @@ class ParserOptions(
          *
          * @see graphql.language.SourceLocation
          */
-        var defaultParserOptions: ParserOptions? = ParserOptions(
+        var defaultParserOptions: ParserOptions = ParserOptions(
             isCaptureIgnoredChars = false,
             isCaptureSourceLocation = true,
             isCaptureLineComments = true,
@@ -196,7 +198,7 @@ class ParserOptions(
          *
          * @see graphql.language.SourceLocation
          */
-        var defaultOperationParserOptions: ParserOptions? = ParserOptions(
+        var defaultOperationParserOptions: ParserOptions = ParserOptions(
             isCaptureIgnoredChars = false,
             isCaptureSourceLocation = true,
             isCaptureLineComments = false,
@@ -222,7 +224,7 @@ class ParserOptions(
          *
          * @see graphql.schema.idl.SchemaParser
          */
-        var defaultSdlParserOptions: ParserOptions? = ParserOptions(
+        var defaultSdlParserOptions: ParserOptions = ParserOptions(
             isCaptureIgnoredChars = false,
             isCaptureSourceLocation = true,
             isCaptureLineComments = true,

@@ -9,13 +9,13 @@ import kotlinx.serialization.Serializable
 class IgnoredChar(
     @SerialName(value = "value") val value: String,
     @SerialName(value = "kind") val kind: Kind,
-    @SerialName(value = "source_location") val sourceLocation: SourceLocation
+    @SerialName(value = "source_location") val sourceLocation: SourceLocation? = null
 ) {
 
     fun copy(
         value: String = this.value,
         kind: Kind = this.kind,
-        sourceLocation: SourceLocation = this.sourceLocation
+        sourceLocation: SourceLocation? = this.sourceLocation
     ): IgnoredChar = IgnoredChar(
         value = value,
         kind = kind,
@@ -26,7 +26,7 @@ class IgnoredChar(
 
     operator fun component2(): Kind = kind
 
-    operator fun component3(): SourceLocation = sourceLocation
+    operator fun component3(): SourceLocation? = sourceLocation
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

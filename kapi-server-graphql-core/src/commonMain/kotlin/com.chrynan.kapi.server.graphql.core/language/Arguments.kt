@@ -44,7 +44,7 @@ class Arguments : Collection<Argument> {
      * that [Argument]s containing the same [Argument.name] will be overridden with the last one when converting this
      * [Set] to the [values] [Map].
      */
-    constructor(arguments: Set<Argument>) {
+    constructor(arguments: Collection<Argument>) {
         this.values = arguments.associateBy { it.name }
     }
 
@@ -97,6 +97,7 @@ class Arguments : Collection<Argument> {
     override fun toString(): String =
         "Arguments(size=$size, values=${values.values})"
 
+    /*
     /**
      * Retrieves the value for the argument with the provided name, or `null` if there is no argument with the provided
      * name.
@@ -113,8 +114,9 @@ class Arguments : Collection<Argument> {
         val argument = values[name] ?: return null
 
         return argument.value(json = json)
-    }
+    }*/
 
+/*
     /**
      * Retrieves the value for the argument with the provided name, or throws a [NoSuchElementException] if there is no
      * argument with the provided name.
@@ -128,7 +130,7 @@ class Arguments : Collection<Argument> {
      * @see [Argument.value] for the conversion of the [Argument.element] to the expected value.
      */
     inline fun <reified T> getValue(name: String, json: Json = Json.Default): T =
-        get(name = name, json = json) ?: throw NoSuchElementException("There was no argument with name '$name'.")
+        get(name = name, json = json) ?: throw NoSuchElementException("There was no argument with name '$name'.")*/
 
     companion object
 }

@@ -10,7 +10,7 @@ import okio.Timeout
 
 class MultiSourceReader(
     private val sourceParts: List<SourcePart>,
-    private val data: StringBuilder = StringBuilder(),
+    internal val data: StringBuilder = StringBuilder(),
     private var currentIndex: Int = 0,
     private var overallLineNumber: Int = 0,
     private val trackData: Boolean = false

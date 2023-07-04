@@ -10,7 +10,7 @@ import kotlinx.serialization.json.Json
 class VariableDefinition(
     @SerialName(value = "name") override val name: String,
     @SerialName(value = "type") val type: Type,
-    @SerialName(value = "default_value") val defaultValue: Value? = null,
+    @SerialName(value = "default_value") val defaultValue: JsonValue? = null,
     @SerialName(value = "directives") override val directives: List<Directive> = emptyList(),
     @SerialName(value = "source_location") override val sourceLocation: SourceLocation? = null,
     @SerialName(value = "comments") override val comments: List<Comment> = emptyList(),
@@ -34,7 +34,7 @@ class VariableDefinition(
     fun copy(
         name: String = this.name,
         type: Type = this.type,
-        defaultValue: Value? = this.defaultValue,
+        defaultValue: JsonValue? = this.defaultValue,
         directives: List<Directive> = this.directives,
         sourceLocation: SourceLocation? = this.sourceLocation,
         comments: List<Comment> = this.comments,
@@ -52,9 +52,9 @@ class VariableDefinition(
     )
 
     /**
-     * This is a convenience function for invoking the [Value.value] function on the [defaultValue] property.
+     * This is a convenience function for invoking the [JsonValue.value] function on the [defaultValue] property.
      *
-     * @see [Value.value]
+     * @see [JsonValue.value]
      */
     inline fun <reified T> defaultValue(json: Json = Json.Default): T? =
         defaultValue?.value(json = json)

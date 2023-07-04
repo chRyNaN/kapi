@@ -9,12 +9,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 class Comment(
     @SerialName(value = "content") val content: String,
-    @SerialName(value = "source_location") val sourceLocation: SourceLocation
+    @SerialName(value = "source_location") val sourceLocation: SourceLocation? = null
 ) {
 
     fun copy(
         content: String = this.content,
-        sourceLocation: SourceLocation = this.sourceLocation
+        sourceLocation: SourceLocation? = this.sourceLocation
     ): Comment = Comment(
         content = content,
         sourceLocation = sourceLocation
@@ -22,7 +22,7 @@ class Comment(
 
     operator fun component1(): String = content
 
-    operator fun component2(): SourceLocation = sourceLocation
+    operator fun component2(): SourceLocation? = sourceLocation
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

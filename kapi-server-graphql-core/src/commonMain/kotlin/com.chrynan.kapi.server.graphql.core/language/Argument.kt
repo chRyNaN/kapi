@@ -3,13 +3,12 @@ package com.chrynan.kapi.server.graphql.core.language
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import kotlinx.serialization.json.Json
 
 /**
  * Represents a GraphQL Argument passed in through a query to access a field.
  *
  * @property [name] The name of the argument.
- * @property [value] The [Value] representing the value fo the argument. This can be converted to the
+ * @property [value] The [JsonValue] representing the value fo the argument. This can be converted to the
  * appropriate type via a call to the [value] function.
  */
 @Serializable
@@ -56,14 +55,6 @@ class Argument(
     operator fun component1(): String = name
 
     operator fun component2(): Value = value
-
-    /**
-     * This is a convenience function for invoking the [Value.value] function on the [value] property.
-     *
-     * @see [Value.value]
-     */
-    inline fun <reified T> value(json: Json = Json.Default): T =
-        value.value(json = json)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
