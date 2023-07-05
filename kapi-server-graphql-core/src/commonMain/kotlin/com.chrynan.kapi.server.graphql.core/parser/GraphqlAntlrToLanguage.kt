@@ -16,6 +16,8 @@ import com.chrynan.kapi.server.graphql.core.language.*
 import com.chrynan.kapi.server.graphql.core.parser.Parser.Companion.CHANNEL_COMMENTS
 import com.chrynan.kapi.server.graphql.core.parser.Parser.Companion.CHANNEL_WHITESPACE
 import com.chrynan.kapi.server.graphql.core.util.Assert
+import com.ionspin.kotlin.bignum.decimal.toBigDecimal
+import com.ionspin.kotlin.bignum.integer.toBigInteger
 import kotlinx.serialization.json.*
 
 class GraphqlAntlrToLanguage(
@@ -685,99 +687,161 @@ class GraphqlAntlrToLanguage(
         return captureRuleContext(directiveLocation, context)
     }
 
-    private fun createValue(context: GraphqlParser.ValueWithVariableContext): Value? =
-        try {
-            val jsonElement = createValueJsonElement(context)
-
-            JsonValue(
-                element = jsonElement,
+    private fun createValue(context: GraphqlParser.ValueWithVariableContext): Value =
+        context.BooleanValue()?.text?.toBooleanStrictOrNull()?.let {
+            BooleanValue(
+                value = it,
                 sourceLocation = getSourceLocation(context),
                 comments = getComments(context),
                 ignoredChars = getIgnoredChars(context)
             )
-        } catch (_: Exception) {
-            context.findVariable()?.let { variableContext ->
-                val name = variableContext.findName()?.text ?: return null
+        } ?: context.IntValue()?.text?.toBigInteger()?.let {
+            IntValue(
+                value = it,
+                sourceLocation = getSourceLocation(context),
+                comments = getComments(context),
+                ignoredChars = getIgnoredChars(context)
+            )
+        } ?: context.FloatValue()?.text?.toBigDecimal()?.let {
+            FloatValue(
+                value = it,
+                sourceLocation = getSourceLocation(context),
+                comments = getComments(context),
+                ignoredChars = getIgnoredChars(context)
+            )
+        } ?: context.StringValue()?.let { quotedString(it) }?.let {
+            StringValue(
+                value = it,
+                sourceLocation = getSourceLocation(context),
+                comments = getComments(context),
+                ignoredChars = getIgnoredChars(context)
+            )
+        } ?: context.NullValue()?.let {
+            NullValue(
+                sourceLocation = getSourceLocation(context),
+                comments = getComments(context),
+                ignoredChars = getIgnoredChars(context)
+            )
+        } ?: context.findEnumValue()?.findEnumValueName()?.text?.let {
+            EnumValue(
+                name = it,
+                sourceLocation = getSourceLocation(context),
+                comments = getComments(context),
+                ignoredChars = getIgnoredChars(context)
+            )
+        } ?: context.findArrayValueWithVariable()?.findValueWithVariable()?.let { values ->
+            ArrayValue(
+                values = values.map { createValue(it) },
+                sourceLocation = getSourceLocation(context),
+                comments = getComments(context),
+                ignoredChars = getIgnoredChars(context)
+            )
+        } ?: context.findObjectValueWithVariable()?.findObjectFieldWithVariable()?.let { fields ->
+            ObjectValue(
+                fields = fields.mapNotNull { fieldContext ->
+                    val name = fieldContext.findName()?.text
+                    val value = fieldContext.findValueWithVariable()?.let { createValue(it) }
 
-                VariableReference(
-                    name = name,
-                    sourceLocation = getSourceLocation(variableContext),
-                    comments = getComments(variableContext),
-                    ignoredChars = getIgnoredChars(variableContext)
-                )
-            }
-        }
-
-    private fun createValueJsonElement(context: GraphqlParser.ValueWithVariableContext): JsonElement =
-        context.IntValue()?.text?.toIntOrNull()?.let { JsonPrimitive(it) }
-            ?: context.FloatValue()?.text?.toFloatOrNull()?.let { JsonPrimitive(it) }
-            ?: context.BooleanValue()?.text?.toBooleanStrictOrNull()?.let { JsonPrimitive(it) }
-            ?: context.StringValue()?.text?.let { JsonPrimitive(it) }
-            ?: context.findEnumValue()?.text?.let { JsonPrimitive(it) }
-            ?: context.NullValue()?.let { JsonNull }
-            ?: context.findArrayValueWithVariable()?.findValueWithVariable()?.let { values ->
-                buildJsonArray {
-                    values.forEach { value ->
-                        val jsonElement = createValueJsonElement(value)
-
-                        add(jsonElement)
+                    if (name != null && value != null) {
+                        ObjectField(
+                            name = name,
+                            value = value,
+                            sourceLocation = getSourceLocation(fieldContext),
+                            comments = getComments(fieldContext),
+                            ignoredChars = getIgnoredChars(fieldContext)
+                        )
+                    } else {
+                        null
                     }
-                }
-            }
-            ?: context.findObjectValueWithVariable()?.findObjectFieldWithVariable()?.let { fields ->
-                buildJsonObject {
-                    fields.forEach { field ->
-                        val key = field.findName()?.text
-                        val value = field.findValueWithVariable()?.let { createValueJsonElement(it) } ?: JsonNull
+                },
+                sourceLocation = getSourceLocation(context),
+                comments = getComments(context),
+                ignoredChars = getIgnoredChars(context)
+            )
+        } ?: context.findVariable()?.findName()?.text?.let {
+            VariableReference(
+                name = it,
+                sourceLocation = getSourceLocation(context),
+                comments = getComments(context),
+                ignoredChars = getIgnoredChars(context)
+            )
+        } ?: Assert.assertShouldNeverHappen()
 
-                        if (key != null) {
-                            put(key, value)
-                        }
+    private fun createValue(context: GraphqlParser.ValueContext): Value =
+        context.BooleanValue()?.text?.toBooleanStrictOrNull()?.let {
+            BooleanValue(
+                value = it,
+                sourceLocation = getSourceLocation(context),
+                comments = getComments(context),
+                ignoredChars = getIgnoredChars(context)
+            )
+        } ?: context.IntValue()?.text?.toBigInteger()?.let {
+            IntValue(
+                value = it,
+                sourceLocation = getSourceLocation(context),
+                comments = getComments(context),
+                ignoredChars = getIgnoredChars(context)
+            )
+        } ?: context.FloatValue()?.text?.toBigDecimal()?.let {
+            FloatValue(
+                value = it,
+                sourceLocation = getSourceLocation(context),
+                comments = getComments(context),
+                ignoredChars = getIgnoredChars(context)
+            )
+        } ?: context.StringValue()?.let { quotedString(it) }?.let {
+            StringValue(
+                value = it,
+                sourceLocation = getSourceLocation(context),
+                comments = getComments(context),
+                ignoredChars = getIgnoredChars(context)
+            )
+        } ?: context.NullValue()?.let {
+            NullValue(
+                sourceLocation = getSourceLocation(context),
+                comments = getComments(context),
+                ignoredChars = getIgnoredChars(context)
+            )
+        } ?: context.findEnumValue()?.findEnumValueName()?.text?.let {
+            EnumValue(
+                name = it,
+                sourceLocation = getSourceLocation(context),
+                comments = getComments(context),
+                ignoredChars = getIgnoredChars(context)
+            )
+        } ?: context.findArrayValue()?.findValue()?.let { values ->
+            ArrayValue(
+                values = values.map { createValue(it) },
+                sourceLocation = getSourceLocation(context),
+                comments = getComments(context),
+                ignoredChars = getIgnoredChars(context)
+            )
+        } ?: context.findObjectValue()?.findObjectField()?.let { fields ->
+            ObjectValue(
+                fields = fields.mapNotNull { fieldContext ->
+                    val name = fieldContext.findName()?.text
+                    val value = fieldContext.findValue()?.let { createValue(it) }
+
+                    if (name != null && value != null) {
+                        ObjectField(
+                            name = name,
+                            value = value,
+                            sourceLocation = getSourceLocation(fieldContext),
+                            comments = getComments(fieldContext),
+                            ignoredChars = getIgnoredChars(fieldContext)
+                        )
+                    } else {
+                        null
                     }
-                }
-            }
-            ?: Assert.assertShouldNeverHappen()
+                },
+                sourceLocation = getSourceLocation(context),
+                comments = getComments(context),
+                ignoredChars = getIgnoredChars(context)
+            )
+        } ?: Assert.assertShouldNeverHappen()
 
-    private fun createValueJsonElement(context: GraphqlParser.ValueContext): JsonElement =
-        context.IntValue()?.text?.toIntOrNull()?.let { JsonPrimitive(it) }
-            ?: context.FloatValue()?.text?.toFloatOrNull()?.let { JsonPrimitive(it) }
-            ?: context.BooleanValue()?.text?.toBooleanStrictOrNull()?.let { JsonPrimitive(it) }
-            ?: context.StringValue()?.text?.let { JsonPrimitive(it) }
-            ?: context.findEnumValue()?.text?.let { JsonPrimitive(it) }
-            ?: context.NullValue()?.let { JsonNull }
-            ?: context.findArrayValue()?.findValue()?.let { values ->
-                buildJsonArray {
-                    values.forEach { value ->
-                        val jsonElement = createValueJsonElement(value)
-
-                        add(jsonElement)
-                    }
-                }
-            }
-            ?: context.findObjectValue()?.findObjectField()?.let { fields ->
-                buildJsonObject {
-                    fields.forEach { field ->
-                        val key = field.findName()?.text
-                        val value = field.findValue()?.let { createValueJsonElement(it) } ?: JsonNull
-
-                        if (key != null) {
-                            put(key, value)
-                        }
-                    }
-                }
-            }
-            ?: JsonNull
-
-    private fun createValue(context: GraphqlParser.ValueContext): JsonValue =
-        JsonValue(
-            element = createValueJsonElement(context),
-            sourceLocation = getSourceLocation(context),
-            comments = getComments(context),
-            ignoredChars = getIgnoredChars(context)
-        )
-
-    private fun quotedString(terminalNode: TerminalNode?): String? {
-        val multiLine = terminalNode!!.text.startsWith("\"\"\"")
+    private fun quotedString(terminalNode: TerminalNode): String? {
+        val multiLine = terminalNode.text.startsWith("\"\"\"")
         val strText = terminalNode.text
         val sourceLocation = AntlrHelper.createSourceLocation(
             multiSourceReader,
