@@ -3,6 +3,8 @@ package com.chrynan.kapi.server.graphql.core.language
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
 
 @Serializable
 @SerialName(value = "EnumValue")
@@ -14,10 +16,14 @@ class EnumValue(
     @SerialName(value = "additional_data") override val additionalData: Map<String, String> = emptyMap()
 ) : Node,
     NamedNode,
-    Value {
+    Value,
+    JsonValue {
 
     @Transient
     override val children: List<Node> = emptyList()
+
+    @Transient
+    override val element: JsonElement = JsonPrimitive(name)
 
     fun copy(
         name: String = this.name,

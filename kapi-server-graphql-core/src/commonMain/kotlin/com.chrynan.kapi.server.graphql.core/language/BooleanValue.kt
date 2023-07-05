@@ -3,6 +3,8 @@ package com.chrynan.kapi.server.graphql.core.language
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
 
 @Serializable
 @SerialName(value = "BooleanValue")
@@ -13,10 +15,14 @@ class BooleanValue(
     @SerialName(value = "ignored_chars") override val ignoredChars: IgnoredChars = IgnoredChars.EMPTY,
     @SerialName(value = "additional_data") override val additionalData: Map<String, String> = emptyMap()
 ) : Node,
-    ScalarValue {
+    ScalarValue,
+    JsonValue {
 
     @Transient
     override val children: List<Node> = emptyList()
+
+    @Transient
+    override val element: JsonElement = JsonPrimitive(value)
 
     fun copy(
         value: Boolean = this.value,

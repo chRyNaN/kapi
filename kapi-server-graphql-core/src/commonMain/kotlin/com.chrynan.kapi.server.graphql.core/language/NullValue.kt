@@ -3,6 +3,8 @@ package com.chrynan.kapi.server.graphql.core.language
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 
 @Serializable
 @SerialName(value = "NullValue")
@@ -12,10 +14,14 @@ class NullValue(
     @SerialName(value = "ignored_chars") override val ignoredChars: IgnoredChars = IgnoredChars.EMPTY,
     @SerialName(value = "additional_data") override val additionalData: Map<String, String> = emptyMap()
 ) : Node,
-    Value {
+    Value,
+    JsonValue {
 
     @Transient
     override val children: List<Node> = emptyList()
+
+    @Transient
+    override val element: JsonElement = JsonNull
 
     fun copy(
         sourceLocation: SourceLocation? = this.sourceLocation,
