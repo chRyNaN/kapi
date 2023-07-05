@@ -14,14 +14,10 @@ class NullValue(
     @SerialName(value = "ignored_chars") override val ignoredChars: IgnoredChars = IgnoredChars.EMPTY,
     @SerialName(value = "additional_data") override val additionalData: Map<String, String> = emptyMap()
 ) : Node,
-    Value,
-    JsonValue {
+    Value {
 
     @Transient
     override val children: List<Node> = emptyList()
-
-    @Transient
-    override val element: JsonElement = JsonNull
 
     fun copy(
         sourceLocation: SourceLocation? = this.sourceLocation,
@@ -34,6 +30,8 @@ class NullValue(
         ignoredChars = ignoredChars,
         additionalData = additionalData
     )
+
+    override fun element(variables: Map<String, JsonElement>): JsonElement = JsonNull
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

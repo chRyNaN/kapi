@@ -3,6 +3,7 @@ package com.chrynan.kapi.server.graphql.core.language
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import kotlinx.serialization.json.JsonElement
 
 /**
  * Represents a reference to a variable within a GraphQL Operation.
@@ -33,6 +34,9 @@ class VariableReference(
         ignoredChars = ignoredChars,
         additionalData = additionalData
     )
+
+    override fun element(variables: Map<String, JsonElement>): JsonElement =
+        variables[name] ?: throw NoSuchElementException("There was no variable with the name `$name` provided.")
 
     override fun isContentEqualTo(node: Node): Boolean {
         if (this == node) return true

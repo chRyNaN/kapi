@@ -3,6 +3,8 @@ package com.chrynan.kapi.server.graphql.core.language
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.buildJsonObject
 
 @Serializable
 @SerialName(value = "ObjectValue")
@@ -31,6 +33,12 @@ class ObjectValue(
         ignoredChars = ignoredChars,
         additionalData = additionalData
     )
+
+    override fun element(variables: Map<String, JsonElement>): JsonElement = buildJsonObject {
+        fields.forEach { field ->
+            put(field.name, field.value.element(variables = variables))
+        }
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

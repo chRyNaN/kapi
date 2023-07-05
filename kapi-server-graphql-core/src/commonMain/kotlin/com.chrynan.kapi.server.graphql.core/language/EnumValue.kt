@@ -16,14 +16,10 @@ class EnumValue(
     @SerialName(value = "additional_data") override val additionalData: Map<String, String> = emptyMap()
 ) : Node,
     NamedNode,
-    Value,
-    JsonValue {
+    Value {
 
     @Transient
     override val children: List<Node> = emptyList()
-
-    @Transient
-    override val element: JsonElement = JsonPrimitive(name)
 
     fun copy(
         name: String = this.name,
@@ -38,6 +34,8 @@ class EnumValue(
         ignoredChars = ignoredChars,
         additionalData = additionalData
     )
+
+    override fun element(variables: Map<String, JsonElement>): JsonElement = JsonPrimitive(name)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

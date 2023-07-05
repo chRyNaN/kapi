@@ -3,6 +3,8 @@ package com.chrynan.kapi.server.graphql.core.language
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.buildJsonArray
 
 @Serializable
 @SerialName(value = "ArrayValue")
@@ -31,6 +33,12 @@ class ArrayValue(
         ignoredChars = ignoredChars,
         additionalData = additionalData
     )
+
+    override fun element(variables: Map<String, JsonElement>): JsonElement = buildJsonArray {
+        values.forEach { value ->
+            add(value.element(variables = variables))
+        }
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

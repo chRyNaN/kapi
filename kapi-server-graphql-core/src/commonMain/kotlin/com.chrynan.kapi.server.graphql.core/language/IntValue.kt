@@ -17,14 +17,10 @@ class IntValue(
     @SerialName(value = "ignored_chars") override val ignoredChars: IgnoredChars = IgnoredChars.EMPTY,
     @SerialName(value = "additional_data") override val additionalData: Map<String, String> = emptyMap()
 ) : Node,
-    ScalarValue,
-    JsonValue {
+    ScalarValue {
 
     @Transient
     override val children: List<Node> = emptyList()
-
-    @Transient
-    override val element: JsonElement = JsonPrimitive(value.intValue(exactRequired = false))
 
     fun copy(
         value: BigInteger = this.value,
@@ -39,6 +35,9 @@ class IntValue(
         ignoredChars = ignoredChars,
         additionalData = additionalData
     )
+
+    override fun element(variables: Map<String, JsonElement>): JsonElement =
+        JsonPrimitive(value.intValue(exactRequired = false))
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
