@@ -4,7 +4,6 @@ package com.chrynan.kapi.server.graphql.core.language
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 
 /**
  * A wrapper class around the [Argument]s provided in a GraphQL query for accessing a field.
@@ -97,40 +96,26 @@ class Arguments : Collection<Argument> {
     override fun toString(): String =
         "Arguments(size=$size, values=${values.values})"
 
-    /*
     /**
-     * Retrieves the value for the argument with the provided name, or `null` if there is no argument with the provided
-     * name.
+     * Retrieves the [Argument] with the provided [name] from this [Arguments] collection, or `null` if there is no
+     * argument with the provided [name] in this collection.
      *
-     * @param [name] The name of the [Argument] whose value is to be returned.
-     * @param [json] The [Json] object that is to convert an argument's [Argument.element] field into the expected
-     * value. Defaults to [Json.Default].
-     *
-     * @see [getValue] for a variation of this function that throws a [NoSuchElementException] instead of returning
-     * `null` when an argument with the provided name doesn't exist.
-     * @see [Argument.value] for the conversion of the [Argument.element] to the expected value.
+     * @param [name] The name of the [Argument] to retrieve. This corresponds to the [Argument.name] value.
      */
-    inline operator fun <reified T> get(name: String, json: Json = Json.Default): T? {
-        val argument = values[name] ?: return null
+    operator fun get(name: String): Argument? =
+        values[name]
 
-        return argument.value(json = json)
-    }*/
-
-/*
     /**
-     * Retrieves the value for the argument with the provided name, or throws a [NoSuchElementException] if there is no
-     * argument with the provided name.
+     * Retrieves the [Argument] with the provided [name] from this [Arguments] collection, or throws
+     * [NoSuchElementException] if there is no argument with the provided [name] in this collection.
      *
-     * @param [name] The name of the [Argument] whose value is to be returned.
-     * @param [json] The [Json] object that is to convert an argument's [Argument.element] field into the expected
-     * value. Defaults to [Json.Default].
+     * @param [name] The name of the [Argument] to retrieve. This corresponds to the [Argument.name] value.
      *
-     * @see [get] for a variation of this function that returns `null` instead of throwing a [NoSuchElementException]
-     * when an argument with the provided name doesn't exist.
-     * @see [Argument.value] for the conversion of the [Argument.element] to the expected value.
+     * @throws [NoSuchElementException] If there is no [Argument] with the provided [name] in this [Arguments]
+     * collection.
      */
-    inline fun <reified T> getValue(name: String, json: Json = Json.Default): T =
-        get(name = name, json = json) ?: throw NoSuchElementException("There was no argument with name '$name'.")*/
+    fun getValue(name: String): Argument =
+        values[name] ?: throw NoSuchElementException("There was no argument with name '$name'.")
 
     companion object
 }

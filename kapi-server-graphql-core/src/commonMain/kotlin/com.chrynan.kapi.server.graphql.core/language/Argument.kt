@@ -8,8 +8,8 @@ import kotlinx.serialization.Transient
  * Represents a GraphQL Argument passed in through a query to access a field.
  *
  * @property [name] The name of the argument.
- * @property [value] The [JsonValue] representing the value fo the argument. This can be converted to the
- * appropriate type via a call to the [value] function.
+ * @property [value] The [Value] representing the value fo the argument. This can be converted to the
+ * appropriate type via a call to the [Value.value] function.
  */
 @Serializable
 @SerialName(value = "Argument")
