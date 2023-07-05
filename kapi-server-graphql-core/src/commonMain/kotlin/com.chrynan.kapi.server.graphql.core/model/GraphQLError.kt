@@ -34,12 +34,14 @@ interface GraphQLError {
      */
     @SerialName(value = "locations")
     val locations: List<SourceLocation?>?
+        get() = null
 
     /**
      * An optional property that represents the path segments in the response to point to where the error occurred.
      */
     @SerialName(value = "path")
     val path: List<PathSegment?>?
+        get() = null
 
     /**
      * An optional property that represents extra information about the error that is implementation specific. This
@@ -48,6 +50,7 @@ interface GraphQLError {
      */
     @SerialName(value = "extensions")
     val extensions: JsonObject?
+        get() = null
 
     /**
      * Creates a copy of this [GraphQLError] overriding the provided values.
