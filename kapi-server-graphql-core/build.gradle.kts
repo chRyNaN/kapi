@@ -39,6 +39,10 @@ kotlin {
 
                 // I/0 - OKIO
                 implementation("com.squareup.okio:okio:_")
+
+                // Big Numbers
+                implementation("com.ionspin.kotlin:bignum:_")
+                implementation("com.ionspin.kotlin:bignum-serialization-kotlinx:_")
             }
 
             kotlin.srcDir("build/generated-src/commonMain/kotlin")
