@@ -5,8 +5,9 @@ package com.chrynan.kapi.server.graphql.core.introspection
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+@Suppress("ClassName")
 @Serializable
-enum class DirectiveLocation(val serialName: String) {
+enum class __DirectiveLocation(val serialName: String) {
 
     @SerialName(value = "SCHEMA")
     SCHEMA(serialName = "SCHEMA"),
@@ -67,7 +68,7 @@ enum class DirectiveLocation(val serialName: String) {
 
     companion object {
 
-        fun getBySerialName(name: String, ignoreCase: Boolean = true): DirectiveLocation? =
+        fun getBySerialName(name: String, ignoreCase: Boolean = true): __DirectiveLocation? =
             values().firstOrNull {
                 if (ignoreCase) {
                     it.serialName.lowercase() == name.lowercase()

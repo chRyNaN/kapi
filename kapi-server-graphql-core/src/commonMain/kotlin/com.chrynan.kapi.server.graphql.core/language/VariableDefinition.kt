@@ -3,14 +3,13 @@ package com.chrynan.kapi.server.graphql.core.language
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import kotlinx.serialization.json.Json
 
 @Serializable
 @SerialName(value = "VariableDefinition")
 class VariableDefinition(
     @SerialName(value = "name") override val name: String,
     @SerialName(value = "type") val type: Type,
-    @SerialName(value = "default_value") val defaultValue: JsonValue? = null,
+    @SerialName(value = "default_value") val defaultValue: Value? = null,
     @SerialName(value = "directives") override val directives: List<Directive> = emptyList(),
     @SerialName(value = "source_location") override val sourceLocation: SourceLocation? = null,
     @SerialName(value = "comments") override val comments: List<Comment> = emptyList(),
@@ -34,7 +33,7 @@ class VariableDefinition(
     fun copy(
         name: String = this.name,
         type: Type = this.type,
-        defaultValue: JsonValue? = this.defaultValue,
+        defaultValue: Value? = this.defaultValue,
         directives: List<Directive> = this.directives,
         sourceLocation: SourceLocation? = this.sourceLocation,
         comments: List<Comment> = this.comments,
@@ -50,14 +49,6 @@ class VariableDefinition(
         ignoredChars = ignoredChars,
         additionalData = additionalData
     )
-
-    /**
-     * This is a convenience function for invoking the [JsonValue.value] function on the [defaultValue] property.
-     *
-     * @see [JsonValue.value]
-     */
-    inline fun <reified T> defaultValue(json: Json = Json.Default): T? =
-        defaultValue?.value(json = json)
 
     override fun isContentEqualTo(node: Node): Boolean {
         if (this == node) return true

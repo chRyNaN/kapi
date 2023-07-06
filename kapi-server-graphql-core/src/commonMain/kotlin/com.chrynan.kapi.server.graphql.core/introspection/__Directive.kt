@@ -3,20 +3,24 @@ package com.chrynan.kapi.server.graphql.core.introspection
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+@Suppress("ClassName")
 @Serializable
-class Directive(
+class __Directive(
     @SerialName(value = "name") val name: String,
     @SerialName(value = "description") val description: String? = null,
-    @SerialName(value = "locations") val locations: List<DirectiveLocation> = emptyList(),
-    @SerialName(value = "args") val arguments: List<Argument> = emptyList()
-) {
+    @SerialName(value = "locations") val locations: List<__DirectiveLocation> = emptyList(),
+    @SerialName(value = "args") val arguments: List<__InputValue> = emptyList()
+) : IntrospectionType {
+
+    @SerialName(value = "__typename")
+    override val __typename: String = "__Directive"
 
     fun copy(
         name: String = this.name,
         description: String? = this.description,
-        locations: List<DirectiveLocation> = this.locations,
-        arguments: List<Argument> = this.arguments
-    ): Directive = Directive(
+        locations: List<__DirectiveLocation> = this.locations,
+        arguments: List<__InputValue> = this.arguments
+    ): __Directive = __Directive(
         name = name,
         description = description,
         locations = locations,
@@ -25,7 +29,7 @@ class Directive(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is Directive) return false
+        if (other !is __Directive) return false
 
         if (name != other.name) return false
         if (description != other.description) return false
@@ -43,5 +47,5 @@ class Directive(
     }
 
     override fun toString(): String =
-        "Directive(name='$name', description=$description, locations=$locations, arguments=$arguments)"
+        "__Directive(name='$name', description=$description, locations=$locations, arguments=$arguments)"
 }

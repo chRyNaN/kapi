@@ -7,7 +7,7 @@ import kotlinx.serialization.Transient
 /**
  * Represents the specification of a location for a directive in a GraphQL Document.
  *
- * @see [com.chrynan.kapi.server.graphql.core.introspection.DirectiveLocation]
+ * @see [com.chrynan.kapi.server.graphql.core.introspection.__DirectiveLocation]
  */
 @Serializable
 @SerialName(value = "DirectiveLocation")

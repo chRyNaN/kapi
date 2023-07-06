@@ -2,6 +2,7 @@
 
 package com.chrynan.kapi.server.graphql.core
 
+import com.chrynan.kapi.server.graphql.core.introspection.__Type
 import com.chrynan.kapi.server.graphql.core.language.Arguments
 import graphql.execution.MergedField
 import graphql.language.SelectionSet
@@ -12,8 +13,25 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializer
+import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
+
+interface KotlinType<T> {
+
+    val kType: KType
+    val serializer: KSerializer<T>
+}
+
+interface GraphqlType {
+
+    val type: __Type
+}
+
+interface Value<T> {
+
+    val value: T
+}
 
 interface ResolvedType<T> {
 

@@ -5,8 +5,9 @@ package com.chrynan.kapi.server.graphql.core.introspection
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+@Suppress("ClassName")
 @Serializable
-enum class TypeKind(val serialName: String) {
+enum class __TypeKind(val serialName: String) {
 
     @SerialName(value = "ENUM")
     ENUM(serialName = "ENUM"),
@@ -34,7 +35,7 @@ enum class TypeKind(val serialName: String) {
 
     companion object {
 
-        fun getBySerialName(name: String, ignoreCase: Boolean = true): TypeKind? =
+        fun getBySerialName(name: String, ignoreCase: Boolean = true): __TypeKind? =
             values().firstOrNull {
                 if (ignoreCase) {
                     it.serialName.lowercase() == name.lowercase()

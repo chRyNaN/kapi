@@ -1,11 +1,13 @@
 package com.chrynan.kapi.server.graphql.core.model
 
 import com.chrynan.kapi.server.graphql.core.language.SourceLocation
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.nullable
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.descriptors.element
@@ -26,7 +28,7 @@ interface GraphQLError {
      * developer as a guide to understand and correct the error.
      */
     @SerialName(value = "message")
-    val message: String
+    val message: String?
 
     /**
      * An optional property representing the location(s) within the GraphQL document at which the error occurred. Each
@@ -56,14 +58,14 @@ interface GraphQLError {
      * Creates a copy of this [GraphQLError] overriding the provided values.
      */
     fun copy(
-        message: String = this.message,
+        message: String? = this.message,
         locations: List<SourceLocation?>? = this.locations,
         path: List<PathSegment?>? = this.path,
         extensions: JsonObject? = this.extensions
     ): GraphQLError
 }
 
-operator fun GraphQLError.component1(): String = message
+operator fun GraphQLError.component1(): String? = message
 
 operator fun GraphQLError.component2(): List<SourceLocation?>? = locations
 
@@ -80,7 +82,7 @@ operator fun GraphQLError.component4(): JsonObject? = extensions
  * @param [extensions] The [GraphQLError.extensions] value. Defaults to `null`.
  */
 fun GraphQLError(
-    message: String,
+    message: String? = null,
     locations: List<SourceLocation?>? = null,
     path: List<PathSegment?>? = null,
     extensions: JsonObject? = null
@@ -91,6 +93,7 @@ fun GraphQLError(
     extensions = extensions
 )
 
+@OptIn(ExperimentalSerializationApi::class)
 internal object GraphQLErrorSerializer : KSerializer<GraphQLError> {
 
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor(serialName = "GraphQLError") {
@@ -101,37 +104,63 @@ internal object GraphQLErrorSerializer : KSerializer<GraphQLError> {
     }
 
     override fun serialize(encoder: Encoder, value: GraphQLError) {
-        encoder.encodeString(value.message)
-        encoder.encodeSerializableValue(
-            serializer = ListSerializer(SourceLocation.serializer().nullable).nullable,
+        val compositeEncoder = encoder.beginStructure(descriptor)
+        compositeEncoder.encodeNullableSerializableElement(
+            descriptor = descriptor,
+            index = 0,
+            serializer = String.serializer(),
+            value = value.message
+        )
+        compositeEncoder.encodeNullableSerializableElement(
+            descriptor = descriptor,
+            index = 1,
+            serializer = ListSerializer(SourceLocation.serializer().nullable),
             value = value.locations
         )
-        encoder.encodeSerializableValue(
-            serializer = ListSerializer(PathSegment.serializer().nullable).nullable,
+        compositeEncoder.encodeNullableSerializableElement(
+            descriptor = descriptor,
+            index = 2,
+            serializer = ListSerializer(PathSegment.serializer().nullable),
             value = value.path
         )
-        encoder.encodeSerializableValue(serializer = JsonObject.serializer().nullable, value = value.extensions)
+        compositeEncoder.encodeNullableSerializableElement(
+            descriptor = descriptor,
+            index = 3,
+            serializer = JsonObject.serializer(),
+            value = value.extensions
+        )
+        compositeEncoder.endStructure(descriptor)
     }
 
-    override fun deserialize(decoder: Decoder): GraphQLError =
-        GraphQLError(
-            message = decoder.decodeString(),
-            locations = decoder.decodeSerializableValue(deserializer = ListSerializer(SourceLocation.serializer().nullable).nullable),
-            path = decoder.decodeSerializableValue(deserializer = ListSerializer(PathSegment.serializer().nullable).nullable),
-            extensions = decoder.decodeSerializableValue(deserializer = JsonObject.serializer().nullable)
+    override fun deserialize(decoder: Decoder): GraphQLError {
+        val compositeDecoder = decoder.beginStructure(descriptor)
+        val message = decoder.decodeNullableSerializableValue(deserializer = String.serializer())
+        val locations =
+            decoder.decodeNullableSerializableValue(deserializer = ListSerializer(SourceLocation.serializer().nullable))
+        val path =
+            decoder.decodeNullableSerializableValue(deserializer = ListSerializer(PathSegment.serializer().nullable))
+        val extensions = decoder.decodeNullableSerializableValue(deserializer = JsonObject.serializer())
+        compositeDecoder.endStructure(descriptor)
+
+        return GraphQLError(
+            message = message,
+            locations = locations,
+            path = path,
+            extensions = extensions
         )
+    }
 }
 
 @Serializable
 private class DefaultGraphQLError(
-    @SerialName(value = "message") override val message: String,
+    @SerialName(value = "message") override val message: String? = null,
     @SerialName(value = "locations") override val locations: List<SourceLocation?>? = null,
     @SerialName(value = "path") override val path: List<PathSegment?>? = null,
     @SerialName(value = "extensions") override val extensions: JsonObject? = null
 ) : GraphQLError {
 
     override fun copy(
-        message: String,
+        message: String?,
         locations: List<SourceLocation?>?,
         path: List<PathSegment?>?,
         extensions: JsonObject?

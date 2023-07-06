@@ -3,20 +3,24 @@ package com.chrynan.kapi.server.graphql.core.introspection
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+@Suppress("ClassName")
 @Serializable
-class InputField(
+class __InputValue(
     @SerialName(value = "name") val name: String,
     @SerialName(value = "description") val description: String? = null,
-    @SerialName(value = "type") val type: Type,
+    @SerialName(value = "type") val type: __Type,
     @SerialName(value = "defaultValue") val defaultValue: String? = null
-) {
+) : IntrospectionType {
+
+    @SerialName(value = "__typename")
+    override val __typename: String = "__InputValue"
 
     fun copy(
         name: String = this.name,
         description: String? = this.description,
-        type: Type = this.type,
+        type: __Type = this.type,
         defaultValue: String? = this.defaultValue
-    ): InputField = InputField(
+    ): __InputValue = __InputValue(
         name = name,
         description = description,
         type = type,
@@ -25,7 +29,7 @@ class InputField(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is InputField) return false
+        if (other !is __InputValue) return false
 
         if (name != other.name) return false
         if (description != other.description) return false
@@ -43,5 +47,5 @@ class InputField(
     }
 
     override fun toString(): String =
-        "InputField(name='$name', description=$description, type=$type, defaultValue=$defaultValue)"
+        "__InputValue(name='$name', description=$description, type=$type, defaultValue=$defaultValue)"
 }
