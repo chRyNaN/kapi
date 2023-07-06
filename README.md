@@ -347,6 +347,7 @@ This project was inspired by the works of the following open source projects and
 * [ktor-retrofit](https://github.com/bnorm/ktor-retrofit)
 * [OpenAPI](https://www.openapis.org/)
 * [JAX-RS](https://en.wikipedia.org/wiki/Jakarta_RESTful_Web_Services)
+* [graphql-java](https://github.com/graphql-java/graphql-java/)
 
 ## Motivation 🧠
 
