@@ -9,7 +9,7 @@ import com.chrynan.kapi.server.graphql.core.model.InvalidSyntaxError
 /**
  * This exception is thrown by the [Parser] if the graphql syntax is not valid
  */
-open class InvalidSyntaxException protected constructor(
+open class InvalidSyntaxException(
     override val message: String,
     val location: SourceLocation? = null,
     val offendingToken: String? = null,

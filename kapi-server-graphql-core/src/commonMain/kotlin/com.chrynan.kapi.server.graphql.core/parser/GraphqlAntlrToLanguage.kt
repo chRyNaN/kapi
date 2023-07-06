@@ -23,7 +23,7 @@ import kotlinx.serialization.json.*
 class GraphqlAntlrToLanguage(
     private val tokens: CommonTokenStream,
     private val multiSourceReader: MultiSourceReader,
-    private val parserOptions: ParserOptions = ParserOptions.defaultParserOptions,
+    internal val parserOptions: ParserOptions = ParserOptions.defaultParserOptions,
     private val i18N: I18n = I18n(bundleType = I18n.BundleType.Parsing, locale = Locale.getDefault()),
     private val nodeToRuleMap: MutableMap<Node, ParserRuleContext?> = mutableMapOf()
 ) {
@@ -207,7 +207,7 @@ class GraphqlAntlrToLanguage(
             ?: context.findUnionTypeDefinition()?.let { createUnionTypeDefinition(it) }
             ?: Assert.assertShouldNeverHappen()
 
-    private fun createType(context: GraphqlParser.TypeContext): Type? =
+    internal fun createType(context: GraphqlParser.TypeContext): Type? =
         context.findTypeName()?.let { createTypeName(it) }
             ?: context.findNonNullType()?.let { createNonNullType(it) }
             ?: context.findListType()?.let { createListType(it) }
@@ -767,7 +767,7 @@ class GraphqlAntlrToLanguage(
             )
         } ?: Assert.assertShouldNeverHappen()
 
-    private fun createValue(context: GraphqlParser.ValueContext): Value =
+    internal fun createValue(context: GraphqlParser.ValueContext): Value =
         context.BooleanValue()?.text?.toBooleanStrictOrNull()?.let {
             BooleanValue(
                 value = it,

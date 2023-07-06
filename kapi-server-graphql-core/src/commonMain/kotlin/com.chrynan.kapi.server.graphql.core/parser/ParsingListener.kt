@@ -16,6 +16,7 @@ fun interface ParsingListener {
      * This represents a token that has been parsed
      */
     interface Token {
+
         /**
          * @return the text of the parsed token
          */

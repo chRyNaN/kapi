@@ -3,10 +3,7 @@
 package com.chrynan.kapi.server.graphql.core.parser
 
 import com.chrynan.kapi.server.graphql.core.util.bufferedAsUtf8
-import okio.Buffer
-import okio.BufferedSource
-import okio.Source
-import okio.Timeout
+import okio.*
 
 class MultiSourceReader(
     private val sourceParts: List<SourcePart>,
@@ -219,11 +216,11 @@ class MultiSourceReader(
 
         constructor(
             sourceName: String? = null,
-            source: BufferedSource,
+            source: Source,
             closed: Boolean = false
         ) : this(
             sourceName = sourceName,
-            lineReader = LineNumberReader(source = source),
+            lineReader = LineNumberReader(source = source.buffer()),
             closed = closed
         )
 

@@ -3,17 +3,17 @@ package com.chrynan.kapi.server.graphql.core.parser
 import com.chrynan.kapi.server.graphql.core.i18n.I18n
 import com.chrynan.locale.core.Locale
 import com.chrynan.locale.core.getDefault
-import okio.BufferedSource
+import okio.Source
 
 /**
  * This is the arguments that can be passed to a [Parser].
  *
- * @property [document] The [BufferedSource] representing the document to be parsed.
+ * @property [document] The [Source] representing the document to be parsed.
  * @property [parserOptions] The parsing options.
  * @property [i18N] The [I18n] instance used to produce error messages.
  */
 class ParserEnvironment(
-    val document: BufferedSource,
+    val document: Source,
     val parserOptions: ParserOptions = ParserOptions(),
     val i18N: I18n = I18n(
         bundleType = I18n.BundleType.Parsing,
