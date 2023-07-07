@@ -36,7 +36,7 @@ class IntValue(
         additionalData = additionalData
     )
 
-    override fun element(variables: Map<String, JsonElement>): JsonElement =
+    override fun element(variables: Map<String, LiteralValue>): JsonElement =
         JsonPrimitive(value.intValue(exactRequired = false))
 
     override fun equals(other: Any?): Boolean {

@@ -36,7 +36,7 @@ class FloatValue(
         additionalData = additionalData
     )
 
-    override fun element(variables: Map<String, JsonElement>): JsonElement =
+    override fun element(variables: Map<String, LiteralValue>): JsonElement =
         JsonPrimitive(value.floatValue(exactRequired = false))
 
     override fun equals(other: Any?): Boolean {

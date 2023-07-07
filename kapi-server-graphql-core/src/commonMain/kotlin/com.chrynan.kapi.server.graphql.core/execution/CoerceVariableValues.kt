@@ -1,6 +1,7 @@
 package com.chrynan.kapi.server.graphql.core.execution
 
 import com.chrynan.kapi.server.graphql.core.introspection.__Schema
+import com.chrynan.kapi.server.graphql.core.language.LiteralValue
 import com.chrynan.kapi.server.graphql.core.language.OperationDefinition
 import kotlinx.serialization.json.JsonElement
 
@@ -11,5 +12,5 @@ import kotlinx.serialization.json.JsonElement
 fun coerceVariableValues(
     schema: __Schema,
     operation: OperationDefinition,
-    variableValues: Map<String, JsonElement>
-): Map<String, JsonElement> = TODO()
+    variableValues: Map<String, LiteralValue>
+): Map<String, LiteralValue> = TODO()

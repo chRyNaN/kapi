@@ -14,7 +14,7 @@ class NullValue(
     @SerialName(value = "ignored_chars") override val ignoredChars: IgnoredChars = IgnoredChars.EMPTY,
     @SerialName(value = "additional_data") override val additionalData: Map<String, String> = emptyMap()
 ) : Node,
-    Value {
+    LiteralValue {
 
     @Transient
     override val children: List<Node> = emptyList()
@@ -31,7 +31,7 @@ class NullValue(
         additionalData = additionalData
     )
 
-    override fun element(variables: Map<String, JsonElement>): JsonElement = JsonNull
+    override fun element(variables: Map<String, LiteralValue>): JsonElement = JsonNull
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

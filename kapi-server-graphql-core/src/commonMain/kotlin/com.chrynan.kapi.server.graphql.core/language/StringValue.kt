@@ -34,7 +34,7 @@ class StringValue(
         additionalData = additionalData
     )
 
-    override fun element(variables: Map<String, JsonElement>): JsonElement = JsonPrimitive(value)
+    override fun element(variables: Map<String, LiteralValue>): JsonElement = JsonPrimitive(value)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

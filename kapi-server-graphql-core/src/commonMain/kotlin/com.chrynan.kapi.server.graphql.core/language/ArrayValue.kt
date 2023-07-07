@@ -15,7 +15,7 @@ class ArrayValue(
     @SerialName(value = "ignored_chars") override val ignoredChars: IgnoredChars = IgnoredChars.EMPTY,
     @SerialName(value = "additional_data") override val additionalData: Map<String, String> = emptyMap()
 ) : Node,
-    Value {
+    LiteralValue {
 
     @Transient
     override val children: List<Node> = values
@@ -34,7 +34,7 @@ class ArrayValue(
         additionalData = additionalData
     )
 
-    override fun element(variables: Map<String, JsonElement>): JsonElement = buildJsonArray {
+    override fun element(variables: Map<String, LiteralValue>): JsonElement = buildJsonArray {
         values.forEach { value ->
             add(value.element(variables = variables))
         }

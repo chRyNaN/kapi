@@ -4,6 +4,8 @@ package com.chrynan.kapi.server.graphql.core
 
 import com.chrynan.kapi.server.graphql.core.introspection.__Type
 import com.chrynan.kapi.server.graphql.core.language.Arguments
+import com.chrynan.kapi.server.graphql.core.language.LiteralValue
+import com.chrynan.kapi.server.graphql.core.language.TypeDefinition
 import graphql.execution.MergedField
 import graphql.language.SelectionSet
 import kotlinx.serialization.KSerializer
@@ -13,24 +15,28 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializer
-import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 
-interface KotlinType<T> {
+interface Type<T> {
 
-    val kType: KType
+    val name: String
+    val introspection: __Type
+    val definition: TypeDefinition
+    val kotlin: KType
     val serializer: KSerializer<T>
-}
-
-interface GraphqlType {
-
-    val type: __Type
+    val serializersModule: SerializersModule
 }
 
 interface Value<T> {
 
+    val type: Type<T>
     val value: T
+}
+
+interface Resolver<T> {
+
+    suspend fun resolve(arguments: Map<String, LiteralValue>): T
 }
 
 interface ResolvedType<T> {
@@ -43,7 +49,7 @@ interface ResolvedType<T> {
 
     val serializersModule: SerializersModule
 
-    suspend fun getField(name: String, arguments: Arguments): ResolvedType<*>
+    suspend fun getField(name: String, arguments: Map<String, LiteralValue>): ResolvedType<*>
 }
 
 @Suppress("UNCHECKED_CAST")

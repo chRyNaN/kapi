@@ -35,8 +35,9 @@ class VariableReference(
         additionalData = additionalData
     )
 
-    override fun element(variables: Map<String, JsonElement>): JsonElement =
-        variables[name] ?: throw NoSuchElementException("There was no variable with the name `$name` provided.")
+    override fun element(variables: Map<String, LiteralValue>): JsonElement =
+        variables[name]?.literalElement
+            ?: throw NoSuchElementException("There was no variable with the name `$name` provided.")
 
     override fun isContentEqualTo(node: Node): Boolean {
         if (this == node) return true

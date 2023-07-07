@@ -19,13 +19,13 @@ sealed interface Value : Node {
      * case that this [Value] is a [VariableReference].
      *
      * @param [variables] The GraphQL variables passed with the GraphQL operation request. The key of the [Map] should
-     * be the name of the variable, and the value should be the [JsonElement] value representation. Defaults to an
-     * empty [Map].
+     * be the name of the variable, and the value should be the [LiteralValue] representation. Defaults to an empty
+     * [Map].
      *
      * @throws [NoSuchElementException] if this [Value] is a [VariableReference] and the provided [variables] does not
      * contain a value for this variable.
      */
-    fun element(variables: Map<String, JsonElement> = emptyMap()): JsonElement
+    fun element(variables: Map<String, LiteralValue> = emptyMap()): JsonElement
 }
 
 /**
@@ -34,10 +34,9 @@ sealed interface Value : Node {
  * [variables] does not contain a matching value for it.
  *
  * @param [variables] The GraphQL variables passed with the GraphQL operation request. The key of the [Map] should
- * be the name of the variable, and the value should be the [JsonElement] value representation. Defaults to an
- * empty [Map].
+ * be the name of the variable, and the value should be the [LiteralValue] representation. Defaults to an empty [Map].
  */
-fun Value.elementOrNull(variables: Map<String, JsonElement> = emptyMap()): JsonElement? =
+fun Value.elementOrNull(variables: Map<String, LiteralValue> = emptyMap()): JsonElement? =
     try {
         element(variables = variables)
     } catch (_: NoSuchElementException) {
@@ -53,8 +52,7 @@ fun Value.elementOrNull(variables: Map<String, JsonElement> = emptyMap()): JsonE
  * call-site to know the type of [Value.element] according to the associated GraphQL Schema.
  *
  * @param [variables] The GraphQL variables passed with the GraphQL operation request. The key of the [Map] should
- * be the name of the variable, and the value should be the [JsonElement] value representation. Defaults to an
- * empty [Map].
+ * be the name of the variable, and the value should be the [LiteralValue] representation. Defaults to an empty [Map].
  *
  * @param [json] The [Json] instance used to convert this [Value]'s [Value.element] property to the type [T].
  *
@@ -65,7 +63,7 @@ fun Value.elementOrNull(variables: Map<String, JsonElement> = emptyMap()): JsonE
  * @see [Value.element]
  */
 inline fun <reified T> Value.value(
-    variables: Map<String, JsonElement> = emptyMap(),
+    variables: Map<String, LiteralValue> = emptyMap(),
     json: Json = Json.Default
 ): T = json.decodeFromJsonElement(
     deserializer = json.serializersModule.serializer<T>(),
@@ -82,8 +80,7 @@ inline fun <reified T> Value.value(
  * call-site to know the type of [Value.element] according to the associated GraphQL Schema.
  *
  * @param [variables] The GraphQL variables passed with the GraphQL operation request. The key of the [Map] should
- * be the name of the variable, and the value should be the [JsonElement] value representation. Defaults to an
- * empty [Map].
+ * be the name of the variable, and the value should be the [LiteralValue] representation. Defaults to an empty [Map].
  *
  * @param [json] The [Json] instance used to convert this [Value]'s [Value.element] property to the type [T].
  *
@@ -91,7 +88,7 @@ inline fun <reified T> Value.value(
  * @see [Value.element]
  */
 inline fun <reified T> Value.valueOrNull(
-    variables: Map<String, JsonElement> = emptyMap(),
+    variables: Map<String, LiteralValue> = emptyMap(),
     json: Json = Json.Default
 ): T? = try {
     value(variables = variables, json = json)
